@@ -1,11 +1,20 @@
 <!DOCTYPE html>
-<html lang="es">
+<!-- Aquí declaramos que vamos a usar Thymeleaf (th) -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Plataforma de Prácticas UBB</title>
+    <!-- Reemplazamos el título dinámicamente -->
+    <title th:text="${titulo}">Título de repuesto</title>
 </head>
 <body>
-    <h1>¡El Servidor de la Plataforma está en línea!</h1>
-    <p>Bienvenido al sistema de evaluación de Pedagogía en Educación Matemática.</p>
+    
+    <h1 th:text="${titulo}">Encabezado de repuesto</h1>
+    
+    <!-- Aquí Thymeleaf inyectará el mensaje -->
+    <p th:text="${mensajeBievenida}">Si ves esto, Thymeleaf falló.</p>
+
+    <!-- Combinando HTML normal con datos dinámicos -->
+    <p>Sesión iniciada por: <strong th:text="${usuarioActivo}">Usuario Anónimo</strong></p>
+
 </body>
 </html>
