@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro de Estudiante</title>
+</head>
+<body>
+    <h2>Registrar Nuevo Estudiante en Práctica</h2>
+    
+    <!-- El formulario envía los datos a la ruta /guardar mediante POST -->
+    <form th:action="@{/guardar}" th:object="${estudiante}" method="post">
+        
+        <label>RUT:</label>
+        <input type="text" th:field="*{rut}" required /><br><br>
+        
+        <label>Nombre:</label>
+        <input type="text" th:field="*{nombre}" required /><br><br>
+        
+        <label>Apellido:</label>
+        <input type="text" th:field="*{apellido}" required /><br><br>
+        
+        <button type="submit">Guardar Estudiante</button>
+        
+    </form>
+</body>
+</html>
