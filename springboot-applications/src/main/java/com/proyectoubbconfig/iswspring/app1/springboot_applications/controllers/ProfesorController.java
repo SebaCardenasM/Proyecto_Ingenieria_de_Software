@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Profesor;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.ProfesorRepository; 
 
+import java.util.List; // ¡Importación necesaria para la lista!
+
 @Controller
 public class ProfesorController {
 
@@ -26,5 +28,17 @@ public class ProfesorController {
     public String guardarProfesor(Profesor profesor) {
         profesorRepository.save(profesor);
         return "redirect:/"; // Vuelve al panel principal
+    }
+
+    // 3. NUEVO: Mostrar la lista de profesores
+    @GetMapping("/profesores")
+    public String listarProfesores(Model model) {
+        // Buscamos todos los profesores guardados en MySQL
+        List<Profesor> listaProfesores = profesorRepository.findAll();
+        
+        // Enviamos la lista a tu archivo HTML
+        model.addAttribute("profesores", listaProfesores);
+        
+        return "profesores"; // Apunta al archivo profesores.html que creaste
     }
 }
