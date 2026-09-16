@@ -72,6 +72,6 @@ public class Practica {
     public void setProfesor(Profesor profesor) {
         this.profesor = profesor;
     }
-
+    
     
 }

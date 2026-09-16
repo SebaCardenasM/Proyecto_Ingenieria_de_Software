@@ -27,6 +27,12 @@ public class Planificacion {
     @JoinColumn(name = "profesor_colaborador_id")
     private Profesor profesorColaborador;
 
+    // --- AQUÍ ESTÁ LA SOLUCIÓN ---
+    // Falta declarar la variable y su relación en la base de datos
+    @ManyToOne
+    @JoinColumn(name = "practica_id")
+    private Practica practica;
+
     public Long getId() {
         return id;
     }
@@ -75,7 +81,12 @@ public class Planificacion {
         this.profesorColaborador = profesorColaborador;
     }
 
-   
+    // Parte nueva añadida
+    public Practica getPractica() { 
+        return practica; 
+    }
     
-
-}
+    public void setPractica(Practica practica) { 
+        this.practica = practica; 
+    }
+} 

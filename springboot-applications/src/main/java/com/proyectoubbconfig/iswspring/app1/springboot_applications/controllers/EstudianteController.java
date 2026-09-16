@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Estudiante;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.EstudianteRepository; 
 
+import java.util.List; // ¡No olvides esta importación!
 
 @Controller
 public class EstudianteController {
@@ -25,7 +26,19 @@ public class EstudianteController {
     // 2. Recibir los datos del formulario y guardarlos en BD
     @PostMapping("/guardar")
     public String guardarEstudiante(Estudiante estudiante) {
-        estudianteRepository.save(estudiante); // ¡La magia de Spring Boot!
-        return "redirect:/"; // Redirige a la página de inicio al terminar
+        estudianteRepository.save(estudiante); 
+        return "redirect:/"; 
+    }
+
+    // 3. NUEVO: Mostrar la lista de estudiantes
+    @GetMapping("/estudiantes")
+    public String listarEstudiantes(Model model) {
+        // Obtenemos todos los estudiantes de la base de datos
+        List<Estudiante> listaEstudiantes = estudianteRepository.findAll();
+        
+        // Enviamos la lista al HTML usando el mismo nombre que pusimos en el th:each
+        model.addAttribute("estudiantes", listaEstudiantes);
+        
+        return "estudiantes"; // Apunta al archivo estudiantes.html
     }
 }
