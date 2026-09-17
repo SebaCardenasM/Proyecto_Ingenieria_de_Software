@@ -1,5 +1,6 @@
 package com.proyectoubbconfig.iswspring.app1.springboot_applications.models;
 
+import java.time.LocalDateTime;
 import jakarta.persistence.*;
 
 @Entity
@@ -11,7 +12,14 @@ public class Informe {
     private Long id;
 
     private Integer numeroPractica;
-    private String rutaPdf;
+    private String rutaArchivo; // Ahora acepta rutas de Word, PPT, JPG, etc.
+    private String tipoDocumento; // Ej: "Planificación", "Guía de Aprendizaje"
+    private LocalDateTime fechaSubida;
+
+    // --- AQUÍ ESTÁ LA RELACIÓN FALTANTE QUE SOLUCIONA EL ERROR ---
+    @ManyToOne
+    @JoinColumn(name = "practica_id")
+    private Practica practica;
 
     @ManyToOne
     @JoinColumn(name = "estudiante_id")
@@ -24,6 +32,10 @@ public class Informe {
     @ManyToOne
     @JoinColumn(name = "profesor_colaborador_id")
     private Profesor profesorColaborador;
+
+    // ==========================================
+    // GETTERS Y SETTERS
+    // ==========================================
 
     public Long getId() {
         return id;
@@ -41,12 +53,37 @@ public class Informe {
         this.numeroPractica = numeroPractica;
     }
 
-    public String getRutaPdf() {
-        return rutaPdf;
+    public String getRutaArchivo() {
+        return rutaArchivo;
     }
 
-    public void setRutaPdf(String rutaPdf) {
-        this.rutaPdf = rutaPdf;
+    public void setRutaArchivo(String rutaArchivo) {
+        this.rutaArchivo = rutaArchivo;
+    }
+
+    public String getTipoDocumento() {
+        return tipoDocumento;
+    }
+
+    public void setTipoDocumento(String tipoDocumento) {
+        this.tipoDocumento = tipoDocumento;
+    }
+
+    public LocalDateTime getFechaSubida() {
+        return fechaSubida;
+    }
+
+    public void setFechaSubida(LocalDateTime fechaSubida) {
+        this.fechaSubida = fechaSubida;
+    }
+
+    // --- SETTER Y GETTER DE PRACTICA AÑADIDOS ---
+    public Practica getPractica() {
+        return practica;
+    }
+
+    public void setPractica(Practica practica) {
+        this.practica = practica;
     }
 
     public Estudiante getEstudiante() {
@@ -72,8 +109,4 @@ public class Informe {
     public void setProfesorColaborador(Profesor profesorColaborador) {
         this.profesorColaborador = profesorColaborador;
     }
-
-    
-
-    
 }

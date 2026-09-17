@@ -1,5 +1,7 @@
 package com.proyectoubbconfig.iswspring.app1.springboot_applications.models;
 
+import java.time.LocalDate;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -15,6 +17,12 @@ public class Practica {
     private Integer numeroPractica;
     private Boolean aprobacion;
     private Double notaAprobacion;
+    
+    // manejo de fechas
+    private LocalDate fechaInicio;
+    private LocalDate fechaFin;
+    private LocalDate limitePlanificacion; // Hito a las 3 semanas
+    private LocalDate limiteInformeFinal;  // Hito a las 6 semanas
 
     // Relación N:1 con Estudiante
     @ManyToOne
