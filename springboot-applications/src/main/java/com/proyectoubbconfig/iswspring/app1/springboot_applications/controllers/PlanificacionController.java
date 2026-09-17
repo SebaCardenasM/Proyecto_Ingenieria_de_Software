@@ -5,7 +5,6 @@ import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Pract
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.PlanificacionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -13,59 +12,44 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 
 @Controller
 @RequestMapping("/planificaciones")
 public class PlanificacionController {
 
-    // Inyectamos el repositorio para poder guardar en la base de datos
     @Autowired
     private PlanificacionRepository planificacionRepository;
 
-    // Ruta donde se guardarán físicamente los PDFs en tu computador/servidor
-    private static final String UPLOAD_DIR = "uploads/planificaciones/";
-    
-    // Función para mostrar la página HTML del formulario
-    @GetMapping("/subir")
-    public String mostrarFormularioSubida() {
-        return "subir_planificacion";
-    }
+    private static final String UPLOAD_DIR = "uploads/documentos/"; // Carpeta más genérica
 
-    // Función que "Recibe" y "Almacena" la planificación
     @PostMapping("/subir")
-    public String subirPlanificacion(@RequestParam("archivoPdf") MultipartFile archivoPdf,
-                                     @RequestParam("practicaId") Long practicaId) {
+    public String subirDocumento(@RequestParam("archivo") MultipartFile archivo,
+                                 @RequestParam("practicaId") Long practicaId,
+                                 @RequestParam("tipoDocumento") String tipoDocumento) {
         
-        if (archivoPdf.isEmpty()) {
-            return "redirect:/planificaciones/error"; // Manejo de error si no hay archivo
-        }
+        if (archivo.isEmpty()) return "redirect:/planificaciones/error";
 
         try {
-            // 1. Crear la carpeta si no existe
             Path uploadPath = Paths.get(UPLOAD_DIR);
-            if (!Files.exists(uploadPath)) {
-                Files.createDirectories(uploadPath);
-            }
+            if (!Files.exists(uploadPath)) Files.createDirectories(uploadPath);
 
-            // 2. Generar un nombre único para el archivo y guardarlo físicamente
-            String nombreArchivo = System.currentTimeMillis() + "_" + archivoPdf.getOriginalFilename();
+            // Generar nombre y guardar
+            String nombreArchivo = System.currentTimeMillis() + "_" + archivo.getOriginalFilename();
             Path rutaFisica = uploadPath.resolve(nombreArchivo);
-            Files.write(rutaFisica, archivoPdf.getBytes());
+            Files.write(rutaFisica, archivo.getBytes());
 
-            // 3. Guardar el registro en la base de datos (Usando el modelo que validamos)
+            // Crear el registro con los nuevos atributos del modelo
             Planificacion nuevaPlanificacion = new Planificacion();
-            nuevaPlanificacion.setRutaPdf(rutaFisica.toString());
+            nuevaPlanificacion.setRutaArchivo(rutaFisica.toString());
+            nuevaPlanificacion.setTipoDocumento(tipoDocumento); // Ej: "Guía de aprendizaje"
+            nuevaPlanificacion.setFechaSubida(LocalDateTime.now()); // Registra el momento exacto
             
-            // Aquí simulo la creación de la práctica para asociarla. 
-            // Más adelante usaremos el PracticaRepository para buscarla por el practicaId.
-            Practica practicaAsociada = new Practica();
-            practicaAsociada.setId(practicaId);
-            nuevaPlanificacion.setPractica(practicaAsociada);
+            Practica practica = new Practica();
+            practica.setId(practicaId);
+            nuevaPlanificacion.setPractica(practica);
 
-            // Guardamos oficialmente en la base de datos MySQL
             planificacionRepository.save(nuevaPlanificacion);
-
-            System.out.println("Planificación guardada exitosamente en: " + rutaFisica.toString());
 
         } catch (IOException e) {
             e.printStackTrace();

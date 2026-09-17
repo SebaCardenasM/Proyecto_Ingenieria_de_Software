@@ -1,5 +1,7 @@
 package com.proyectoubbconfig.iswspring.app1.springboot_applications.models;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -11,7 +13,15 @@ public class Planificacion {
     private Long id;
 
     private Integer numeroPractica; // 1 al 6
-    private String rutaPdf; // Guardaremos la ruta del archivo subido
+    
+    // Cambiar esto:
+    // private String rutaPdf;
+    
+    // Por esto (importando java.time.LocalDateTime):
+    private String rutaArchivo; // Ahora acepta rutas de Word, PPT, JPG, etc.
+    private String tipoDocumento; // Ej: "Planificación", "Guía de Aprendizaje"
+    private LocalDateTime fechaSubida;
+
 
     // Relación con el estudiante que la "Realiza"
     @ManyToOne
@@ -41,6 +51,30 @@ public class Planificacion {
         this.id = id;
     }
 
+    public String getRutaArchivo() {
+        return rutaArchivo;
+    }
+
+    public void setRutaArchivo(String rutaArchivo) {
+        this.rutaArchivo = rutaArchivo;
+    }
+
+    public String getTipoDocumento() {
+        return tipoDocumento;
+    }
+
+    public void setTipoDocumento(String tipoDocumento) {
+        this.tipoDocumento = tipoDocumento;
+    }
+
+    public LocalDateTime getFechaSubida() {
+        return fechaSubida;
+    }
+
+    public void setFechaSubida(LocalDateTime fechaSubida) {
+        this.fechaSubida = fechaSubida;
+    }
+
     public Integer getNumeroPractica() {
         return numeroPractica;
     }
@@ -48,7 +82,7 @@ public class Planificacion {
     public void setNumeroPractica(Integer numeroPractica) {
         this.numeroPractica = numeroPractica;
     }
-
+    /* 
     public String getRutaPdf() {
         return rutaPdf;
     }
@@ -56,7 +90,7 @@ public class Planificacion {
     public void setRutaPdf(String rutaPdf) {
         this.rutaPdf = rutaPdf;
     }
-
+    */
     public Estudiante getEstudiante() {
         return estudiante;
     }

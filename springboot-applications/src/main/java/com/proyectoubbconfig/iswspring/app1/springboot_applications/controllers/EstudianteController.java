@@ -30,6 +30,8 @@ public class EstudianteController {
         return "redirect:/"; 
     }
 
+
+
     // 3. NUEVO: Mostrar la lista de estudiantes
     @GetMapping("/estudiantes")
     public String listarEstudiantes(Model model) {
