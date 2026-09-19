@@ -1,6 +1,7 @@
 package com.proyectoubbconfig.iswspring.app1.springboot_applications.models;
-
 import java.time.LocalDateTime;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -29,9 +30,10 @@ public class ArchivoPractica {
 
     private LocalDateTime fechaSubida;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "estudiante_rut", nullable = false)
-    private Usuario estudiante; // Asumiendo que tu entidad de login se llama Usuario
+    private Usuario estudiante;
 
     // Constructores, Getters y Setters
     public ArchivoPractica() {}
