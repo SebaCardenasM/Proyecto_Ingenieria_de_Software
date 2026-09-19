@@ -15,5 +15,7 @@ public class InicioController {
         model.addAttribute("usuarioActivo", "limon"); 
         
         return "index"; // Sigue apuntando a index.html
+        
     }
+    
 }

@@ -14,15 +14,23 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-            .authorizeHttpRequests(auth -> auth
-                // Se agregan las rutas de registro e imágenes/recursos estáticos
-                .requestMatchers("/css/**", "/js/**", "/images/**", "/login", "/registro", "/usuarios/**").permitAll()
+        
+        http.authorizeHttpRequests(auth -> auth
+                .requestMatchers(
+                    "/css/**", 
+                    "/js/**", 
+                    "/images/**", 
+                    "/login", 
+                    "/registro", 
+                    "/usuarios/**", 
+                    "/gestor-archivos", 
+                    "/api/estudiante/archivos/**"
+                ).permitAll()
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
                 .loginPage("/login")
-                .usernameParameter("correo")
+                .usernameParameter("correo") // Mantiene el soporte para login con correo
                 .passwordParameter("password")
                 .defaultSuccessUrl("/", true)
                 .permitAll()
