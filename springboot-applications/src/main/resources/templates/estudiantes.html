@@ -21,8 +21,6 @@
         </div>
     </nav>
 
-    
-
     <div class="container">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h3 class="fw-bold text-dark"><i class="bi bi-people-fill text-primary me-2"></i>Directorio de Estudiantes</h3>
@@ -36,9 +34,11 @@
                         <thead class="table-light">
                             <tr>
                                 <th>ID</th>
+                                <th>RUT</th>
                                 <th>Nombre</th>
                                 <th>Apellido</th>
                                 <th>Correo Electrónico</th>
+                                <th>Año Ingreso</th>
                                 <th class="text-center">Acciones</th>
                             </tr>
                         </thead>
@@ -46,16 +46,17 @@
                             <!-- Iteración de Thymeleaf sobre la lista de estudiantes -->
                             <tr th:each="estudiante : ${estudiantes}">
                                 <td th:text="${estudiante.id}">1</td>
-                                <!-- Ajusta 'nombre' y 'apellido' según cómo los hayas declarado en Estudiante.java -->
-                                <td th:text="${estudiante.nombre}">Juan</td>
-                                <td th:text="${estudiante.apellido}">Pérez</td>
-                                <td th:text="${estudiante.correo}">juan.perez@alumnos.ubiobio.cl</td>
+                                <td th:text="${estudiante.usuario != null ? estudiante.usuario.rut : 'Sin RUT'}">12.345.678-9</td>
+                                <td th:text="${estudiante.usuario != null ? estudiante.usuario.nombre : 'Sin Nombre'}">Juan</td>
+                                <td th:text="${estudiante.usuario != null ? estudiante.usuario.apellido : 'Sin Apellido'}">Pérez</td>
+                                <td th:text="${estudiante.usuario != null ? estudiante.usuario.correo : 'Sin Correo'}">juan.perez@alumnos.ubiobio.cl</td>
+                                <td th:text="${estudiante.anoIngreso != null ? estudiante.anoIngreso : 'N/A'}">2024</td>
                                 <td class="text-center">
                                     <button class="btn btn-sm btn-outline-secondary" title="Editar"><i class="bi bi-pencil"></i></button>
                                 </td>
                             </tr>
                             <tr th:if="${#lists.isEmpty(estudiantes)}">
-                                <td colspan="5" class="text-center text-muted py-4">No hay estudiantes registrados aún.</td>
+                                <td colspan="7" class="text-center text-muted py-4">No hay estudiantes registrados aún.</td>
                             </tr>
                         </tbody>
                     </table>

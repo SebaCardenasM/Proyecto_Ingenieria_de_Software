@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Practica;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.PracticaRepository; 
+import java.util.List;
 
 @Controller
 public class PracticaController {
@@ -14,6 +15,13 @@ public class PracticaController {
     @Autowired
     private PracticaRepository practicaRepository;
 
+    @GetMapping("/practicas")
+    public String listarPracticas(Model model) {
+        List<Practica> listaPracticas = practicaRepository.findAll();
+        model.addAttribute("practicas", listaPracticas);
+        return "practicas"; // Apunta a src/main/resources/templates/practicas.html
+    }
+    
     // 1. Mostrar el formulario de asignación de práctica
     @GetMapping("/practicas/registro")
     public String mostrarFormulario(Model model) {
@@ -27,4 +35,6 @@ public class PracticaController {
         practicaRepository.save(practica);
         return "redirect:/"; // Vuelve al panel principal tras guardar
     }
+
+    
 }

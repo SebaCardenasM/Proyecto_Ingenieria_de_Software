@@ -11,48 +11,52 @@ public class Usuario {
     private Long id;
 
     @Column(unique = true, nullable = false)
-    private String correo; // Será el username en Spring Security
+    private String rut;
+
+    private String nombre;
+    private String apellido;
+
+    @Column(unique = true, nullable = false)
+    private String correo;
 
     @Column(nullable = false)
     private String password;
 
-    // Aquí guardaremos "ROLE_ESTUDIANTE" o "ROLE_PROFESOR"
     @Column(nullable = false)
-    private String rol;
+    private String rol; // "ROLE_ESTUDIANTE" o "ROLE_PROFESOR"
 
-    public Long getId() {
-        return id;
-    }
+    // Relaciones opcionales (se crean según el rol elegido)
+    @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL)
+    private Estudiante estudiante;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL)
+    private Profesor profesor;
 
-    public String getCorreo() {
-        return correo;
-    }
+    // Getters y Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public void setCorreo(String correo) {
-        this.correo = correo;
-    }
+    public String getRut() { return rut; }
+    public void setRut(String rut) { this.rut = rut; }
 
-    public String getPassword() {
-        return password;
-    }
+    public String getNombre() { return nombre; }
+    public void setNombre(String nombre) { this.nombre = nombre; }
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
+    public String getApellido() { return apellido; }
+    public void setApellido(String apellido) { this.apellido = apellido; }
 
-    public String getRol() {
-        return rol;
-    }
+    public String getCorreo() { return correo; }
+    public void setCorreo(String correo) { this.correo = correo; }
 
-    public void setRol(String rol) {
-        this.rol = rol;
-    } 
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
 
+    public String getRol() { return rol; }
+    public void setRol(String rol) { this.rol = rol; }
 
+    public Estudiante getEstudiante() { return estudiante; }
+    public void setEstudiante(Estudiante estudiante) { this.estudiante = estudiante; }
 
-    
+    public Profesor getProfesor() { return profesor; }
+    public void setProfesor(Profesor profesor) { this.profesor = profesor; }
 }

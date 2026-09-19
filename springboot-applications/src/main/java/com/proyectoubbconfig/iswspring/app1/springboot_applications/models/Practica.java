@@ -3,6 +3,7 @@ package com.proyectoubbconfig.iswspring.app1.springboot_applications.models;
 import java.time.LocalDate;
 
 import jakarta.persistence.*;
+import java.util.List;
 
 @Entity
 @Table(name = "practicas")
@@ -80,6 +81,18 @@ public class Practica {
     public void setProfesor(Profesor profesor) {
         this.profesor = profesor;
     }
+
+    public LocalDate getFechaInicio() { return fechaInicio; }
+    public void setFechaInicio(LocalDate fechaInicio) { this.fechaInicio = fechaInicio; }
+
+    public LocalDate getFechaFin() { return fechaFin; }
+    public void setFechaFin(LocalDate fechaFin) { this.fechaFin = fechaFin; }
+
+    public LocalDate getLimitePlanificacion() { return limitePlanificacion; }
+    public void setLimitePlanificacion(LocalDate limitePlanificacion) { this.limitePlanificacion = limitePlanificacion; }
+
+    public LocalDate getLimiteInformeFinal() { return limiteInformeFinal; }
+    public void setLimiteInformeFinal(LocalDate limiteInformeFinal) { this.limiteInformeFinal = limiteInformeFinal; }
     
     
 }

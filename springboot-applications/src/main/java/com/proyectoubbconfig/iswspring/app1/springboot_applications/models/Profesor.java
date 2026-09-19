@@ -11,23 +11,20 @@ public class Profesor {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false)
-    private String rut;
+    @OneToOne
+    @JoinColumn(name = "usuario_id", nullable = false)
+    private Usuario usuario;
 
-    private String nombre;
-    private String apellido;
-
-    // Relación: Un profesor coordina a muchos estudiantes
     @OneToMany(mappedBy = "profesorCoordinador")
     private List<Estudiante> estudiantesCoordinados;
 
     // Getters y Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-    public String getRut() { return rut; }
-    public void setRut(String rut) { this.rut = rut; }
-    public String getNombre() { return nombre; }
-    public void setNombre(String nombre) { this.nombre = nombre; }
-    public String getApellido() { return apellido; }
-    public void setApellido(String apellido) { this.apellido = apellido; }
+
+    public Usuario getUsuario() { return usuario; }
+    public void setUsuario(Usuario usuario) { this.usuario = usuario; }
+
+    public List<Estudiante> getEstudiantesCoordinados() { return estudiantesCoordinados; }
+    public void setEstudiantesCoordinados(List<Estudiante> estudiantesCoordinados) { this.estudiantesCoordinados = estudiantesCoordinados; }
 }

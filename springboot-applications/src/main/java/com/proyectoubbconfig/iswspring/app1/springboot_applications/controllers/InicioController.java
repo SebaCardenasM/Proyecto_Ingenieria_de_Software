@@ -12,7 +12,7 @@ public class InicioController {
         // "Empaquetamos" variables bajo un nombre clave
         model.addAttribute("titulo", "Plataforma de Prácticas UBB");
         model.addAttribute("mensajeBievenida", "¡El enlace con Thymeleaf funciona a la perfección!");
-        model.addAttribute("usuarioActivo", "Sebastián Cárdenas"); 
+        model.addAttribute("usuarioActivo", "Limonagrio"); 
         
         return "index"; // Sigue apuntando a index.html
     }

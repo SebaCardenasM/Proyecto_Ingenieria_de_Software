@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Lista de Prácticas - UBB</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .ubb-bg { background-color: #004b85; }
+    </style>
+</head>
+<body class="bg-light">
+
+    <nav class="navbar navbar-dark ubb-bg mb-4 shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold" th:href="@{/}">
+                <i class="bi bi-arrow-left-circle me-2"></i>Volver al Dashboard
+            </a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="fw-bold text-dark"><i class="bi bi-journal-bookmark-fill text-primary me-2"></i>Gestión de Prácticas</h3>
+            <a th:href="@{/practicas/registro}" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i> Asignar Práctica</a>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Estudiante</th>
+                                <th>Profesor</th>
+                                <th>N° Práctica</th>
+                                <th>Año / Semestre</th>
+                                <th>Estado</th>
+                                <th>Nota</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="p : ${practicas}">
+                                <td th:text="${p.id}">1</td>
+                                <td th:text="${p.estudiante != null} ? ${p.estudiante.nombre + ' ' + p.estudiante.apellido} : 'Sin asignar'">Estudiante</td>
+                                <td th:text="${p.profesor != null} ? ${p.profesor.nombre + ' ' + p.profesor.apellido} : 'Sin asignar'">Profesor</td>
+                                <td th:text="${p.numeroPractica}">1</td>
+                                <td th:text="${p.ano + ' - ' + p.semestre}">2026 - 1</td>
+                                <td>
+                                    <span th:if="${p.aprobacion == true}" class="badge bg-success">Aprobada</span>
+                                    <span th:if="${p.aprobacion == false}" class="badge bg-danger">Reprobada</span>
+                                    <span th:if="${p.aprobacion == null}" class="badge bg-warning text-dark">En Curso</span>
+                                </td>
+                                <td th:text="${p.notaAprobacion != null ? p.notaAprobacion : 'N/A'}">7.0</td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(practicas)}">
+                                <td colspan="7" class="text-center text-muted py-4">No hay prácticas registradas aún.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
