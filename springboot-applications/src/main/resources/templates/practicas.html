@@ -44,8 +44,19 @@
                         <tbody>
                             <tr th:each="p : ${practicas}">
                                 <td th:text="${p.id}">1</td>
-                                <td th:text="${p.estudiante != null} ? ${p.estudiante.nombre + ' ' + p.estudiante.apellido} : 'Sin asignar'">Estudiante</td>
-                                <td th:text="${p.profesor != null} ? ${p.profesor.nombre + ' ' + p.profesor.apellido} : 'Sin asignar'">Profesor</td>
+                                
+                                <!-- Mapeo correcto accediendo al objeto usuario del estudiante -->
+                                <td th:text="${p.estudiante != null and p.estudiante.usuario != null} ? 
+                                    ${p.estudiante.usuario.nombre + ' ' + p.estudiante.usuario.apellido} : 'Sin asignar'">
+                                    Estudiante
+                                </td>
+                                
+                                <!-- Mapeo correcto accediendo al objeto usuario del profesor -->
+                                <td th:text="${p.profesor != null and p.profesor.usuario != null} ? 
+                                    ${p.profesor.usuario.nombre + ' ' + p.profesor.usuario.apellido} : 'Sin asignar'">
+                                    Profesor
+                                </td>
+                                
                                 <td th:text="${p.numeroPractica}">1</td>
                                 <td th:text="${p.ano + ' - ' + p.semestre}">2026 - 1</td>
                                 <td>

@@ -37,8 +37,8 @@ public class UsuarioController {
         return "registroUsuario";
     }
 
-    @PostMapping("/guardar")
-    public String guardarUsuario(@ModelAttribute("usuario") Usuario usuario) {
+   @PostMapping("/guardar")
+    public String guardarUsuario(@ModelAttribute("usuario") Usuario usuario, Model model) {
         // 1. Encriptar la contraseña recibida del formulario antes de guardar
         String passwordEncriptada = passwordEncoder.encode(usuario.getPassword());
         usuario.setPassword(passwordEncriptada);
@@ -57,6 +57,10 @@ public class UsuarioController {
             profesorRepository.save(profesor);
         }
 
-        return "redirect:/?registroUsuario";
+        // Resetear el objeto en el modelo para limpiar las cajas de texto del formulario
+        model.addAttribute("usuario", new Usuario());
+
+        // Retornar directamente la plantilla actual sin hacer redirección al menú principal
+        return "registroUsuario";
     }
 }
