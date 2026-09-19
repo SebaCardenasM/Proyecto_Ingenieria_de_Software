@@ -4,7 +4,10 @@ import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Usuar
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.*;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -17,18 +20,25 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String correo) throws UsernameNotFoundException {
-        Usuario usuario = usuarioRepository.findByCorreo(correo);
+        // 1. Buscar al usuario en la base de datos por su correo
+        Usuario usuario = usuarioRepository.findByCorreo(correo != null ? correo.trim() : "");
+
+        // 2. Si no existe, lanzar excepción
         if (usuario == null) {
-            throw new UsernameNotFoundException("Usuario no encontrado");
+            throw new UsernameNotFoundException("No existe usuario registrado con el correo: " + correo);
         }
-        
-        // Convertimos el rol de tu BD (ej. ROLE_ESTUDIANTE) al formato de Spring
-        SimpleGrantedAuthority autoridad = new SimpleGrantedAuthority(usuario.getRol());
-        
-        return new org.springframework.security.core.userdetails.User(
-                usuario.getCorreo(),
-                usuario.getPassword(),
-                Collections.singletonList(autoridad)
+
+        // 3. Formatear el rol para asegurar el prefijo ROLE_ que exige Spring Security
+        String rolNombre = usuario.getRol();
+        if (rolNombre != null && !rolNombre.startsWith("ROLE_")) {
+            rolNombre = "ROLE_" + rolNombre;
+        }
+
+        // 4. Retornar el objeto UserDetails con el correo, password encriptado y rol
+        return new User(
+            usuario.getCorreo(),
+            usuario.getPassword(),
+            Collections.singletonList(new SimpleGrantedAuthority(rolNombre))
         );
     }
 }

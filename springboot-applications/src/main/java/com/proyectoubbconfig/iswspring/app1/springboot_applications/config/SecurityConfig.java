@@ -16,20 +16,25 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/css/**", "/js/**", "/login").permitAll() // Todos pueden ver el login
-                .anyRequest().authenticated() // Lo demás requiere inicio de sesión
+                // Se agregan las rutas de registro e imágenes/recursos estáticos
+                .requestMatchers("/css/**", "/js/**", "/images/**", "/login", "/registro", "/usuarios/**").permitAll()
+                .anyRequest().authenticated()
             )
             .formLogin(form -> form
-                .loginPage("/login") // Le decimos que usaremos nuestro propio HTML
-                .defaultSuccessUrl("/") // A dónde ir si el login es exitoso
+                .loginPage("/login")
+                .usernameParameter("correo")
+                .passwordParameter("password")
+                .defaultSuccessUrl("/", true)
                 .permitAll()
             )
-            .logout(logout -> logout.permitAll());
+            .logout(logout -> logout
+                .logoutSuccessUrl("/login?logout")
+                .permitAll()
+            );
 
         return http.build();
     }
 
-    // Usaremos BCrypt para que las contraseñas se guarden encriptadas
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

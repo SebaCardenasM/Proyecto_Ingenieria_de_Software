@@ -7,6 +7,7 @@ import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.ProfesorRepository;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,6 +28,9 @@ public class UsuarioController {
     @Autowired
     private ProfesorRepository profesorRepository;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @GetMapping("/registro")
     public String mostrarRegistro(Model model) {
         model.addAttribute("usuario", new Usuario());
@@ -35,10 +39,14 @@ public class UsuarioController {
 
     @PostMapping("/guardar")
     public String guardarUsuario(@ModelAttribute("usuario") Usuario usuario) {
-        // 1. Guardar el usuario base
+        // 1. Encriptar la contraseña recibida del formulario antes de guardar
+        String passwordEncriptada = passwordEncoder.encode(usuario.getPassword());
+        usuario.setPassword(passwordEncriptada);
+
+        // 2. Guardar el usuario base en la base de datos
         Usuario usuarioGuardado = usuarioRepository.save(usuario);
 
-        // 2. Crear el perfil específico según el rol elegido
+        // 3. Crear el perfil específico según el rol elegido
         if ("ROLE_ESTUDIANTE".equals(usuario.getRol())) {
             Estudiante estudiante = new Estudiante();
             estudiante.setUsuario(usuarioGuardado);
@@ -49,6 +57,6 @@ public class UsuarioController {
             profesorRepository.save(profesor);
         }
 
-        return "redirect:/";
+        return "redirect:/?registroUsuario";
     }
 }
