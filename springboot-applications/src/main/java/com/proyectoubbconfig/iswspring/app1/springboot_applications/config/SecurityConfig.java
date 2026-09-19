@@ -15,22 +15,25 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         
-        http.authorizeHttpRequests(auth -> auth
-                .requestMatchers(
-                    "/css/**", 
-                    "/js/**", 
-                    "/images/**", 
-                    "/login", 
-                    "/registro", 
-                    "/usuarios/**", 
-                    "/gestor-archivos", 
-                    "/api/estudiante/archivos/**"
-                ).permitAll()
-                .anyRequest().authenticated()
+        http
+            // 👇 1. DESACTIVAMOS LA PROTECCIÓN CSRF PARA QUE FUNCIONE TU FETCH (POST)
+            .csrf(csrf -> csrf.disable())
+            
+            .authorizeHttpRequests(auth -> auth
+                    .requestMatchers(
+                        "/css/**", 
+                        "/js/**", 
+                        "/images/**", 
+                        "/login", 
+                        "/registro", 
+                        "/usuarios/**"
+                        // 👇 2. ELIMINAMOS LAS RUTAS DEL GESTOR DE AQUÍ PARA OBLIGAR AL LOGIN
+                    ).permitAll()
+                    .anyRequest().authenticated()
             )
             .formLogin(form -> form
                 .loginPage("/login")
-                .usernameParameter("correo") // Mantiene el soporte para login con correo
+                .usernameParameter("correo") 
                 .passwordParameter("password")
                 .defaultSuccessUrl("/", true)
                 .permitAll()
