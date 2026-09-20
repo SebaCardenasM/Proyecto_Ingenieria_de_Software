@@ -1,6 +1,9 @@
 package com.proyectoubbconfig.iswspring.app1.springboot_applications.models;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -37,6 +40,9 @@ public class Practica {
     @ManyToOne
     @JoinColumn(name = "profesor_id")
     private Profesor profesor;
+
+    @OneToMany(mappedBy = "practica", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ArchivoPractica> archivos = new ArrayList<>();
 
     // Getters y Setters
     public Long getId() { return id; }
@@ -75,4 +81,7 @@ public class Practica {
 
     public LocalDate getLimiteInformeFinal() { return limiteInformeFinal; }
     public void setLimiteInformeFinal(LocalDate limiteInformeFinal) { this.limiteInformeFinal = limiteInformeFinal; }
+    public List<ArchivoPractica> getArchivos() {return archivos;}
+
+    public void setArchivos(List<ArchivoPractica> archivos) {this.archivos = archivos;}
 }

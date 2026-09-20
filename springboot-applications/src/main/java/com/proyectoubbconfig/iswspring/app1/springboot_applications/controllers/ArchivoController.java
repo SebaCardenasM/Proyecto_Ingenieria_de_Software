@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.ArchivoPractica;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.TipoDocumento;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.services.ArchivoService;
 
 @RestController
@@ -23,12 +24,15 @@ public class ArchivoController {
     private ArchivoService archivoService;
 
     @PostMapping("/subir")
-    public ResponseEntity<?> subirDocumento(@RequestParam("archivo") MultipartFile archivo) {
+    public ResponseEntity<?> subirDocumento(
+            @RequestParam("archivo") MultipartFile archivo,
+            @RequestParam("numeroPractica") Integer numeroPractica,
+            @RequestParam("tipoDocumento") TipoDocumento tipoDocumento) {
         try {
-            ArchivoPractica archivoGuardado = archivoService.subirArchivo(archivo);
-            return ResponseEntity.status(HttpStatus.CREATED).body(archivoGuardado);
+            ArchivoPractica guardado = archivoService.subirArchivo(archivo, numeroPractica, tipoDocumento);
+            return ResponseEntity.ok(guardado);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error al subir el documento: " + e.getMessage());
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 

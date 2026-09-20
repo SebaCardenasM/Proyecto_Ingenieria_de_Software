@@ -1,10 +1,13 @@
 package com.proyectoubbconfig.iswspring.app1.springboot_applications.models;
-import java.time.LocalDateTime;
 
+import java.time.LocalDateTime;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -26,51 +29,84 @@ public class ArchivoPractica {
     private String nombreArchivo;
 
     @Column(nullable = false)
-    private String rutaServidor; // URL o ruta local donde se guardó el PDF/Docx
+    private String rutaServidor;
 
     private LocalDateTime fechaSubida;
 
-    @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "estudiante_rut", nullable = false)
-    private Usuario estudiante;
+    // Nuevo campo: Tipo de documento (PAUTA, PLANIFICACION, INFORME_FINAL)
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TipoDocumento tipoDocumento;
 
-    // Constructores, Getters y Setters
+    // Relación con la Práctica correspondiente
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "practica_id", nullable = false)
+    @JsonIgnoreProperties({"archivos", "estudiante", "profesor"}) // Ignores específicos para evitar bucles
+    private Practica practica;
+
     public ArchivoPractica() {}
+
+    
 
     @PrePersist
     protected void onCreate() {
         this.fechaSubida = LocalDateTime.now();
     }
-    
-    public Usuario getEstudiante() {
-        return estudiante;
-    }
-    
+
+    // Getters y Setters
     public Long getId() {
         return id;
     }
-    public String getNombreArchivo() {
-        return nombreArchivo;
-    }
-    public String getRutaServidor() {
-        return rutaServidor;
-    }
-    public LocalDateTime getFechaSubida() {
-        return fechaSubida;
-    }
-    public void setEstudiante(Usuario estudiante) {
-        this.estudiante = estudiante;
-    }
+
     public void setId(Long id) {
         this.id = id;
     }
+
+    public String getNombreArchivo() {
+        return nombreArchivo;
+    }
+
     public void setNombreArchivo(String nombreArchivo) {
         this.nombreArchivo = nombreArchivo;
     }
+
+    public String getRutaServidor() {
+        return rutaServidor;
+    }
+
     public void setRutaServidor(String rutaServidor) {
         this.rutaServidor = rutaServidor;
     }
 
-    // ... (Agregar getters y setters)
+    public LocalDateTime getFechaSubida() {
+        return fechaSubida;
+    }
+
+    public void setFechaSubida(LocalDateTime fechaSubida) {
+        this.fechaSubida = fechaSubida;
+    }
+
+    public TipoDocumento getTipoDocumento() {
+        return tipoDocumento;
+    }
+
+    public void setTipoDocumento(TipoDocumento tipoDocumento) {
+        this.tipoDocumento = tipoDocumento;
+    }
+
+    public Practica getPractica() {
+        return practica;
+    }
+
+    public void setPractica(Practica practica) {
+        this.practica = practica;
+    }
+    public Integer getNumeroPractica() {
+    if (this.practica != null) {
+        return this.practica.getNumeroPractica();
+    }
+    return null;
+    
+    }
+    
 }
