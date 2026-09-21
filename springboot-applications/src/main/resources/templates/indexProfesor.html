@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Panel Profesor - Prácticas UBB</title>
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <style>
+        .ubb-bg { background-color: #004b85; }
+        .card:hover { transform: translateY(-3px); transition: 0.3s; box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body class="bg-light">
+
+    <!-- Barra de Navegación -->
+    <nav class="navbar navbar-expand-lg navbar-dark ubb-bg mb-4 shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold" th:href="@{/profesor/index}">
+                <i class="bi bi-mortarboard-fill me-2"></i>Plataforma de Prácticas
+            </a>
+            
+            <!-- Usuario de sesión -->
+            <div class="d-flex text-white align-items-center ms-auto">
+                <i class="bi bi-person-circle fs-3 me-2"></i>
+                <div class="d-flex flex-column text-end">
+                    <span class="fw-bold lh-1" th:text="${usuarioActivo ?: 'Profesor'}">Profesor</span>
+                    <small class="text-white-50 mt-1" style="font-size: 0.75rem;" th:text="${rolUsuario ?: 'PROFESOR'}">PROFESOR</small>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Contenedor Principal -->
+    <div class="container">
+        
+        <div class="row mb-4">
+            <div class="col-12">
+                <h2 class="fw-bold text-dark">Portal del Profesor Guía</h2>
+                <p class="text-muted">Supervisión, evaluación y revisión de documentos de tus alumnos asignados.</p>
+            </div>
+        </div>
+
+        <!-- Tarjetas del Profesor -->
+        <div class="row g-4">
+            
+            <!-- Estudiantes Asignados -->
+            <div class="col-md-6">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body pt-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="display-5 text-primary me-3"><i class="bi bi-people-fill"></i></div>
+                            <h4 class="card-title fw-bold mb-0">Mis Estudiantes</h4>
+                        </div>
+                        <p class="card-text text-muted mb-4">Consulta la lista de alumnos bajo tu supervisión y su estado de práctica actual.</p>
+                        <div class="d-grid gap-2">
+                            <a th:href="@{/profesor/estudiantes}" class="btn btn-outline-primary">
+                                <i class="bi bi-person-lines-fill me-1"></i> Ver Mis Alumnos
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Revisión de Documentos -->
+            <div class="col-md-6">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body pt-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="display-5 text-danger me-3"><i class="bi bi-folder-check"></i></div>
+                            <h4 class="card-title fw-bold mb-0">Revisión de Entregas</h4>
+                        </div>
+                        <p class="card-text text-muted mb-4">Revisa y retroalimenta las planificaciones e informes enviados por tus alumnos.</p>
+                        <div class="d-grid gap-2">
+                            <a th:href="@{/profesor/archivos}" class="btn btn-outline-danger">
+                                <i class="bi bi-search me-1"></i> Revisar Documentos
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Evaluaciones y Pautas -->
+            <div class="col-md-6">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body pt-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="display-5 text-success me-3"><i class="bi bi-clipboard-check-fill"></i></div>
+                            <h4 class="card-title fw-bold mb-0">Evaluación de Prácticas</h4>
+                        </div>
+                        <p class="card-text text-muted mb-4">Completa las pautas y rúbricas de evaluación de desempeño docente.</p>
+                        <div class="d-grid gap-2">
+                            <a th:href="@{/profesor/evaluaciones}" class="btn btn-outline-success">
+                                <i class="bi bi-plus-circle me-1"></i> Evaluar Alumno
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Script de Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
