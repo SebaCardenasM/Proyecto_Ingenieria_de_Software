@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Meta etiquetas CSRF para Thymeleaf -->
+    <meta name="_csrf" th:content="${_csrf?.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf?.headerName}"/>
+    
     <title>Gestor de Archivos - Prácticas UBB</title>
     
     <!-- Importando Bootstrap 5 e Iconos -->
@@ -184,7 +188,8 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <!-- Script de conexión y filtrado interactivo -->
-    <script>
+    <!-- Script de conexión y filtrado interactivo (CORREGIDO) -->
+    <script th:inline="javascript">
         let archivosGlobales = [];
 
         document.addEventListener("DOMContentLoaded", () => {
@@ -204,9 +209,20 @@
                 formData.append("numeroPractica", numPractica);
                 formData.append("tipoDocumento", tipoDoc);
 
+                // Obtener Tokens CSRF si Spring Security está activo
+                const csrfHeader = document.querySelector("meta[name='_csrf_header']")?.getAttribute("content");
+                const csrfToken = document.querySelector("meta[name='_csrf']")?.getAttribute("content");
+
+                const headers = {};
+                if (csrfHeader && csrfToken) {
+                    headers[csrfHeader] = csrfToken;
+                }
+
                 try {
-                    const respuesta = await fetch('/api/estudiante/archivos/subir', {
+                    // RUTA CORREGIDA: /api/documentos/subir
+                    const respuesta = await fetch('/api/documentos/subir', {
                         method: 'POST',
+                        headers: headers,
                         body: formData
                     });
 
@@ -243,9 +259,10 @@
         async function cargarArchivos() {
             const tabla = document.getElementById('tablaArchivos');
             try {
-                const respuesta = await fetch('/api/estudiante/archivos/mis-documentos');
+                // RUTA CORREGIDA: /api/documentos/mis-documentos
+                const respuesta = await fetch('/api/documentos/mis-documentos');
                 
-                if (respuesta.status === 204) {
+                if (respuesta.status === 204 || respuesta.status === 404) {
                     archivosGlobales = [];
                     renderizarTabla();
                     return;
@@ -263,16 +280,14 @@
         function renderizarTabla() {
             const tabla = document.getElementById('tablaArchivos');
             
-            if (archivosGlobales.length === 0) {
+            if (!archivosGlobales || archivosGlobales.length === 0) {
                 tabla.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4"><i class="bi bi-inbox fs-4 d-block mb-2"></i>No has subido ningún documento aún.</td></tr>';
                 return;
             }
 
-            // Obtener arreglos con valores seleccionados
             const practicasSeleccionadas = Array.from(document.querySelectorAll('.filtro-practica:checked')).map(cb => cb.value);
             const tiposSeleccionados = Array.from(document.querySelectorAll('.filtro-tipo:checked')).map(cb => cb.value);
 
-            // Mostrar u ocultar botón de limpiar filtros
             const btnLimpiar = document.getElementById('btnLimpiarFiltros');
             if (practicasSeleccionadas.length > 0 || tiposSeleccionados.length > 0) {
                 btnLimpiar.classList.remove('d-none');
@@ -280,9 +295,7 @@
                 btnLimpiar.classList.add('d-none');
             }
 
-            // Filtrar arreglo
             const archivosFiltrados = archivosGlobales.filter(archivo => {
-                // Obtener número de práctica (revisando si viene directo o en un objeto anidado)
                 const numPrac = archivo.numeroPractica || (archivo.practica ? archivo.practica.numeroPractica : null);
                 const tipoDoc = archivo.tipoDocumento;
 
@@ -300,11 +313,12 @@
             tabla.innerHTML = ''; 
 
             archivosFiltrados.forEach((archivo) => {
-                const fecha = new Date(archivo.fechaSubida).toLocaleDateString('es-CL', {
-                    day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
-                });
+                const fecha = archivo.fechaSubida 
+                    ? new Date(archivo.fechaSubida).toLocaleDateString('es-CL', {
+                        day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                      })
+                    : 'Sin fecha';
 
-                // Lógica priorizada para obtener el número de práctica
                 const numPrac = archivo.numeroPractica || (archivo.practica ? archivo.practica.numeroPractica : 'N/A');
                 const tipoDocText = formatoTipoDocumento(archivo.tipoDocumento);
 

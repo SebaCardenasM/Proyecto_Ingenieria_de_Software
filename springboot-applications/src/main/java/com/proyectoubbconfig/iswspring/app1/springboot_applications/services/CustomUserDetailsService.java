@@ -28,11 +28,8 @@ public class CustomUserDetailsService implements UserDetailsService {
             throw new UsernameNotFoundException("No existe usuario registrado con el correo: " + correo);
         }
 
-        // 3. Formatear el rol para asegurar el prefijo ROLE_ que exige Spring Security
-        String rolNombre = usuario.getRol();
-        if (rolNombre != null && !rolNombre.startsWith("ROLE_")) {
-            rolNombre = "ROLE_" + rolNombre;
-        }
+        // 3. Obtener el nombre del enum Rol y agregar el prefijo ROLE_
+        String rolNombre = "ROLE_" + usuario.getRol().name();
 
         // 4. Retornar el objeto UserDetails con el correo, password encriptado y rol
         return new User(

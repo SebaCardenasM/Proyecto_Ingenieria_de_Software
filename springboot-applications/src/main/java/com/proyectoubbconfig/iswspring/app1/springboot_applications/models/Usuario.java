@@ -22,15 +22,19 @@ public class Usuario {
     @Column(nullable = false)
     private String password;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String rol; // "ROLE_ESTUDIANTE" o "ROLE_PROFESOR"
+    private Rol rol; // ESTUDIANTE, PROFESOR, COORDINADOR
 
-    // Relaciones opcionales (se crean según el rol elegido)
+    // Relaciones opcionales según el rol
     @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL)
     private Estudiante estudiante;
 
     @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL)
     private Profesor profesor;
+
+    @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL)
+    private Coordinador coordinador; // <--- NUEVA RELACIÓN
 
     // Getters y Setters
     public Long getId() { return id; }
@@ -51,12 +55,15 @@ public class Usuario {
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
 
-    public String getRol() { return rol; }
-    public void setRol(String rol) { this.rol = rol; }
+    public Rol getRol() { return rol; }
+    public void setRol(Rol rol) { this.rol = rol; }
 
     public Estudiante getEstudiante() { return estudiante; }
     public void setEstudiante(Estudiante estudiante) { this.estudiante = estudiante; }
 
     public Profesor getProfesor() { return profesor; }
     public void setProfesor(Profesor profesor) { this.profesor = profesor; }
+
+    public Coordinador getCoordinador() { return coordinador; }
+    public void setCoordinador(Coordinador coordinador) { this.coordinador = coordinador; }
 }

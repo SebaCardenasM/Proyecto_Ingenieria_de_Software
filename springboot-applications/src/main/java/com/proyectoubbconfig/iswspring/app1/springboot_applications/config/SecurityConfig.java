@@ -1,5 +1,6 @@
 package com.proyectoubbconfig.iswspring.app1.springboot_applications.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -11,6 +12,9 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    @Autowired
+    private CustomAuthenticationSuccessHandler successHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -27,15 +31,19 @@ public class SecurityConfig {
                         "/login", 
                         "/registro", 
                         "/usuarios/**"
-                        // 👇 2. ELIMINAMOS LAS RUTAS DEL GESTOR DE AQUÍ PARA OBLIGAR AL LOGIN
                     ).permitAll()
+                    // Control de acceso por rol a cada sección
+                    .requestMatchers("/estudiante/**").hasRole("ESTUDIANTE")
+                    .requestMatchers("/profesor/**").hasRole("PROFESOR")
+                    .requestMatchers("/index", "/").hasAnyRole("COORDINADOR", "PROFESOR", "ESTUDIANTE")
                     .anyRequest().authenticated()
             )
             .formLogin(form -> form
                 .loginPage("/login")
                 .usernameParameter("correo") 
                 .passwordParameter("password")
-                .defaultSuccessUrl("/", true)
+                // 👇 Redirección personalizada según el rol del usuario
+                .successHandler(successHandler)
                 .permitAll()
             )
             .logout(logout -> logout

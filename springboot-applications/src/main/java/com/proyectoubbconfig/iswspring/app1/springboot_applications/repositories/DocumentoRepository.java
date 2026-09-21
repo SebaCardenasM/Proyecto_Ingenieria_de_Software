@@ -6,22 +6,31 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.ArchivoPractica;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Documento;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.TipoDocumento;
 
 @Repository
-public interface ArchivoPracticaRepository extends JpaRepository<ArchivoPractica, Long> {
+public interface DocumentoRepository extends JpaRepository<Documento, Long> {
 
-    @Query("SELECT a FROM ArchivoPractica a " +
-           "JOIN a.practica p " +
+    // 1. Para Estudiantes (Ver solo sus propios documentos)
+    @Query("SELECT d FROM Documento d WHERE d.practica.estudiante.usuario.correo = :correo")
+    List<Documento> findByEstudianteCorreo(@Param("correo") String correo);
+
+    // 2. Para Profesores (Ver documentos de los alumnos que supervisa)
+    @Query("SELECT d FROM Documento d WHERE d.practica.profesor.usuario.correo = :correoProfesor")
+    List<Documento> findByProfesorCorreo(@Param("correoProfesor") String correoProfesor);
+
+    // 3. Filtros avanzados
+    @Query("SELECT d FROM Documento d " +
+           "JOIN d.practica p " +
            "JOIN p.estudiante e " +
            "JOIN e.usuario u " +
            "WHERE (:busqueda IS NULL OR LOWER(u.nombre) LIKE LOWER(CONCAT('%', :busqueda, '%')) " +
            "   OR LOWER(u.apellido) LIKE LOWER(CONCAT('%', :busqueda, '%')) " +
            "   OR u.rut LIKE CONCAT('%', :busqueda, '%')) " +
            "AND (:numPractica IS NULL OR p.numeroPractica = :numPractica) " +
-           "AND (:tipo IS NULL OR a.tipoDocumento = :tipo)")
-    List<ArchivoPractica> buscarConFiltros(
+           "AND (:tipo IS NULL OR d.tipoDocumento = :tipo)")
+    List<Documento> buscarConFiltros(
         @Param("busqueda") String busqueda,
         @Param("numPractica") Integer numPractica,
         @Param("tipo") TipoDocumento tipo

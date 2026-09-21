@@ -42,7 +42,7 @@ public class Practica {
     private Profesor profesor;
 
     @OneToMany(mappedBy = "practica", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ArchivoPractica> archivos = new ArrayList<>();
+    private List<Documento> archivos = new ArrayList<>();
 
     // Getters y Setters
     public Long getId() { return id; }
@@ -81,7 +81,7 @@ public class Practica {
 
     public LocalDate getLimiteInformeFinal() { return limiteInformeFinal; }
     public void setLimiteInformeFinal(LocalDate limiteInformeFinal) { this.limiteInformeFinal = limiteInformeFinal; }
-    public List<ArchivoPractica> getArchivos() {return archivos;}
+    public List<Documento> getArchivos() {return archivos;}
 
-    public void setArchivos(List<ArchivoPractica> archivos) {this.archivos = archivos;}
+    public void setArchivos(List<Documento> archivos) {this.archivos = archivos;}
 }

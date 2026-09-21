@@ -1,8 +1,11 @@
 package com.proyectoubbconfig.iswspring.app1.springboot_applications.controllers;
 
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Coordinador;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Estudiante;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Profesor;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Rol;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Usuario;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.CoordinadorRepository;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.EstudianteRepository;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.ProfesorRepository;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.UsuarioRepository;
@@ -28,6 +31,9 @@ public class UsuarioController {
     @Autowired
     private ProfesorRepository profesorRepository;
 
+    @Autowired(required = false)
+    private CoordinadorRepository coordinadorRepository;
+
     @Autowired
     private PasswordEncoder passwordEncoder;
 
@@ -37,30 +43,32 @@ public class UsuarioController {
         return "registroUsuario";
     }
 
-   @PostMapping("/guardar")
+    @PostMapping("/guardar")
     public String guardarUsuario(@ModelAttribute("usuario") Usuario usuario, Model model) {
-        // 1. Encriptar la contraseña recibida del formulario antes de guardar
+        // 1. Encriptar la contraseña
         String passwordEncriptada = passwordEncoder.encode(usuario.getPassword());
         usuario.setPassword(passwordEncriptada);
 
-        // 2. Guardar el usuario base en la base de datos
+        // 2. Guardar el usuario base
         Usuario usuarioGuardado = usuarioRepository.save(usuario);
 
-        // 3. Crear el perfil específico según el rol elegido
-        if ("ROLE_ESTUDIANTE".equals(usuario.getRol())) {
+        // 3. Crear el perfil específico evaluando el Enum Rol
+        if (usuario.getRol() == Rol.ESTUDIANTE) {
             Estudiante estudiante = new Estudiante();
             estudiante.setUsuario(usuarioGuardado);
             estudianteRepository.save(estudiante);
-        } else if ("ROLE_PROFESOR".equals(usuario.getRol())) {
+        } else if (usuario.getRol() == Rol.PROFESOR) {
             Profesor profesor = new Profesor();
             profesor.setUsuario(usuarioGuardado);
             profesorRepository.save(profesor);
+        } else if (usuario.getRol() == Rol.COORDINADOR && coordinadorRepository != null) {
+            Coordinador coordinador = new Coordinador();
+            coordinador.setUsuario(usuarioGuardado);
+            coordinadorRepository.save(coordinador);
         }
 
-        // Resetear el objeto en el modelo para limpiar las cajas de texto del formulario
+        // Resetear el formulario
         model.addAttribute("usuario", new Usuario());
-
-        // Retornar directamente la plantilla actual sin hacer redirección al menú principal
         return "registroUsuario";
     }
 }

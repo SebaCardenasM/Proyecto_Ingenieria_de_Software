@@ -24,8 +24,11 @@
             
             <!-- Usuario de sesión -->
             <div class="d-flex text-white align-items-center ms-auto">
-                <i class="bi bi-person-circle me-2"></i>
-                <span th:text="${usuarioActivo ?: 'Usuario de Sesión'}">Usuario</span>
+                <i class="bi bi-person-circle fs-3 me-2"></i>
+                <div class="d-flex flex-column text-end">
+                    <span class="fw-bold lh-1" th:text="${usuarioActivo ?: 'Usuario de Sesión'}">Sebastián Cárdenas</span>
+                    <small class="text-white-50 mt-1" style="font-size: 0.75rem;" th:text="${rolUsuario ?: 'SIN ROL'}">COORDINADOR</small>
+                </div>
             </div>
         </div>
     </nav>

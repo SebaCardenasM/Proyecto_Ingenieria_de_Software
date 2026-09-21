@@ -4,55 +4,57 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.ArchivoPractica;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Documento;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Estudiante;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Practica;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.TipoDocumento;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Usuario;
-import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.ArchivoPracticaRepository;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.DocumentoRepository;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.UsuarioRepository;
 
 @Service
-public class ArchivoService {
+public class DocumentoService {
 
     @Autowired
-    private ArchivoPracticaRepository archivoRepository;
+    private DocumentoRepository documentoRepository;
 
     @Autowired
     private UsuarioRepository usuarioRepository;
 
     private final String CARPETA_SUBIDAS = "uploads/practicas/";
 
-    public List<ArchivoPractica> obtenerMisArchivos() {
-        String correoActual = SecurityContextHolder.getContext().getAuthentication().getName();
-        Usuario usuario = usuarioRepository.findByCorreo(correoActual);
+    public List<Documento> obtenerDocumentosSegunRol() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String correo = auth.getName();
 
-        if (usuario != null && usuario.getEstudiante() != null) {
-            // Retorna los archivos buscando a través de la lista de prácticas del estudiante
-            List<ArchivoPractica> todosMisArchivos = new ArrayList<>();
-            for (Practica p : usuario.getEstudiante().getPracticas()) {
-                todosMisArchivos.addAll(p.getArchivos()); // Requiere getArchivos() en Practica
-            }
-            return todosMisArchivos;
+        // Si es Coordinador, ve todos los documentos
+        if (auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_COORDINADOR"))) {
+            return documentoRepository.findAll();
+        } 
+        // Si es Profesor, ve los de sus alumnos
+        else if (auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_PROFESOR"))) {
+            return documentoRepository.findByProfesorCorreo(correo);
+        } 
+        // Si es Estudiante, solo ve los propios
+        else {
+            return documentoRepository.findByEstudianteCorreo(correo);
         }
-        return new ArrayList<>();
     }
 
-    public ArchivoPractica subirArchivo(MultipartFile archivo, Integer numeroPractica, TipoDocumento tipoDocumento) throws Exception {
+    public Documento subirArchivo(MultipartFile archivo, Integer numeroPractica, TipoDocumento tipoDocumento) throws Exception {
         if (archivo == null || archivo.isEmpty()) {
             throw new Exception("El archivo está vacío");
         }
 
-        // 1. Obtener Usuario y Estudiante autenticado
         String correoActual = SecurityContextHolder.getContext().getAuthentication().getName();
         Usuario usuario = usuarioRepository.findByCorreo(correoActual);
 
@@ -62,13 +64,11 @@ public class ArchivoService {
 
         Estudiante estudiante = usuario.getEstudiante();
 
-        // 2. Buscar la práctica correspondiente al estudiante por número
         Practica practicaEncontrada = estudiante.getPracticas().stream()
             .filter(p -> p.getNumeroPractica() != null && p.getNumeroPractica().equals(numeroPractica))
             .findFirst()
             .orElseThrow(() -> new Exception("El estudiante no tiene asignada la Práctica " + numeroPractica));
-            
-        // 3. Guardar archivo en disco
+
         Path directorio = Paths.get(CARPETA_SUBIDAS);
         if (!Files.exists(directorio)) {
             Files.createDirectories(directorio);
@@ -80,13 +80,13 @@ public class ArchivoService {
 
         Files.copy(archivo.getInputStream(), rutaFinal, StandardCopyOption.REPLACE_EXISTING);
 
-        // 4. Instanciar y asociar Practica y TipoDocumento
-        ArchivoPractica nuevoArchivo = new ArchivoPractica();
-        nuevoArchivo.setNombreArchivo(nombreOriginal);
-        nuevoArchivo.setRutaServidor(rutaFinal.toString());
-        nuevoArchivo.setTipoDocumento(tipoDocumento);
-        nuevoArchivo.setPractica(practicaEncontrada);
+        Documento nuevoDocumento = new Documento();
+        nuevoDocumento.setNombreArchivo(nombreOriginal);
+        // Normaliza a '/' independientemente del Sistema Operativo
+        nuevoDocumento.setRutaServidor(rutaFinal.toString().replace("\\", "/"));
+        nuevoDocumento.setTipoDocumento(tipoDocumento);
+        nuevoDocumento.setPractica(practicaEncontrada);
 
-        return archivoRepository.save(nuevoArchivo);
+        return documentoRepository.save(nuevoDocumento);
     }
 }
