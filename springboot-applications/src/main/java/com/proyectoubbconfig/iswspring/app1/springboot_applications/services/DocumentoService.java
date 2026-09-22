@@ -15,6 +15,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Documento;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Estudiante;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Informe;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Pauta;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Planificacion;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Practica;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.TipoDocumento;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Usuario;
@@ -60,7 +63,6 @@ public class DocumentoService {
         Usuario usuario = usuarioRepository.findByCorreo(correoActual)
             .orElseThrow(() -> new Exception("No se encontró el usuario con correo: " + correoActual));
 
-        // Debido a la herencia, verificamos si el usuario recuperado es una instancia de Estudiante
         if (!(usuario instanceof Estudiante)) {
             throw new Exception("El usuario autenticado no es un Estudiante.");
         }
@@ -83,12 +85,24 @@ public class DocumentoService {
 
         Files.copy(archivo.getInputStream(), rutaFinal, StandardCopyOption.REPLACE_EXISTING);
 
-        Documento nuevoDocumento = new Documento();
+        // Instanciamos la subclase concreta dependiendo del Enum TipoDocumento
+        Documento nuevoDocumento;
+        if (tipoDocumento == TipoDocumento.PLANIFICACION) {
+            nuevoDocumento = new Planificacion();
+        } else if (tipoDocumento == TipoDocumento.INFORME_FINAL) {
+            nuevoDocumento = new Informe();
+        } else if (tipoDocumento == TipoDocumento.PAUTA) {
+            nuevoDocumento = new Pauta();
+        } else {
+            throw new Exception("Tipo de documento no soportado: " + tipoDocumento);
+        }
+
+        // Poblamos los atributos base heredados
         nuevoDocumento.setNombreArchivo(nombreOriginal);
-        // Normaliza a '/' independientemente del Sistema Operativo
         nuevoDocumento.setRutaServidor(rutaFinal.toString().replace("\\", "/"));
-        nuevoDocumento.setTipoDocumento(tipoDocumento);
+        nuevoDocumento.setNumeroPractica(numeroPractica);
         nuevoDocumento.setPractica(practicaEncontrada);
+        nuevoDocumento.setEstudiante(estudiante);
 
         return documentoRepository.save(nuevoDocumento);
     }

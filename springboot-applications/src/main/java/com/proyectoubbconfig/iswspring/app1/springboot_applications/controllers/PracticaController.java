@@ -34,7 +34,7 @@ public class PracticaController {
         return "practicas";
     }
     
-    // 1. Cargar las listas en el modelo para que aparezcan en los selects
+    // Cargar las listas en el modelo para el formulario de registro
     @GetMapping("/practicas/registro")
     public String mostrarFormulario(Model model) {
         model.addAttribute("practica", new Practica());
@@ -43,7 +43,7 @@ public class PracticaController {
         return "registro_practica";
     }
 
-    // 2. Recibir el objeto practica bindearlo con @ModelAttribute, validar fechas y guardar
+    // Validación de fechas + Vinculación segura de referencias por RUT
     @PostMapping("/practicas/guardar")
     public String guardarPractica(@ModelAttribute("practica") Practica practica, Model model) {
         
@@ -57,8 +57,18 @@ public class PracticaController {
             }
         }
 
-        practicaRepository.save(practica);
+        // Vincular correctamente las entidades por su RUT (esencial para la arquitectura nueva)
+        if (practica.getEstudiante() != null && practica.getEstudiante().getRut() != null) {
+            estudianteRepository.findById(practica.getEstudiante().getRut())
+                .ifPresent(practica::setEstudiante);
+        }
         
+        if (practica.getProfesor() != null && practica.getProfesor().getRut() != null) {
+            profesorRepository.findById(practica.getProfesor().getRut())
+                .ifPresent(practica::setProfesor);
+        }
+
+        practicaRepository.save(practica);
         return "redirect:/practicas";
     }
 }
