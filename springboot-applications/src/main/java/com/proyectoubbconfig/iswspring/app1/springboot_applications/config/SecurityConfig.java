@@ -40,13 +40,13 @@ public class SecurityConfig {
             )
             .formLogin(form -> form
                 .loginPage("/login")
-                // 👇 Se cambia "correo" por "rut" para procesar el formulario con este parámetro
-                .usernameParameter("rut") 
+                .usernameParameter("rut") // <--- ¡Asegúrate de cambiar 'correo' por 'rut' aquí!
                 .passwordParameter("password")
                 // Redirección personalizada según el rol del usuario
                 .successHandler(successHandler)
                 .permitAll()
             )
+            
             .logout(logout -> logout
                 .logoutSuccessUrl("/login?logout")
                 .permitAll()
