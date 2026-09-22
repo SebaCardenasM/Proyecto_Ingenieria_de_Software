@@ -3,8 +3,6 @@ package com.proyectoubbconfig.iswspring.app1.springboot_applications;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Coordinador;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Estudiante;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Profesor;
-import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Rol;
-import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Usuario;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.UsuarioRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -19,63 +17,47 @@ public class SpringbootApplicationsApplication {
         SpringApplication.run(SpringbootApplicationsApplication.class, args);
     }
 
-    // Este Bean se ejecuta automáticamente cada vez que arranca tu aplicación
+    // Este Bean se ejecuta automáticamente cada vez que arranca la aplicación
     @Bean
     public CommandLineRunner crearUsuariosPrueba(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
         return args -> {
             
             // 1. Crear Usuario COORDINADOR de prueba
-            if (usuarioRepository.findByCorreo("coordinador@ubb.cl") == null) {
-                Usuario coordinadorUsuario = new Usuario();
-                coordinadorUsuario.setRut("11.111.111-1");
-                coordinadorUsuario.setNombre("Prueba");
-                coordinadorUsuario.setApellido("Coordinador");
-                coordinadorUsuario.setCorreo("coordinador@ubb.cl");
-                coordinadorUsuario.setPassword(passwordEncoder.encode("admin"));
-                coordinadorUsuario.setRol(Rol.COORDINADOR);
-
+            if (usuarioRepository.findByCorreo("coordinador@ubb.cl").isEmpty()) {
                 Coordinador coordinador = new Coordinador();
+                coordinador.setRut("11.111.111-1");
+                coordinador.setNombre("Prueba");
+                coordinador.setApellido("Coordinador");
+                coordinador.setCorreo("coordinador@ubb.cl");
+                coordinador.setPassword(passwordEncoder.encode("admin"));
 
-                coordinador.setUsuario(coordinadorUsuario);
-                coordinadorUsuario.setCoordinador(coordinador);
-
-                usuarioRepository.save(coordinadorUsuario);
+                usuarioRepository.save(coordinador);
             }
 
             // 2. Crear Usuario PROFESOR de prueba
-            if (usuarioRepository.findByCorreo("profesor@ubb.cl") == null) {
-                Usuario profesorUsuario = new Usuario();
-                profesorUsuario.setRut("22.222.222-2");
-                profesorUsuario.setNombre("Prueba");
-                profesorUsuario.setApellido("Profesor");
-                profesorUsuario.setCorreo("profesor@ubb.cl");
-                profesorUsuario.setPassword(passwordEncoder.encode("profe"));
-                profesorUsuario.setRol(Rol.PROFESOR);
-
+            if (usuarioRepository.findByCorreo("profesor@ubb.cl").isEmpty()) {
                 Profesor profesor = new Profesor();
-                profesor.setUsuario(profesorUsuario);
-                profesorUsuario.setProfesor(profesor);
+                profesor.setRut("22.222.222-2");
+                profesor.setNombre("Prueba");
+                profesor.setApellido("Profesor");
+                profesor.setCorreo("profesor@ubb.cl");
+                profesor.setPassword(passwordEncoder.encode("profe"));
 
-                usuarioRepository.save(profesorUsuario);
+                usuarioRepository.save(profesor);
             }
 
             // 3. Crear Usuario ESTUDIANTE de prueba
-            if (usuarioRepository.findByCorreo("estudiante@ubb.cl") == null) {
-                Usuario estudianteUsuario = new Usuario();
-                estudianteUsuario.setRut("33.333.333-3");
-                estudianteUsuario.setNombre("Prueba");
-                estudianteUsuario.setApellido("Estudiante");
-                estudianteUsuario.setCorreo("estudiante@ubb.cl");
-                estudianteUsuario.setPassword(passwordEncoder.encode("estudiante"));
-                estudianteUsuario.setRol(Rol.ESTUDIANTE);
-
+            if (usuarioRepository.findByCorreo("estudiante@ubb.cl").isEmpty()) {
                 Estudiante estudiante = new Estudiante();
+                estudiante.setRut("33.333.333-3");
+                estudiante.setNombre("Prueba");
+                estudiante.setApellido("Estudiante");
+                estudiante.setCorreo("estudiante@ubb.cl");
+                estudiante.setPassword(passwordEncoder.encode("estudiante"));
                 estudiante.setAnoIngreso(2023);
                 estudiante.setPracticaActual(1);
-                estudiante.setUsuario(estudianteUsuario);
-                estudianteUsuario.setEstudiante(estudiante);
 
-                usuarioRepository.save(estudianteUsuario);
+                usuarioRepository.save(estudiante);
             }
 
         };

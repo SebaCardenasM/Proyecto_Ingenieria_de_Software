@@ -5,12 +5,15 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "documentos") // Nombre de la tabla en BDD
-public class Documento {    // <--- DEBE DECIR 'Documento', NO 'ArchivoPractica'
+@Table(name = "documentos")
+@Inheritance(strategy = InheritanceType.JOINED)
+public abstract class Documento {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    private Integer numeroPractica;
 
     @Column(nullable = false)
     private String nombreArchivo;
@@ -25,21 +28,29 @@ public class Documento {    // <--- DEBE DECIR 'Documento', NO 'ArchivoPractica'
     private TipoDocumento tipoDocumento;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "practica_id", nullable = false)
+    @JoinColumn(name = "practica_id")
     @JsonIgnoreProperties({"archivos", "estudiante", "profesor"})
     private Practica practica;
 
-    // Constructor sin parámetros obligatorio para Hibernate
-    public Documento() {}   // <--- DEBE COINCIDIR CON EL NOMBRE DE LA CLASE
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "estudiante_id")
+    private Estudiante estudiante;
+
+    public Documento() {}
 
     @PrePersist
     protected void onCreate() {
-        this.fechaSubida = LocalDateTime.now();
+        if (this.fechaSubida == null) {
+            this.fechaSubida = LocalDateTime.now();
+        }
     }
 
-    // Getters y Setters...
+    // Getters y Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
+
+    public Integer getNumeroPractica() { return numeroPractica; }
+    public void setNumeroPractica(Integer numeroPractica) { this.numeroPractica = numeroPractica; }
 
     public String getNombreArchivo() { return nombreArchivo; }
     public void setNombreArchivo(String nombreArchivo) { this.nombreArchivo = nombreArchivo; }
@@ -56,7 +67,6 @@ public class Documento {    // <--- DEBE DECIR 'Documento', NO 'ArchivoPractica'
     public Practica getPractica() { return practica; }
     public void setPractica(Practica practica) { this.practica = practica; }
 
-    public Integer getNumeroPractica() {
-        return (this.practica != null) ? this.practica.getNumeroPractica() : null;
-    }
+    public Estudiante getEstudiante() { return estudiante; }
+    public void setEstudiante(Estudiante estudiante) { this.estudiante = estudiante; }
 }

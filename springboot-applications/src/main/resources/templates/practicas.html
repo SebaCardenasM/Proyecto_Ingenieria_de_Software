@@ -34,9 +34,9 @@
                             <tr>
                                 <th>ID</th>
                                 <th class="text-start">Estudiante</th>
-                                <th class="text-start">Profesor</th>
+                                <th class="text-start">Profesor Supervisión</th>
                                 <th>N° Práctica</th>
-                                <th>Año / Semestre</th>
+                                <th>Periodo</th>
                                 <th>Estado</th>
                                 <th>Nota</th>
                             </tr>
@@ -45,22 +45,28 @@
                             <tr th:each="p : ${practicas}">
                                 <td th:text="${p.id}">1</td>
                                 
-                                <!-- Mapeo accediendo al objeto usuario del estudiante -->
-                                <td class="text-start" th:text="${p.estudiante != null and p.estudiante.usuario != null} ? 
-                                    ${p.estudiante.usuario.nombre + ' ' + p.estudiante.usuario.apellido} : 'Sin asignar'">
-                                    Estudiante
+                                <!-- Mapeo directo a los atributos de Estudiante heredados de Usuario -->
+                                <td class="text-start">
+                                    <span th:if="${p.estudiante != null}" 
+                                          th:text="${p.estudiante.nombre + ' ' + p.estudiante.apellido + ' (' + p.estudiante.rut + ')'}">
+                                        Estudiante
+                                    </span>
+                                    <span th:if="${p.estudiante == null}" class="text-muted">Sin asignar</span>
                                 </td>
                                 
-                                <!-- Mapeo accediendo al objeto usuario del profesor -->
-                                <td class="text-start" th:text="${p.profesor != null and p.profesor.usuario != null} ? 
-                                    ${p.profesor.usuario.nombre + ' ' + p.profesor.usuario.apellido} : 'Sin asignar'">
-                                    Profesor
+                                <!-- Mapeo directo a los atributos de Profesor heredados de Usuario -->
+                                <td class="text-start">
+                                    <span th:if="${p.profesor != null}" 
+                                          th:text="${p.profesor.nombre + ' ' + p.profesor.apellido}">
+                                        Profesor
+                                    </span>
+                                    <span th:if="${p.profesor == null}" class="text-muted">Sin asignar</span>
                                 </td>
                                 
                                 <td th:text="${p.numeroPractica}">1</td>
-                                <td th:text="${p.ano + ' - ' + p.semestre}">2026 - 1</td>
+                                <td th:text="${p.ano + ' - ' + p.semestre + 'S'}">2026 - 1S</td>
                                 
-                                <!-- Visualización del Estado con Badges -->
+                                <!-- Estado con Badges -->
                                 <td>
                                     <span th:if="${p.estado?.name() == 'PENDIENTE'}" class="badge bg-warning text-dark">
                                         <i class="bi bi-hourglass-split me-1"></i>Pendiente
@@ -73,7 +79,7 @@
                                     </span>
                                 </td>
 
-                                <!-- Columna de Nota (se muestra solo si está APROBADA o REPROBADA) -->
+                                <!-- Columna de Nota -->
                                 <td>
                                     <span class="fw-bold" 
                                           th:if="${p.estado?.name() != 'PENDIENTE' and p.notaAprobacion != null}" 

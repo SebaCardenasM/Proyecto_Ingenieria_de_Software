@@ -20,7 +20,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         
         http
-            // 👇 1. DESACTIVAMOS LA PROTECCIÓN CSRF PARA QUE FUNCIONE TU FETCH (POST)
+            // Desactivamos la protección CSRF para peticiones POST/Fetch externas
             .csrf(csrf -> csrf.disable())
             
             .authorizeHttpRequests(auth -> auth
@@ -40,9 +40,10 @@ public class SecurityConfig {
             )
             .formLogin(form -> form
                 .loginPage("/login")
-                .usernameParameter("correo") 
+                // 👇 Se cambia "correo" por "rut" para procesar el formulario con este parámetro
+                .usernameParameter("rut") 
                 .passwordParameter("password")
-                // 👇 Redirección personalizada según el rol del usuario
+                // Redirección personalizada según el rol del usuario
                 .successHandler(successHandler)
                 .permitAll()
             )
