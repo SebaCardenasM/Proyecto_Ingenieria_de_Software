@@ -29,14 +29,14 @@
         <div class="card shadow-sm border-0">
             <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover table-striped mb-0">
+                    <table class="table table-hover table-striped mb-0 text-center align-middle">
                         <thead class="table-light">
                             <tr>
                                 <th>ID</th>
-                                <th>Estudiante</th>
-                                <th>Profesor</th>
+                                <th class="text-start">Estudiante</th>
+                                <th class="text-start">Profesor Supervisión</th>
                                 <th>N° Práctica</th>
-                                <th>Año / Semestre</th>
+                                <th>Periodo</th>
                                 <th>Estado</th>
                                 <th>Nota</th>
                             </tr>
@@ -44,16 +44,52 @@
                         <tbody>
                             <tr th:each="p : ${practicas}">
                                 <td th:text="${p.id}">1</td>
-                                <td th:text="${p.estudiante != null} ? ${p.estudiante.nombre + ' ' + p.estudiante.apellido} : 'Sin asignar'">Estudiante</td>
-                                <td th:text="${p.profesor != null} ? ${p.profesor.nombre + ' ' + p.profesor.apellido} : 'Sin asignar'">Profesor</td>
-                                <td th:text="${p.numeroPractica}">1</td>
-                                <td th:text="${p.ano + ' - ' + p.semestre}">2026 - 1</td>
-                                <td>
-                                    <span th:if="${p.aprobacion == true}" class="badge bg-success">Aprobada</span>
-                                    <span th:if="${p.aprobacion == false}" class="badge bg-danger">Reprobada</span>
-                                    <span th:if="${p.aprobacion == null}" class="badge bg-warning text-dark">En Curso</span>
+                                
+                                <!-- Mapeo directo a los atributos de Estudiante heredados de Usuario -->
+                                <td class="text-start">
+                                    <span th:if="${p.estudiante != null}" 
+                                          th:text="${p.estudiante.nombre + ' ' + p.estudiante.apellido + ' (' + p.estudiante.rut + ')'}">
+                                        Estudiante
+                                    </span>
+                                    <span th:if="${p.estudiante == null}" class="text-muted">Sin asignar</span>
                                 </td>
-                                <td th:text="${p.notaAprobacion != null ? p.notaAprobacion : 'N/A'}">7.0</td>
+                                
+                                <!-- Mapeo directo a los atributos de Profesor heredados de Usuario -->
+                                <td class="text-start">
+                                    <span th:if="${p.profesor != null}" 
+                                          th:text="${p.profesor.nombre + ' ' + p.profesor.apellido}">
+                                        Profesor
+                                    </span>
+                                    <span th:if="${p.profesor == null}" class="text-muted">Sin asignar</span>
+                                </td>
+                                
+                                <td th:text="${p.numeroPractica}">1</td>
+                                <td th:text="${p.ano + ' - ' + p.semestre + 'S'}">2026 - 1S</td>
+                                
+                                <!-- Estado con Badges -->
+                                <td>
+                                    <span th:if="${p.estado?.name() == 'PENDIENTE'}" class="badge bg-warning text-dark">
+                                        <i class="bi bi-hourglass-split me-1"></i>Pendiente
+                                    </span>
+                                    <span th:if="${p.estado?.name() == 'APROBADA'}" class="badge bg-success">
+                                        <i class="bi bi-check-circle me-1"></i>Aprobada
+                                    </span>
+                                    <span th:if="${p.estado?.name() == 'REPROBADA'}" class="badge bg-danger">
+                                        <i class="bi bi-x-circle me-1"></i>Reprobada
+                                    </span>
+                                </td>
+
+                                <!-- Columna de Nota -->
+                                <td>
+                                    <span class="fw-bold" 
+                                          th:if="${p.estado?.name() != 'PENDIENTE' and p.notaAprobacion != null}" 
+                                          th:text="${#numbers.formatDecimal(p.notaAprobacion, 1, 1)}">
+                                        7.0
+                                    </span>
+                                    <span class="text-muted" th:if="${p.estado?.name() == 'PENDIENTE' or p.notaAprobacion == null}">
+                                        -
+                                    </span>
+                                </td>
                             </tr>
                             <tr th:if="${#lists.isEmpty(practicas)}">
                                 <td colspan="7" class="text-center text-muted py-4">No hay prácticas registradas aún.</td>

@@ -52,8 +52,10 @@
                                         <span class="input-group-text bg-light"><i class="bi bi-person-badge"></i></span>
                                         <select class="form-select" th:field="*{rol}" required>
                                             <option value="" disabled selected>Seleccione un perfil...</option>
-                                            <option value="ROLE_ESTUDIANTE">Estudiante</option>
-                                            <option value="ROLE_PROFESOR">Profesor</option>
+                                            <option th:each="r : ${T(com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Rol).values()}" 
+                                                    th:value="${r}" 
+                                                    th:text="${r}">
+                                            </option>
                                         </select>
                                     </div>
                                 </div>
@@ -63,7 +65,7 @@
                                     <label class="form-label fw-semibold text-secondary">RUT</label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light"><i class="bi bi-card-heading"></i></span>
-                                        <input type="text" class="form-control" th:field="*{rut}" placeholder="Ej: 12.345.678-9" required>
+                                        <input type="text" class="form-control" th:field="*{rut}" placeholder="Ej: 11.111.111-1" required>
                                     </div>
                                 </div>
 

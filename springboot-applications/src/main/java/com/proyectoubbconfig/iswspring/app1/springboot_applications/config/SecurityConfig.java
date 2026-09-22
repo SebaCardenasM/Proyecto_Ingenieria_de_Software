@@ -1,5 +1,6 @@
 package com.proyectoubbconfig.iswspring.app1.springboot_applications.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -12,27 +13,38 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
+    @Autowired
+    private CustomAuthenticationSuccessHandler successHandler;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         
-        http.authorizeHttpRequests(auth -> auth
-                .requestMatchers(
-                    "/css/**", 
-                    "/js/**", 
-                    "/images/**", 
-                    "/login", 
-                    "/registro", 
-                    "/usuarios/**", 
-                    "/gestor-archivos", 
-                    "/api/estudiante/archivos/**"
-                ).permitAll()
-                .anyRequest().authenticated()
+        http
+            // Desactivamos la protección CSRF para peticiones POST/Fetch externas
+            .csrf(csrf -> csrf.disable())
+            
+            .authorizeHttpRequests(auth -> auth
+                    .requestMatchers(
+                        "/css/**", 
+                        "/js/**", 
+                        "/images/**", 
+                        "/login", 
+                        "/registro", 
+                        "/usuarios/**"
+                    ).permitAll()
+                    // Control de acceso por rol a cada sección
+                    .requestMatchers("/estudiante/**").hasRole("ESTUDIANTE")
+                    .requestMatchers("/profesor/**").hasRole("PROFESOR")
+                    .requestMatchers("/index", "/").hasAnyRole("COORDINADOR", "PROFESOR", "ESTUDIANTE")
+                    .anyRequest().authenticated()
             )
             .formLogin(form -> form
                 .loginPage("/login")
-                .usernameParameter("correo") // Mantiene el soporte para login con correo
+                // 👇 Se cambia "correo" por "rut" para procesar el formulario con este parámetro
+                .usernameParameter("rut") 
                 .passwordParameter("password")
-                .defaultSuccessUrl("/", true)
+                // Redirección personalizada según el rol del usuario
+                .successHandler(successHandler)
                 .permitAll()
             )
             .logout(logout -> logout

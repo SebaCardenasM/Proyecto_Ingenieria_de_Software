@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDateTime;
 
 @Controller
 @RequestMapping("/informes")
@@ -21,37 +20,31 @@ public class InformeController {
     @Autowired
     private InformeRepository informeRepository;
 
-    // Usamos la misma carpeta centralizada para el portafolio del estudiante
     private static final String UPLOAD_DIR = "uploads/documentos/";
 
     @PostMapping("/subir")
     public String subirInforme(@RequestParam("archivo") MultipartFile archivo,
-                               @RequestParam("practicaId") Long practicaId,
-                               @RequestParam("tipoDocumento") String tipoDocumento) {
+                               @RequestParam("practicaId") Long practicaId) {
         
         if (archivo.isEmpty()) {
             return "redirect:/informes/error";
         }
 
         try {
-            // 1. Verificar/Crear directorio
             Path uploadPath = Paths.get(UPLOAD_DIR);
             if (!Files.exists(uploadPath)) {
                 Files.createDirectories(uploadPath);
             }
 
-            // 2. Generar nombre único y guardar físicamente
-            String nombreArchivo = System.currentTimeMillis() + "_" + archivo.getOriginalFilename();
-            Path rutaFisica = uploadPath.resolve(nombreArchivo);
+            String nombreUnico = System.currentTimeMillis() + "_" + archivo.getOriginalFilename();
+            Path rutaFisica = uploadPath.resolve(nombreUnico);
             Files.write(rutaFisica, archivo.getBytes());
 
-            // 3. Crear el registro en la base de datos
+            // Instanciamos la subclase concreta
             Informe nuevoInforme = new Informe();
-            nuevoInforme.setRutaArchivo(rutaFisica.toString());
-            nuevoInforme.setTipoDocumento(tipoDocumento); // Ej: "Informe Reflexivo", "Anexo"
-            nuevoInforme.setFechaSubida(LocalDateTime.now()); // Sello de tiempo automático
+            nuevoInforme.setNombreArchivo(archivo.getOriginalFilename());
+            nuevoInforme.setRutaServidor(rutaFisica.toString());
             
-            // Asociar a la práctica correspondiente
             Practica practica = new Practica();
             practica.setId(practicaId);
             nuevoInforme.setPractica(practica);

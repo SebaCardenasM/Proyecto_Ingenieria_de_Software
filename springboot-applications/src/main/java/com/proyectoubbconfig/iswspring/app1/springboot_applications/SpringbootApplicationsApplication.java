@@ -1,6 +1,8 @@
 package com.proyectoubbconfig.iswspring.app1.springboot_applications;
 
-import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Usuario;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Coordinador;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Estudiante;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Profesor;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.UsuarioRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -15,32 +17,49 @@ public class SpringbootApplicationsApplication {
         SpringApplication.run(SpringbootApplicationsApplication.class, args);
     }
 
-    // Este Bean se ejecuta automáticamente cada vez que arranca tu aplicación
+    // Este Bean se ejecuta automáticamente cada vez que arranca la aplicación
     @Bean
     public CommandLineRunner crearUsuariosPrueba(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
         return args -> {
             
-            // 1. Crear Usuario Estudiante (Tu cuenta)
-            if (usuarioRepository.findByCorreo("sebastian.cardenas2301@alumnos.ubiobio.cl") == null) {
-                Usuario estudiante = new Usuario();
-                estudiante.setCorreo("sebastian.cardenas2301@alumnos.ubiobio.cl");
-                estudiante.setPassword(passwordEncoder.encode("seba67")); // Se encripta la contraseña
-                estudiante.setRol("ROLE_ESTUDIANTE"); 
-                
-                usuarioRepository.save(estudiante);
-                System.out.println("✅ Usuario ESTUDIANTE creado con éxito en MySQL.");
+            // 1. Crear Usuario COORDINADOR de prueba
+            if (usuarioRepository.findByCorreo("coordinador@ubb.cl").isEmpty()) {
+                Coordinador coordinador = new Coordinador();
+                coordinador.setRut("11.111.111-1");
+                coordinador.setNombre("Prueba");
+                coordinador.setApellido("Coordinador");
+                coordinador.setCorreo("coordinador@ubb.cl");
+                coordinador.setPassword(passwordEncoder.encode("admin"));
+
+                usuarioRepository.save(coordinador);
             }
 
-            // 2. Crear Usuario Administrador (Coordinador de prácticas)
-            if (usuarioRepository.findByCorreo("coordinador@ubiobio.cl") == null) {
-                Usuario admin = new Usuario();
-                admin.setCorreo("coordinador@ubiobio.cl");
-                admin.setPassword(passwordEncoder.encode("admin123")); // Contraseña genérica para el admin
-                admin.setRol("ROLE_ADMIN"); 
-                
-                usuarioRepository.save(admin);
-                System.out.println("✅ Usuario ADMINISTRADOR creado con éxito en MySQL.");
+            // 2. Crear Usuario PROFESOR de prueba
+            if (usuarioRepository.findByCorreo("profesor@ubb.cl").isEmpty()) {
+                Profesor profesor = new Profesor();
+                profesor.setRut("22.222.222-2");
+                profesor.setNombre("Prueba");
+                profesor.setApellido("Profesor");
+                profesor.setCorreo("profesor@ubb.cl");
+                profesor.setPassword(passwordEncoder.encode("profe"));
+
+                usuarioRepository.save(profesor);
             }
+
+            // 3. Crear Usuario ESTUDIANTE de prueba
+            if (usuarioRepository.findByCorreo("estudiante@ubb.cl").isEmpty()) {
+                Estudiante estudiante = new Estudiante();
+                estudiante.setRut("33.333.333-3");
+                estudiante.setNombre("Prueba");
+                estudiante.setApellido("Estudiante");
+                estudiante.setCorreo("estudiante@ubb.cl");
+                estudiante.setPassword(passwordEncoder.encode("estudiante"));
+                estudiante.setAnoIngreso(2023);
+                estudiante.setPracticaActual(1);
+
+                usuarioRepository.save(estudiante);
+            }
+
         };
     }
 }

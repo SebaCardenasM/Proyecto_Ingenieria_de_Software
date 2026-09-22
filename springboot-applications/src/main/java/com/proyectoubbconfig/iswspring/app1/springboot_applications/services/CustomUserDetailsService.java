@@ -19,26 +19,17 @@ public class CustomUserDetailsService implements UserDetailsService {
     private UsuarioRepository usuarioRepository;
 
     @Override
-    public UserDetails loadUserByUsername(String correo) throws UsernameNotFoundException {
-        // 1. Buscar al usuario en la base de datos por su correo
-        Usuario usuario = usuarioRepository.findByCorreo(correo != null ? correo.trim() : "");
+    public UserDetails loadUserByUsername(String rut) throws UsernameNotFoundException {
+        // Busca al usuario por su RUT directo ("11.111.111-1") o prueba limpiando puntos si no lo encuentra
+        Usuario usuario = usuarioRepository.findByRut(rut)
+                .orElseGet(() -> usuarioRepository.findByRut(rut.replace(".", ""))
+                        .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado con RUT: " + rut)));
 
-        // 2. Si no existe, lanzar excepción
-        if (usuario == null) {
-            throw new UsernameNotFoundException("No existe usuario registrado con el correo: " + correo);
-        }
-
-        // 3. Formatear el rol para asegurar el prefijo ROLE_ que exige Spring Security
-        String rolNombre = usuario.getRol();
-        if (rolNombre != null && !rolNombre.startsWith("ROLE_")) {
-            rolNombre = "ROLE_" + rolNombre;
-        }
-
-        // 4. Retornar el objeto UserDetails con el correo, password encriptado y rol
+        // Construye el UserDetails mapeando getPassword() y getRol()
         return new User(
-            usuario.getCorreo(),
-            usuario.getPassword(),
-            Collections.singletonList(new SimpleGrantedAuthority(rolNombre))
+                usuario.getRut(),
+                usuario.getPassword(), // Usa getPassword() definido en Usuario.java
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + usuario.getRol().name()))
         );
     }
 }
