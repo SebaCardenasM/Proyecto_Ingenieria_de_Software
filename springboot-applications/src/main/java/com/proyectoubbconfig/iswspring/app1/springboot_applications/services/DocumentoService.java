@@ -123,4 +123,9 @@ public class DocumentoService {
 
         return documentoRepository.save(nuevoDocumento);
     }
+    // Mantén tu obtenerDocumentosSegunRol() tal cual está...
+
+    public List<Documento> obtenerTodosLosDocumentos() {
+        return documentoRepository.findAll();
+    }
 }
