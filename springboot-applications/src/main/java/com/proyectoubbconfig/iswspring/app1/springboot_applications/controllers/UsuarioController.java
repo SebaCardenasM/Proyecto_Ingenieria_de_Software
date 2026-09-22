@@ -1,5 +1,6 @@
 package com.proyectoubbconfig.iswspring.app1.springboot_applications.controllers;
 
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.dto.UsuarioRegistroDTO;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Coordinador;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Estudiante;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Profesor;
@@ -8,7 +9,6 @@ import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Usuar
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.CoordinadorRepository;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.EstudianteRepository;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.ProfesorRepository;
-import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
@@ -21,9 +21,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @RequestMapping("/usuarios")
 public class UsuarioController {
-
-    @Autowired
-    private UsuarioRepository usuarioRepository;
 
     @Autowired
     private EstudianteRepository estudianteRepository;
@@ -39,36 +36,43 @@ public class UsuarioController {
 
     @GetMapping("/registro")
     public String mostrarRegistro(Model model) {
-        model.addAttribute("usuario", new Usuario());
+        // Se envía el DTO plano al formulario
+        model.addAttribute("usuario", new UsuarioRegistroDTO());
         return "registroUsuario";
     }
 
     @PostMapping("/guardar")
-    public String guardarUsuario(@ModelAttribute("usuario") Usuario usuario, Model model) {
-        // 1. Encriptar la contraseña
-        String passwordEncriptada = passwordEncoder.encode(usuario.getPassword());
-        usuario.setPassword(passwordEncriptada);
+    public String guardarUsuario(@ModelAttribute("usuario") UsuarioRegistroDTO dto) {
+        String passwordEncriptada = passwordEncoder.encode(dto.getPassword());
 
-        // 2. Guardar el usuario base
-        Usuario usuarioGuardado = usuarioRepository.save(usuario);
-
-        // 3. Crear el perfil específico evaluando el Enum Rol
-        if (usuario.getRol() == Rol.ESTUDIANTE) {
+        // Según el rol seleccionado en el DTO, se instancia la entidad concreta adecuada
+        if (dto.getRol() == Rol.ESTUDIANTE) {
             Estudiante estudiante = new Estudiante();
-            estudiante.setUsuario(usuarioGuardado);
+            copiarDatosBase(dto, estudiante, passwordEncriptada);
             estudianteRepository.save(estudiante);
-        } else if (usuario.getRol() == Rol.PROFESOR) {
+            return "redirect:/estudiantes";
+
+        } else if (dto.getRol() == Rol.PROFESOR) {
             Profesor profesor = new Profesor();
-            profesor.setUsuario(usuarioGuardado);
+            copiarDatosBase(dto, profesor, passwordEncriptada);
             profesorRepository.save(profesor);
-        } else if (usuario.getRol() == Rol.COORDINADOR && coordinadorRepository != null) {
+            return "redirect:/profesores";
+
+        } else if (dto.getRol() == Rol.COORDINADOR && coordinadorRepository != null) {
             Coordinador coordinador = new Coordinador();
-            coordinador.setUsuario(usuarioGuardado);
+            copiarDatosBase(dto, coordinador, passwordEncriptada);
             coordinadorRepository.save(coordinador);
+            return "redirect:/";
         }
 
-        // Resetear el formulario
-        model.addAttribute("usuario", new Usuario());
-        return "registroUsuario";
+        return "redirect:/login?registrado";
+    }
+
+    private void copiarDatosBase(UsuarioRegistroDTO origen, Usuario destino, String passwordEncriptada) {
+        destino.setRut(origen.getRut());
+        destino.setNombre(origen.getNombre());
+        destino.setApellido(origen.getApellido());
+        destino.setCorreo(origen.getCorreo());
+        destino.setPassword(passwordEncriptada);
     }
 }

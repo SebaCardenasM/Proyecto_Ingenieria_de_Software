@@ -4,30 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Dashboard - Prácticas Educación Matemática</title>
-    <!-- Importando Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     
     <style>
-        .ubb-bg { background-color: #004b85; } /* Azul institucional */
+        .ubb-bg { background-color: #004b85; }
         .card:hover { transform: translateY(-3px); transition: 0.3s; box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
     </style>
 </head>
 <body class="bg-light">
 
-    <!-- Barra de Navegación Simplificada -->
+    <!-- Barra de Navegación -->
     <nav class="navbar navbar-expand-lg navbar-dark ubb-bg mb-4 shadow-sm">
         <div class="container">
             <a class="navbar-brand fw-bold" th:href="@{/}">
                 <i class="bi bi-mortarboard-fill me-2"></i>Plataforma de Prácticas
             </a>
             
-            <!-- Usuario de sesión -->
             <div class="d-flex text-white align-items-center ms-auto">
                 <i class="bi bi-person-circle fs-3 me-2"></i>
                 <div class="d-flex flex-column text-end">
-                    <span class="fw-bold lh-1" th:text="${usuarioActivo ?: 'Usuario de Sesión'}">Sebastián Cárdenas</span>
-                    <small class="text-white-50 mt-1" style="font-size: 0.75rem;" th:text="${rolUsuario ?: 'SIN ROL'}">COORDINADOR</small>
+                    <span class="fw-bold lh-1" th:text="${usuarioActivo != null ? usuarioActivo.nombre + ' ' + usuarioActivo.apellido : 'Usuario'}">Usuario</span>
+                    <small class="text-white-50 mt-1" style="font-size: 0.75rem;" th:text="${rolUsuario ?: 'COORDINADOR'}">COORDINADOR</small>
                 </div>
             </div>
         </div>
@@ -35,7 +33,6 @@
 
     <!-- Contenedor Principal -->
     <div class="container">
-        
         <div class="row mb-4">
             <div class="col-12">
                 <h2 class="fw-bold text-dark">Panel de Control</h2>
@@ -43,10 +40,8 @@
             </div>
         </div>
 
-        <!-- Cuadrícula de Tarjetas -->
         <div class="row g-4">
-            
-            <!-- 1. Gestión de Usuarios y Roles -->
+            <!-- 1. Gestión de Usuarios -->
             <div class="col-md-6">
                 <div class="card h-100 border-0 shadow-sm">
                     <div class="card-body pt-4">
@@ -54,7 +49,7 @@
                             <div class="display-5 text-primary me-3"><i class="bi bi-people-fill"></i></div>
                             <h4 class="card-title fw-bold mb-0">Gestión de Usuarios</h4>
                         </div>
-                        <p class="card-text text-muted mb-4">Administración de credenciales, roles y listas de Coordinadores, Estudiantes y Profesores.</p>
+                        <p class="card-text text-muted mb-4">Administración de credenciales y roles para Coordinadores, Estudiantes y Profesores.</p>
                         
                         <div class="d-grid gap-2">
                             <a th:href="@{/usuarios/registro}" class="btn btn-outline-primary">
@@ -85,7 +80,7 @@
                             <div class="display-5 text-danger me-3"><i class="bi bi-folder-fill"></i></div>
                             <h4 class="card-title fw-bold mb-0">Gestor de Archivos</h4>
                         </div>
-                        <p class="card-text text-muted mb-4">Recepción, almacenamiento y organización de planificaciones de clases e informes enviados por los estudiantes.</p>
+                        <p class="card-text text-muted mb-4">Recepción, almacenamiento y revisión de planificaciones e informes.</p>
                         <div class="d-grid gap-2">
                             <a th:href="@{/gestor-archivos}" class="btn btn-outline-danger"><i class="bi bi-search me-1"></i> Revisar Documentos</a>
                         </div>
@@ -93,7 +88,7 @@
                 </div>
             </div>
 
-            <!-- 3. Gestión de Prácticas (Reemplaza a Pautas y Rúbricas) -->
+            <!-- 3. Gestión de Prácticas -->
             <div class="col-md-6">
                 <div class="card h-100 border-0 shadow-sm">
                     <div class="card-body pt-4">
@@ -102,7 +97,6 @@
                             <h4 class="card-title fw-bold mb-0">Gestión de Prácticas</h4>
                         </div>
                         <p class="card-text text-muted mb-4">Asignación, consulta y seguimiento del estado académico de las prácticas pedagógicas.</p>
-                        
                         <div class="row g-2">
                             <div class="col-6">
                                 <a th:href="@{/practicas/registro}" class="btn btn-outline-success w-100">
@@ -127,18 +121,16 @@
                             <div class="display-5 text-warning me-3"><i class="bi bi-person-vcard"></i></div>
                             <h4 class="card-title fw-bold mb-0">Portafolio Estudiantil</h4>
                         </div>
-                        <p class="card-text text-muted mb-4">Registro consolidado del desempeño de cada alumno a lo largo de sus ciclos de práctica (Inicial, Intermedio y Final).</p>
+                        <p class="card-text text-muted mb-4">Registro consolidado del desempeño de cada alumno a lo largo de sus ciclos de práctica.</p>
                         <div class="d-grid gap-2">
                             <a th:href="@{/portafolios}" class="btn btn-outline-warning text-dark"><i class="bi bi-journal-bookmark me-1"></i> Ver Perfiles de Estudiantes</a>
                         </div>
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
 
-    <!-- Script de Bootstrap -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

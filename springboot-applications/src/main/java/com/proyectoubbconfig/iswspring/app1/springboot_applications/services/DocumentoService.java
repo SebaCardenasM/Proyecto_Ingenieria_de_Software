@@ -56,13 +56,16 @@ public class DocumentoService {
         }
 
         String correoActual = SecurityContextHolder.getContext().getAuthentication().getName();
-        Usuario usuario = usuarioRepository.findByCorreo(correoActual);
+        
+        Usuario usuario = usuarioRepository.findByCorreo(correoActual)
+            .orElseThrow(() -> new Exception("No se encontró el usuario con correo: " + correoActual));
 
-        if (usuario == null || usuario.getEstudiante() == null) {
-            throw new Exception("No se encontró el estudiante autenticado.");
+        // Debido a la herencia, verificamos si el usuario recuperado es una instancia de Estudiante
+        if (!(usuario instanceof Estudiante)) {
+            throw new Exception("El usuario autenticado no es un Estudiante.");
         }
 
-        Estudiante estudiante = usuario.getEstudiante();
+        Estudiante estudiante = (Estudiante) usuario;
 
         Practica practicaEncontrada = estudiante.getPracticas().stream()
             .filter(p -> p.getNumeroPractica() != null && p.getNumeroPractica().equals(numeroPractica))

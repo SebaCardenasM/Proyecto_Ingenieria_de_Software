@@ -5,38 +5,29 @@ import java.util.List;
 
 @Entity
 @Table(name = "estudiantes")
-public class Estudiante {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+@PrimaryKeyJoinColumn(name = "rut")
+public class Estudiante extends Usuario {
 
     private Integer anoIngreso;
     private Integer practicaActual;
-
-    @OneToOne
-    @JoinColumn(name = "usuario_id", nullable = false)
-    private Usuario usuario;
 
     @OneToMany(mappedBy = "estudiante", cascade = CascadeType.ALL)
     private List<Practica> practicas;
 
     @ManyToOne
-    @JoinColumn(name = "profesor_coordinador_id")
+    @JoinColumn(name = "profesor_coordinador_rut")
     private Profesor profesorCoordinador;
 
-    // Getters y Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Estudiante() {
+        super(Rol.ESTUDIANTE);
+    }
 
+    // Getters y Setters
     public Integer getAnoIngreso() { return anoIngreso; }
     public void setAnoIngreso(Integer anoIngreso) { this.anoIngreso = anoIngreso; }
 
     public Integer getPracticaActual() { return practicaActual; }
     public void setPracticaActual(Integer practicaActual) { this.practicaActual = practicaActual; }
-
-    public Usuario getUsuario() { return usuario; }
-    public void setUsuario(Usuario usuario) { this.usuario = usuario; }
 
     public List<Practica> getPracticas() { return practicas; }
     public void setPracticas(List<Practica> practicas) { this.practicas = practicas; }

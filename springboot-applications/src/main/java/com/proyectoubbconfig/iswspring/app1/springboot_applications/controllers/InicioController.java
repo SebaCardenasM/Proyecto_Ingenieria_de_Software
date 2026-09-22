@@ -8,18 +8,22 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import java.util.Optional;
+
 @Controller
 public class InicioController {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
 
-    // Helper para cargar datos del usuario en la barra superior
+    // Carga los datos del usuario autenticado basándose en su RUT
     private void cargarDatosUsuario(Model model, Authentication authentication) {
         if (authentication != null && authentication.isAuthenticated()) {
-            Usuario usuario = usuarioRepository.findByCorreo(authentication.getName());
-            if (usuario != null) {
-                model.addAttribute("usuarioActivo", usuario.getNombre() + " " + usuario.getApellido());
+            // authentication.getName() retorna el RUT ingresado en el Login
+            Optional<Usuario> usuarioOpt = usuarioRepository.findByRut(authentication.getName());
+            if (usuarioOpt.isPresent()) {
+                Usuario usuario = usuarioOpt.get();
+                model.addAttribute("usuarioActivo", usuario);
                 model.addAttribute("rolUsuario", usuario.getRol().name());
             }
         }
@@ -29,20 +33,20 @@ public class InicioController {
     @GetMapping({"/", "/index"})
     public String inicio(Model model, Authentication authentication) {
         cargarDatosUsuario(model, authentication);
-        return "index"; // Retorna index.html
+        return "index";
     }
 
     // Index Estudiante
     @GetMapping("/estudiante/index")
     public String inicioEstudiante(Model model, Authentication authentication) {
         cargarDatosUsuario(model, authentication);
-        return "indexEstudiante"; // Retorna indexEstudiante.html
+        return "indexEstudiante";
     }
 
     // Index Profesor
     @GetMapping("/profesor/index")
     public String inicioProfesor(Model model, Authentication authentication) {
         cargarDatosUsuario(model, authentication);
-        return "indexProfesor"; // Retorna indexProfesor.html
+        return "indexProfesor";
     }
 }

@@ -3,6 +3,5 @@ package com.proyectoubbconfig.iswspring.app1.springboot_applications.repositorie
 import org.springframework.data.jpa.repository.JpaRepository;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Estudiante;
 
-
-public interface EstudianteRepository extends JpaRepository<Estudiante, Long> {
+public interface EstudianteRepository extends JpaRepository<Estudiante, String> {
 }
