@@ -37,7 +37,7 @@ public class DocumentoService {
 
     public List<Documento> obtenerDocumentosSegunRol() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String correo = auth.getName();
+        String identificador = auth.getName();
 
         // Si es Coordinador, ve todos los documentos
         if (auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_COORDINADOR"))) {
@@ -45,11 +45,20 @@ public class DocumentoService {
         } 
         // Si es Profesor, ve los de sus alumnos
         else if (auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_PROFESOR"))) {
-            return documentoRepository.findByProfesorCorreo(correo);
+            return documentoRepository.findByProfesorCorreo(identificador);
         } 
-        // Si es Estudiante, solo ve los propios
+        // Si es Estudiante, filtramos de manera segura por su entidad
         else {
-            return documentoRepository.findByEstudianteCorreo(correo);
+            Usuario usuario = usuarioRepository.findById(identificador).orElse(null);
+            if (usuario == null) {
+                usuario = usuarioRepository.findByCorreo(identificador).orElse(null);
+            }
+            
+            if (usuario instanceof Estudiante) {
+                return documentoRepository.findByEstudiante((Estudiante) usuario);
+            }
+            
+            return documentoRepository.findByEstudianteCorreo(identificador);
         }
     }
 
@@ -58,10 +67,14 @@ public class DocumentoService {
             throw new Exception("El archivo está vacío");
         }
 
-        String correoActual = SecurityContextHolder.getContext().getAuthentication().getName();
+        String identificador = SecurityContextHolder.getContext().getAuthentication().getName();
         
-        Usuario usuario = usuarioRepository.findByCorreo(correoActual)
-            .orElseThrow(() -> new Exception("No se encontró el usuario con correo: " + correoActual));
+        // Buscamos primero por ID (RUT) y como respaldo por correo electrónico
+        Usuario usuario = usuarioRepository.findById(identificador).orElse(null);
+        if (usuario == null) {
+            usuario = usuarioRepository.findByCorreo(identificador)
+                .orElseThrow(() -> new Exception("No se encontró el usuario con identificador: " + identificador));
+        }
 
         if (!(usuario instanceof Estudiante)) {
             throw new Exception("El usuario autenticado no es un Estudiante.");
@@ -69,10 +82,14 @@ public class DocumentoService {
 
         Estudiante estudiante = (Estudiante) usuario;
 
-        Practica practicaEncontrada = estudiante.getPracticas().stream()
-            .filter(p -> p.getNumeroPractica() != null && p.getNumeroPractica().equals(numeroPractica))
-            .findFirst()
-            .orElseThrow(() -> new Exception("El estudiante no tiene asignada la Práctica " + numeroPractica));
+        // Búsqueda segura de la práctica del estudiante
+        Practica practicaEncontrada = null;
+        if (estudiante.getPracticas() != null) {
+            practicaEncontrada = estudiante.getPracticas().stream()
+                .filter(p -> p.getNumeroPractica() != null && p.getNumeroPractica().equals(numeroPractica))
+                .findFirst()
+                .orElse(null);
+        }
 
         Path directorio = Paths.get(CARPETA_SUBIDAS);
         if (!Files.exists(directorio)) {
@@ -101,7 +118,7 @@ public class DocumentoService {
         nuevoDocumento.setNombreArchivo(nombreOriginal);
         nuevoDocumento.setRutaServidor(rutaFinal.toString().replace("\\", "/"));
         nuevoDocumento.setNumeroPractica(numeroPractica);
-        nuevoDocumento.setPractica(practicaEncontrada);
+        nuevoDocumento.setPractica(practicaEncontrada); 
         nuevoDocumento.setEstudiante(estudiante);
 
         return documentoRepository.save(nuevoDocumento);
