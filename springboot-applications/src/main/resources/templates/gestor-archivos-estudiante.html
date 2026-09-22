@@ -3,18 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- Meta etiquetas CSRF para Thymeleaf -->
     <meta name="_csrf" th:content="${_csrf?.token}"/>
     <meta name="_csrf_header" th:content="${_csrf?.headerName}"/>
     
-    <title>Gestor de Archivos - Prácticas UBB</title>
+    <title>Mis Evidencias - Prácticas UBB</title>
     
-    <!-- Importando Bootstrap 5 e Iconos -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     
     <style>
-        .ubb-bg { background-color: #004b85; } /* Color institucional */
+        .ubb-bg { background-color: #004b85; }
         body { background-color: #f4f6f9; }
         
         /* Estilo para los botones circulares de selección múltiple */
@@ -32,36 +30,33 @@
 </head>
 <body>
 
-    <!-- Barra de Navegación Simple -->
     <nav class="navbar navbar-dark ubb-bg mb-4 shadow-sm">
         <div class="container-fluid px-4">
-            <a class="navbar-brand fw-bold" th:href="@{/}">
-                <i class="bi bi-arrow-left-circle me-2"></i>Volver al Dashboard
+            <a class="navbar-brand fw-bold" th:href="@{/estudiante/index}">
+                <i class="bi bi-arrow-left-circle me-2"></i>Volver al Panel
             </a>
-            <div class="d-flex text-white">
-                <i class="bi bi-folder-fill me-2"></i> Mis Documentos
+            <div class="d-flex text-white align-items-center">
+                <i class="bi bi-person-badge fs-5 me-2"></i> Portafolio Estudiantil
             </div>
         </div>
     </nav>
 
     <div class="container-fluid px-4 px-md-5 mb-5">
         
-        <!-- Encabezado de la página -->
         <div class="row mb-4 align-items-center">
             <div class="col-md-8">
-                <h2 class="fw-bold text-dark mb-0"><i class="bi bi-folder2-open text-primary me-2"></i>Gestor de Archivos</h2>
-                <p class="text-muted mt-1 mb-0">Revisa los documentos subidos de tus prácticas anteriores y actuales.</p>
+                <h2 class="fw-bold text-dark mb-0"><i class="bi bi-file-earmark-check text-danger me-2"></i>Mis Evidencias de Práctica</h2>
+                <p class="text-muted mt-1 mb-0">Sube y gestiona los documentos correspondientes al centro de práctica asignado.</p>
             </div>
             <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                <!-- Botón que abre el modal -->
-                <button type="button" class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#modalSubirArchivo">
-                    <i class="bi bi-cloud-upload me-1"></i> Añadir Archivo
+                <button type="button" class="btn btn-danger shadow-sm" data-bs-toggle="modal" data-bs-target="#modalSubirArchivo">
+                    <i class="bi bi-cloud-upload me-1"></i> Subir Nuevo Documento
                 </button>
             </div>
         </div>
 
         <div class="row g-4">
-            <!-- COLUMNA IZQUIERDA: Tabla de archivos -->
+            <!-- Tabla Central -->
             <div class="col-lg-9">
                 <div class="card shadow-sm border-0 h-100">
                     <div class="card-body p-0">
@@ -70,7 +65,6 @@
                                 <thead class="table-light">
                                     <tr>
                                         <th class="ps-4">Nombre del Archivo</th>
-                                        <th>Estudiante</th> <!-- Columna agregada -->
                                         <th>Tipo Documento</th>
                                         <th>Fecha de Subida</th>
                                         <th class="text-center">N° Práctica</th>
@@ -80,8 +74,8 @@
                                 <tbody id="tablaArchivos">
                                     <tr>
                                         <td colspan="5" class="text-center text-muted py-5">
-                                            <div class="spinner-border text-primary spinner-border-sm me-2" role="status"></div>
-                                            Cargando documentos...
+                                            <div class="spinner-border text-danger spinner-border-sm me-2" role="status"></div>
+                                            Cargando tus documentos...
                                         </td>
                                     </tr>
                                 </tbody>
@@ -91,7 +85,7 @@
                 </div>
             </div>
 
-            <!-- COLUMNA DERECHA: Barra lateral de filtros -->
+            <!-- Filtros Laterales -->
             <div class="col-lg-3">
                 <div class="card shadow-sm border-0 h-100">
                     <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
@@ -99,28 +93,27 @@
                     </div>
                     <div class="card-body">
                         
-                        <!-- Filtro: Práctica -->
+                        <!-- Filtro por Círculos de Práctica -->
                         <h6 class="fw-bold text-secondary mb-3 mt-2">Por N° de Práctica</h6>
                         <div class="d-flex flex-wrap gap-2 mb-4">
                             <div th:each="i : ${#numbers.sequence(1, 6)}">
                                 <input type="checkbox" class="btn-check filtro-practica" th:id="'practica' + ${i}" th:value="${i}" autocomplete="off">
-                                <label class="btn btn-outline-primary btn-practica" th:for="'practica' + ${i}" th:text="${i}"></label>
+                                <label class="btn btn-outline-danger btn-practica" th:for="'practica' + ${i}" th:text="${i}"></label>
                             </div>
                         </div>
 
-                        <!-- Filtro: Tipo de Documento -->
-                        <h6 class="fw-bold text-secondary mb-3">Por Tipo de Documento</h6>
+                        <h6 class="fw-bold text-secondary mb-3">Por Tipo de Evidencia</h6>
                         <div class="form-check mb-2">
                             <input class="form-check-input filtro-tipo" type="checkbox" value="PLANIFICACION" id="tipoPlanificacion">
                             <label class="form-check-label" for="tipoPlanificacion">Planificación</label>
                         </div>
                         <div class="form-check mb-2">
                             <input class="form-check-input filtro-tipo" type="checkbox" value="INFORME_FINAL" id="tipoInforme">
-                            <label class="form-check-label" for="tipoInforme">Informe</label>
+                            <label class="form-check-label" for="tipoInforme">Informe Final</label>
                         </div>
                         <div class="form-check mb-4">
-                            <input class="form-check-input filtro-tipo" type="checkbox" value="PAUTA" id="tipoEvaluacion">
-                            <label class="form-check-label" for="tipoEvaluacion">Evaluación / Pauta</label>
+                            <input class="form-check-input filtro-tipo" type="checkbox" value="PAUTA" id="tipoPauta">
+                            <label class="form-check-label" for="tipoPauta">Evaluación / Pauta</label>
                         </div>
 
                         <button id="btnLimpiarFiltros" class="btn btn-sm btn-outline-secondary w-100 d-none">
@@ -133,32 +126,30 @@
         </div>
     </div>
 
-    <!-- MODAL PARA SUBIR ARCHIVO -->
+    <!-- Modal de Subida de Estudiante -->
     <div class="modal fade" id="modalSubirArchivo" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content border-0 shadow">
-                <div class="modal-header ubb-bg text-white">
-                    <h5 class="modal-title" id="modalLabel"><i class="bi bi-cloud-arrow-up-fill me-2"></i>Subir Documento</h5>
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="modalLabel"><i class="bi bi-cloud-arrow-up-fill me-2"></i>Subir Evidencia</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4">
                     <form id="formularioSubida" enctype="multipart/form-data">
                         
                         <div class="mb-3">
-                            <label for="numeroPracticaSelect" class="form-label fw-semibold text-secondary">N° de Práctica</label>
-                            <select class="form-select" id="numeroPracticaSelect" name="numeroPractica" required>
-                                <option value="" selected disabled>Seleccione una práctica...</option>
-                                <option value="1">Práctica 1</option>
-                                <option value="2">Práctica 2</option>
-                                <option value="3">Práctica 3</option>
-                                <option value="4">Práctica 4</option>
-                                <option value="5">Práctica 5</option>
-                                <option value="6">Práctica 6</option>
+                            <label for="practicaActualId" class="form-label fw-semibold text-secondary">¿A qué práctica corresponde?</label>
+                            <select class="form-select" id="practicaActualId" required>
+                                <option value="" selected disabled>Seleccione su práctica asignada...</option>
+                                <option th:each="prac : ${misPracticas}" 
+                                        th:value="${prac.numeroPractica}" 
+                                        th:text="'Práctica N° ' + ${prac.numeroPractica} + ' (' + ${prac.ano} + '-' +${prac.semestre} + ')'">
+                                </option>
                             </select>
                         </div>
 
                         <div class="mb-3">
-                            <label for="tipoDocumentoSelect" class="form-label fw-semibold text-secondary">Tipo de Documento</label>
+                            <label for="tipoDocumentoSelect" class="form-label fw-semibold text-secondary">Tipo de Evidencia</label>
                             <select class="form-select" id="tipoDocumentoSelect" name="tipoDocumento" required>
                                 <option value="" selected disabled>Seleccione el tipo...</option>
                                 <option value="PLANIFICACION">Planificación</option>
@@ -170,13 +161,16 @@
                         <div class="mb-4">
                             <label for="archivoInput" class="form-label fw-semibold text-secondary">Seleccione el archivo</label>
                             <input type="file" class="form-control" id="archivoInput" name="archivo" required>
+                            <div class="form-text mt-2 text-muted">
+                                <i class="bi bi-info-circle me-1"></i>El archivo quedará enlazado a tu práctica seleccionada.
+                            </div>
                         </div>
 
                         <div id="mensajeAlerta" class="alert d-none" role="alert"></div>
 
                         <div class="d-grid">
-                            <button class="btn btn-primary btn-lg" type="submit">
-                                Subir Archivo
+                            <button class="btn btn-danger btn-lg" type="submit">
+                                Subir Documento
                             </button>
                         </div>
                     </form>
@@ -185,42 +179,34 @@
         </div>
     </div>
 
-    <!-- Scripts de Bootstrap -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Script de conexión y filtrado interactivo -->
-    <!-- Script de conexión y filtrado interactivo (CORREGIDO) -->
     <script th:inline="javascript">
         let archivosGlobales = [];
 
         document.addEventListener("DOMContentLoaded", () => {
             cargarArchivos();
 
-            // Formulario de subida
             const formulario = document.getElementById('formularioSubida');
             formulario.addEventListener('submit', async (e) => {
                 e.preventDefault(); 
                 
                 const inputArchivo = document.getElementById('archivoInput');
-                const numPractica = document.getElementById('numeroPracticaSelect').value;
                 const tipoDoc = document.getElementById('tipoDocumentoSelect').value;
+                const numPractica = document.getElementById('practicaActualId').value;
 
                 const formData = new FormData();
                 formData.append("archivo", inputArchivo.files[0]);
-                formData.append("numeroPractica", numPractica);
                 formData.append("tipoDocumento", tipoDoc);
+                formData.append("numeroPractica", numPractica);
 
-                // Obtener Tokens CSRF si Spring Security está activo
                 const csrfHeader = document.querySelector("meta[name='_csrf_header']")?.getAttribute("content");
                 const csrfToken = document.querySelector("meta[name='_csrf']")?.getAttribute("content");
 
                 const headers = {};
-                if (csrfHeader && csrfToken) {
-                    headers[csrfHeader] = csrfToken;
-                }
+                if (csrfHeader && csrfToken) headers[csrfHeader] = csrfToken;
 
                 try {
-                    // RUTA CORREGIDA: /api/documentos/subir
                     const respuesta = await fetch('/api/documentos/subir', {
                         method: 'POST',
                         headers: headers,
@@ -245,7 +231,7 @@
                 }
             });
 
-            // Listeners para filtros
+            // Listeners para ambos tipos de filtros (prácticas y tipos)
             document.querySelectorAll('.filtro-practica, .filtro-tipo').forEach(checkbox => {
                 checkbox.addEventListener('change', renderizarTabla);
             });
@@ -256,12 +242,10 @@
             });
         });
 
-        // 1. Obtener archivos
         async function cargarArchivos() {
             const tabla = document.getElementById('tablaArchivos');
             try {
-                // Ahora consume el nuevo endpoint que trae todos los documentos
-                const respuesta = await fetch('/api/documentos/todos');
+                const respuesta = await fetch('/api/documentos/mis-documentos');
                 
                 if (respuesta.status === 204 || respuesta.status === 404) {
                     archivosGlobales = [];
@@ -273,23 +257,22 @@
                 renderizarTabla();
 
             } catch (error) {
-                tabla.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4"><i class="bi bi-exclamation-triangle-fill me-2"></i>Error al cargar los documentos.</td></tr>';
+                tabla.innerHTML = '<tr><td colspan="5" class="text-center text-danger py-4"><i class="bi bi-exclamation-triangle-fill me-2"></i>Error al cargar los documentos.</td></tr>';
             }
         }
 
-        // 2. Filtrado y renderizado dinámico
         function renderizarTabla() {
             const tabla = document.getElementById('tablaArchivos');
             
             if (!archivosGlobales || archivosGlobales.length === 0) {
-                tabla.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4"><i class="bi bi-inbox fs-4 d-block mb-2"></i>No hay documentos subidos aún.</td></tr>';
+                tabla.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4"><i class="bi bi-inbox fs-4 d-block mb-2"></i>Aún no has subido ninguna evidencia.</td></tr>';
                 return;
             }
 
             const practicasSeleccionadas = Array.from(document.querySelectorAll('.filtro-practica:checked')).map(cb => cb.value);
             const tiposSeleccionados = Array.from(document.querySelectorAll('.filtro-tipo:checked')).map(cb => cb.value);
-
             const btnLimpiar = document.getElementById('btnLimpiarFiltros');
+            
             if (practicasSeleccionadas.length > 0 || tiposSeleccionados.length > 0) {
                 btnLimpiar.classList.remove('d-none');
             } else {
@@ -307,7 +290,7 @@
             });
 
             if (archivosFiltrados.length === 0) {
-                tabla.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4"><i class="bi bi-search me-2"></i>No se encontraron archivos con los filtros aplicados.</td></tr>';
+                tabla.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4"><i class="bi bi-search me-2"></i>No hay documentos que coincidan con los filtros.</td></tr>';
                 return;
             }
 
@@ -317,32 +300,27 @@
                 const fecha = archivo.fechaSubida 
                     ? new Date(archivo.fechaSubida).toLocaleDateString('es-CL', {
                         day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
-                    })
-                    : 'Sin fecha';
+                      })
+                    : 'Recién subido';
 
                 const numPrac = archivo.numeroPractica || (archivo.practica ? archivo.practica.numeroPractica : 'N/A');
                 const tipoDocText = formatoTipoDocumento(archivo.tipoDocumento);
-
-                // Extraer el nombre del estudiante asignado
-                let nombreEstudiante = "Desconocido";
-                if (archivo.estudiante) {
-                    nombreEstudiante = `${archivo.estudiante.nombre} ${archivo.estudiante.apellido}`;
-                } else if (archivo.practica && archivo.practica.estudiante) {
-                    nombreEstudiante = `${archivo.practica.estudiante.nombre} ${archivo.practica.estudiante.apellido}`;
+                let ruta = archivo.rutaServidor || '#';
+                if (!ruta.startsWith('/')) {
+                    ruta = '/' + ruta;
                 }
 
                 const fila = `
                     <tr>
-                        <td class="ps-4 fw-semibold text-primary">
-                            <i class="bi bi-file-earmark-text me-2 text-secondary"></i>${archivo.nombreArchivo}
+                        <td class="ps-4 fw-semibold text-dark">
+                            <i class="bi bi-file-earmark-pdf text-danger me-2"></i>${archivo.nombreArchivo || 'Documento'}
                         </td>
-                        <td><span class="fw-semibold text-dark">${nombreEstudiante}</span></td>
                         <td><span class="badge bg-secondary">${tipoDocText}</span></td>
                         <td>${fecha}</td>
-                        <td class="text-center"><span class="badge bg-info text-dark">Práctica ${numPrac}</span></td>
+                        <td class="text-center"><span class="badge bg-danger bg-opacity-75">Práctica ${numPrac}</span></td>
                         <td class="text-center">
-                            <a href="${archivo.rutaServidor}" target="_blank" class="btn btn-sm btn-outline-primary" title="Descargar/Ver">
-                                <i class="bi bi-download"></i>
+                            <a href="${ruta}" target="_blank" class="btn btn-sm btn-outline-danger" title="Ver Documento">
+                                <i class="bi bi-eye"></i>
                             </a>
                         </td>
                     </tr>
@@ -356,7 +334,7 @@
                 case 'PLANIFICACION': return 'Planificación';
                 case 'INFORME_FINAL': return 'Informe Final';
                 case 'PAUTA': return 'Evaluación / Pauta';
-                default: return tipo || 'Sin Especificar';
+                default: return tipo || 'Documento';
             }
         }
 

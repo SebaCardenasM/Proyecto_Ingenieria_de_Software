@@ -14,7 +14,7 @@
 </head>
 <body class="bg-light">
 
-    <!-- Barra de Navegación -->
+   <!-- Barra de Navegación -->
     <nav class="navbar navbar-expand-lg navbar-dark ubb-bg mb-4 shadow-sm">
         <div class="container">
             <a class="navbar-brand fw-bold" th:href="@{/profesor/index}">
@@ -23,10 +23,16 @@
             
             <div class="d-flex text-white align-items-center ms-auto">
                 <i class="bi bi-person-circle fs-3 me-2"></i>
-                <div class="d-flex flex-column text-end">
+                <div class="d-flex flex-column text-end me-3">
                     <span class="fw-bold lh-1" th:text="${usuarioActivo != null ? usuarioActivo.nombre + ' ' + usuarioActivo.apellido : 'Profesor'}">Profesor</span>
                     <small class="text-white-50 mt-1" style="font-size: 0.75rem;" th:text="${rolUsuario ?: 'PROFESOR'}">PROFESOR</small>
                 </div>
+                <!-- Botón de Cerrar Sesión -->
+                <form th:action="@{/logout}" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-outline-light btn-sm" title="Cerrar sesión">
+                        <i class="bi bi-box-arrow-right"></i> Salir
+                    </button>
+                </form>
             </div>
         </div>
     </nav>
