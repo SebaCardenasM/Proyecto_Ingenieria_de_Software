@@ -5,6 +5,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Estudiante;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Practica;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.EstudianteRepository;
@@ -20,23 +21,23 @@ public class EstudianteController {
     private EstudianteRepository estudianteRepository;
 
     @Autowired
-    private PracticaRepository practicaRepository; // Necesario para buscar tus prácticas
+    private PracticaRepository practicaRepository;
 
-    // 1. Mostrar la página web del formulario
+    // Mostrar la página web del formulario de registro
     @GetMapping("/registro")
     public String mostrarFormulario(Model model) {
         model.addAttribute("estudiante", new Estudiante());
         return "registro";
     }
 
-    // 2. Recibir los datos del formulario y guardarlos en BD
+    // Recibir los datos del formulario y guardarlos en BD
     @PostMapping("/guardar")
     public String guardarEstudiante(Estudiante estudiante) {
         estudianteRepository.save(estudiante); 
         return "redirect:/"; 
     }
 
-    // 3. Mostrar la lista de estudiantes
+    // Mostrar la lista de estudiantes
     @GetMapping("/estudiantes")
     public String listarEstudiantes(Model model) {
         List<Estudiante> listaEstudiantes = estudianteRepository.findAll();
@@ -44,13 +45,13 @@ public class EstudianteController {
         return "estudiantes"; 
     }
 
-    // 4. MODIFICADO: Gestor de archivos inteligente
+    // Gestor de archivos inteligente del estudiante
     @GetMapping("/estudiante/archivos")
     public String mostrarGestorArchivosEstudiante(Model model, Principal principal) {
         
         // Verificamos que alguien haya iniciado sesión
         if (principal != null) {
-            String correo = principal.getName(); // Trae sebastian.cardenas...
+            String correo = principal.getName(); 
             
             // Buscamos al estudiante por su correo
             Estudiante estudianteActual = estudianteRepository.findByUsuarioCorreo(correo);

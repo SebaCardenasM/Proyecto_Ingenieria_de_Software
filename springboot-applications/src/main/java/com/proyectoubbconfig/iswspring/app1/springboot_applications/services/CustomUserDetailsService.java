@@ -4,7 +4,10 @@ import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Usuar
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.*;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -16,19 +19,17 @@ public class CustomUserDetailsService implements UserDetailsService {
     private UsuarioRepository usuarioRepository;
 
     @Override
-    public UserDetails loadUserByUsername(String correo) throws UsernameNotFoundException {
-        Usuario usuario = usuarioRepository.findByCorreo(correo);
-        if (usuario == null) {
-            throw new UsernameNotFoundException("Usuario no encontrado");
-        }
-        
-        // Convertimos el rol de tu BD (ej. ROLE_ESTUDIANTE) al formato de Spring
-        SimpleGrantedAuthority autoridad = new SimpleGrantedAuthority(usuario.getRol());
-        
-        return new org.springframework.security.core.userdetails.User(
-                usuario.getCorreo(),
-                usuario.getPassword(),
-                Collections.singletonList(autoridad)
+    public UserDetails loadUserByUsername(String rut) throws UsernameNotFoundException {
+        // Busca al usuario por su RUT directo ("11.111.111-1") o prueba limpiando puntos si no lo encuentra
+        Usuario usuario = usuarioRepository.findByRut(rut)
+                .orElseGet(() -> usuarioRepository.findByRut(rut.replace(".", ""))
+                        .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado con RUT: " + rut)));
+
+        // Construye el UserDetails mapeando getPassword() y getRol()
+        return new User(
+                usuario.getRut(),
+                usuario.getPassword(), // Usa getPassword() definido en Usuario.java
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + usuario.getRol().name()))
         );
     }
 }

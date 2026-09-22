@@ -16,7 +16,7 @@
             align-items: center;
             justify-content: center;
         }
-        .ubb-bg { background-color: #004b85; } /* Azul institucional */
+        .ubb-bg { background-color: #004b85; }
         .login-card {
             border: none;
             border-radius: 10px;
@@ -37,7 +37,6 @@
             <div class="col-md-5 col-lg-4">
                 <div class="card login-card">
                     
-                    <!-- Encabezado con color institucional -->
                     <div class="login-header ubb-bg">
                         <i class="bi bi-mortarboard-fill display-4 mb-2"></i>
                         <h4 class="fw-bold mb-0">VRIP Prácticas UBB</h4>
@@ -46,24 +45,26 @@
 
                     <div class="card-body p-4">
                         
-                        <!-- Mensaje de Error (Spring Security manda ?error si los datos están mal) -->
+                        <!-- Mensaje de Error Actualizado -->
                         <div th:if="${param.error}" class="alert alert-danger text-center shadow-sm" role="alert">
-                            <i class="bi bi-exclamation-triangle-fill me-2"></i>Correo o contraseña incorrectos.
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>RUT o contraseña incorrectos.
                         </div>
 
-                        <!-- Mensaje de Cierre de Sesión -->
                         <div th:if="${param.logout}" class="alert alert-success text-center shadow-sm" role="alert">
                             <i class="bi bi-check-circle-fill me-2"></i>Has cerrado sesión correctamente.
                         </div>
 
-                        <!-- El Formulario apunta a /login (Spring Security lo intercepta) -->
+                        <div th:if="${param.registrado}" class="alert alert-success text-center shadow-sm" role="alert">
+                            <i class="bi bi-check-circle-fill me-2"></i>Usuario registrado. Inicia sesión.
+                        </div>
+
                         <form th:action="@{/login}" method="post">
                             
                             <div class="mb-3">
-                                <label for="username" class="form-label fw-bold text-secondary">Correo Institucional</label>
+                                <label for="rut" class="form-label fw-bold text-secondary">RUT Institucional</label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-light"><i class="bi bi-envelope"></i></span>
-                                    <input type="email" class="form-control" id="username" name="username" placeholder="ejemplo@ubiobio.cl" required autofocus>
+                                    <span class="input-group-text bg-light"><i class="bi bi-card-heading"></i></span>
+                                    <input type="text" class="form-control" id="rut" name="rut" placeholder="11.111.111-1" required autofocus>
                                 </div>
                             </div>
                             
