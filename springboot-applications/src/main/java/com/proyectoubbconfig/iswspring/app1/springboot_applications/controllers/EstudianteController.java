@@ -53,8 +53,8 @@ public class EstudianteController {
         if (principal != null) {
             String correo = principal.getName(); 
             
-            // Buscamos al estudiante por su correo
-            Estudiante estudianteActual = estudianteRepository.findByUsuarioCorreo(correo);
+            // Buscamos al estudiante por su correo (corregido por la herencia)
+            Estudiante estudianteActual = estudianteRepository.findByCorreo(correo);
             
             if (estudianteActual != null) {
                 // Buscamos todas las prácticas que tiene asignadas
