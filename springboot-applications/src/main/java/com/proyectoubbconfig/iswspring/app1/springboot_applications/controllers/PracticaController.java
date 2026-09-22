@@ -43,16 +43,22 @@ public class PracticaController {
         return "registro_practica";
     }
 
-    // 2. Recibir el objeto practica bindearlo con @ModelAttribute y recargar la vista
+    // 2. Recibir el objeto practica bindearlo con @ModelAttribute, validar fechas y guardar
     @PostMapping("/practicas/guardar")
     public String guardarPractica(@ModelAttribute("practica") Practica practica, Model model) {
-        practicaRepository.save(practica);
-
-        // Se vuelve a cargar un objeto limpio y las listas para mantenerse en la vista
-        model.addAttribute("practica", new Practica());
-        model.addAttribute("estudiantes", estudianteRepository.findAll());
-        model.addAttribute("profesores", profesorRepository.findAll());
         
-        return "registro_practica";
+        // Validación: La fecha de fin no puede ser anterior a la fecha de inicio
+        if (practica.getFechaInicio() != null && practica.getFechaFin() != null) {
+            if (practica.getFechaFin().isBefore(practica.getFechaInicio())) {
+                model.addAttribute("error", "La fecha de fin no puede ser anterior a la fecha de inicio.");
+                model.addAttribute("estudiantes", estudianteRepository.findAll());
+                model.addAttribute("profesores", profesorRepository.findAll());
+                return "registro_practica"; // Retorna al formulario mostrando la alerta de error
+            }
+        }
+
+        practicaRepository.save(practica);
+        
+        return "redirect:/practicas";
     }
 }

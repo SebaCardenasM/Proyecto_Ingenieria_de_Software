@@ -45,15 +45,15 @@
                             <tr th:each="p : ${practicas}">
                                 <td th:text="${p.id}">1</td>
                                 
-                                <!-- Mapeo accediendo al objeto usuario del estudiante -->
-                                <td class="text-start" th:text="${p.estudiante != null and p.estudiante.usuario != null} ? 
-                                    ${p.estudiante.usuario.nombre + ' ' + p.estudiante.usuario.apellido} : 'Sin asignar'">
+                                <!-- Mapeo directo gracias a la herencia -->
+                                <td class="text-start" th:text="${p.estudiante != null} ? 
+                                    ${p.estudiante.nombre + ' ' + p.estudiante.apellido} : 'Sin asignar'">
                                     Estudiante
                                 </td>
                                 
-                                <!-- Mapeo accediendo al objeto usuario del profesor -->
-                                <td class="text-start" th:text="${p.profesor != null and p.profesor.usuario != null} ? 
-                                    ${p.profesor.usuario.nombre + ' ' + p.profesor.usuario.apellido} : 'Sin asignar'">
+                                <!-- Mapeo directo gracias a la herencia -->
+                                <td class="text-start" th:text="${p.profesor != null} ? 
+                                    ${p.profesor.nombre + ' ' + p.profesor.apellido} : 'Sin asignar'">
                                     Profesor
                                 </td>
                                 
