@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDateTime;
 
 @Controller
 @RequestMapping("/planificaciones")
@@ -21,12 +20,11 @@ public class PlanificacionController {
     @Autowired
     private PlanificacionRepository planificacionRepository;
 
-    private static final String UPLOAD_DIR = "uploads/documentos/"; // Carpeta más genérica
+    private static final String UPLOAD_DIR = "uploads/documentos/";
 
     @PostMapping("/subir")
     public String subirDocumento(@RequestParam("archivo") MultipartFile archivo,
-                                 @RequestParam("practicaId") Long practicaId,
-                                 @RequestParam("tipoDocumento") String tipoDocumento) {
+                                 @RequestParam("practicaId") Long practicaId) {
         
         if (archivo.isEmpty()) return "redirect:/planificaciones/error";
 
@@ -34,16 +32,14 @@ public class PlanificacionController {
             Path uploadPath = Paths.get(UPLOAD_DIR);
             if (!Files.exists(uploadPath)) Files.createDirectories(uploadPath);
 
-            // Generar nombre y guardar
-            String nombreArchivo = System.currentTimeMillis() + "_" + archivo.getOriginalFilename();
-            Path rutaFisica = uploadPath.resolve(nombreArchivo);
+            String nombreUnico = System.currentTimeMillis() + "_" + archivo.getOriginalFilename();
+            Path rutaFisica = uploadPath.resolve(nombreUnico);
             Files.write(rutaFisica, archivo.getBytes());
 
-            // Crear el registro con los nuevos atributos del modelo
+            // Instanciamos la subclase concreta
             Planificacion nuevaPlanificacion = new Planificacion();
-            nuevaPlanificacion.setRutaArchivo(rutaFisica.toString());
-            nuevaPlanificacion.setTipoDocumento(tipoDocumento); // Ej: "Guía de aprendizaje"
-            nuevaPlanificacion.setFechaSubida(LocalDateTime.now()); // Registra el momento exacto
+            nuevaPlanificacion.setNombreArchivo(archivo.getOriginalFilename());
+            nuevaPlanificacion.setRutaServidor(rutaFisica.toString());
             
             Practica practica = new Practica();
             practica.setId(practicaId);

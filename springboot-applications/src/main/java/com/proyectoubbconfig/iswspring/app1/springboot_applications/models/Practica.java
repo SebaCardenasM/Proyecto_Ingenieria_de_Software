@@ -18,27 +18,24 @@ public class Practica {
     private Integer semestre; // 1 o 2
     private Integer numeroPractica;
     
-    // Cambiamos el Boolean por el Enum persistido como STRING
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private EstadoPractica estado = EstadoPractica.PENDIENTE; // Se inicializa en PENDIENTE por defecto
+    private EstadoPractica estado = EstadoPractica.PENDIENTE;
     
     private Double notaAprobacion;
     
-    // manejo de fechas
+    // Manejo de fechas
     private LocalDate fechaInicio;
     private LocalDate fechaFin;
-    private LocalDate limitePlanificacion; // Hito a las 3 semanas
-    private LocalDate limiteInformeFinal;  // Hito a las 6 semanas
 
-    // Relación N:1 con Estudiante
+    // Relación N:1 con Estudiante mapeada por rut_estudiante
     @ManyToOne
-    @JoinColumn(name = "estudiante_id")
+    @JoinColumn(name = "rut_estudiante", referencedColumnName = "rut")
     private Estudiante estudiante;
 
-    // Relación N:1 con Profesor
+    // Relación N:1 con Profesor mapeada por rut_profesor
     @ManyToOne
-    @JoinColumn(name = "profesor_id")
+    @JoinColumn(name = "rut_profesor", referencedColumnName = "rut")
     private Profesor profesor;
 
     @OneToMany(mappedBy = "practica", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -57,7 +54,6 @@ public class Practica {
     public Integer getNumeroPractica() { return numeroPractica; }
     public void setNumeroPractica(Integer numeroPractica) { this.numeroPractica = numeroPractica; }
 
-    // Getters y Setters para el nuevo campo estado
     public EstadoPractica getEstado() { return estado; }
     public void setEstado(EstadoPractica estado) { this.estado = estado; }
 
@@ -76,12 +72,6 @@ public class Practica {
     public LocalDate getFechaFin() { return fechaFin; }
     public void setFechaFin(LocalDate fechaFin) { this.fechaFin = fechaFin; }
 
-    public LocalDate getLimitePlanificacion() { return limitePlanificacion; }
-    public void setLimitePlanificacion(LocalDate limitePlanificacion) { this.limitePlanificacion = limitePlanificacion; }
-
-    public LocalDate getLimiteInformeFinal() { return limiteInformeFinal; }
-    public void setLimiteInformeFinal(LocalDate limiteInformeFinal) { this.limiteInformeFinal = limiteInformeFinal; }
-    public List<Documento> getArchivos() {return archivos;}
-
-    public void setArchivos(List<Documento> archivos) {this.archivos = archivos;}
+    public List<Documento> getArchivos() { return archivos; }
+    public void setArchivos(List<Documento> archivos) { this.archivos = archivos; }
 }
