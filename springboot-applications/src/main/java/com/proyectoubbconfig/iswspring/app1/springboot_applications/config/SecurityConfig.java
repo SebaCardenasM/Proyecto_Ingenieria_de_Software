@@ -30,11 +30,12 @@ public class SecurityConfig {
             )
             .formLogin(form -> form
                 .loginPage("/login")
-                .usernameParameter("correo") // Mantiene el soporte para login con correo
+                .usernameParameter("rut") // <--- ¡Asegúrate de cambiar 'correo' por 'rut' aquí!
                 .passwordParameter("password")
                 .defaultSuccessUrl("/", true)
                 .permitAll()
             )
+            
             .logout(logout -> logout
                 .logoutSuccessUrl("/login?logout")
                 .permitAll()
