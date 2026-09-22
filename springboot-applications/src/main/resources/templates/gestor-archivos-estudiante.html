@@ -14,6 +14,18 @@
     <style>
         .ubb-bg { background-color: #004b85; }
         body { background-color: #f4f6f9; }
+        
+        /* Estilo para los botones circulares de selección múltiple */
+        .btn-practica {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
     </style>
 </head>
 <body>
@@ -55,12 +67,13 @@
                                         <th class="ps-4">Nombre del Archivo</th>
                                         <th>Tipo Documento</th>
                                         <th>Fecha de Subida</th>
+                                        <th class="text-center">N° Práctica</th>
                                         <th class="text-center">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tablaArchivos">
                                     <tr>
-                                        <td colspan="4" class="text-center text-muted py-5">
+                                        <td colspan="5" class="text-center text-muted py-5">
                                             <div class="spinner-border text-danger spinner-border-sm me-2" role="status"></div>
                                             Cargando tus documentos...
                                         </td>
@@ -80,6 +93,15 @@
                     </div>
                     <div class="card-body">
                         
+                        <!-- Filtro por Círculos de Práctica -->
+                        <h6 class="fw-bold text-secondary mb-3 mt-2">Por N° de Práctica</h6>
+                        <div class="d-flex flex-wrap gap-2 mb-4">
+                            <div th:each="i : ${#numbers.sequence(1, 6)}">
+                                <input type="checkbox" class="btn-check filtro-practica" th:id="'practica' + ${i}" th:value="${i}" autocomplete="off">
+                                <label class="btn btn-outline-danger btn-practica" th:for="'practica' + ${i}" th:text="${i}"></label>
+                            </div>
+                        </div>
+
                         <h6 class="fw-bold text-secondary mb-3">Por Tipo de Evidencia</h6>
                         <div class="form-check mb-2">
                             <input class="form-check-input filtro-tipo" type="checkbox" value="PLANIFICACION" id="tipoPlanificacion">
@@ -89,7 +111,7 @@
                             <input class="form-check-input filtro-tipo" type="checkbox" value="INFORME_FINAL" id="tipoInforme">
                             <label class="form-check-label" for="tipoInforme">Informe Final</label>
                         </div>
-                        <div class="form-check mb-2">
+                        <div class="form-check mb-4">
                             <input class="form-check-input filtro-tipo" type="checkbox" value="PAUTA" id="tipoPauta">
                             <label class="form-check-label" for="tipoPauta">Evaluación / Pauta</label>
                         </div>
@@ -115,7 +137,6 @@
                 <div class="modal-body p-4">
                     <form id="formularioSubida" enctype="multipart/form-data">
                         
-                        <!-- Menú desplegable dinámico alimentado por Thymeleaf -->
                         <div class="mb-3">
                             <label for="practicaActualId" class="form-label fw-semibold text-secondary">¿A qué práctica corresponde?</label>
                             <select class="form-select" id="practicaActualId" required>
@@ -210,12 +231,13 @@
                 }
             });
 
-            document.querySelectorAll('.filtro-tipo').forEach(checkbox => {
+            // Listeners para ambos tipos de filtros (prácticas y tipos)
+            document.querySelectorAll('.filtro-practica, .filtro-tipo').forEach(checkbox => {
                 checkbox.addEventListener('change', renderizarTabla);
             });
 
             document.getElementById('btnLimpiarFiltros').addEventListener('click', () => {
-                document.querySelectorAll('.filtro-tipo').forEach(cb => cb.checked = false);
+                document.querySelectorAll('.filtro-practica, .filtro-tipo').forEach(cb => cb.checked = false);
                 renderizarTabla();
             });
         });
@@ -235,7 +257,7 @@
                 renderizarTabla();
 
             } catch (error) {
-                tabla.innerHTML = '<tr><td colspan="4" class="text-center text-danger py-4"><i class="bi bi-exclamation-triangle-fill me-2"></i>Error al cargar los documentos.</td></tr>';
+                tabla.innerHTML = '<tr><td colspan="5" class="text-center text-danger py-4"><i class="bi bi-exclamation-triangle-fill me-2"></i>Error al cargar los documentos.</td></tr>';
             }
         }
 
@@ -243,22 +265,32 @@
             const tabla = document.getElementById('tablaArchivos');
             
             if (!archivosGlobales || archivosGlobales.length === 0) {
-                tabla.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4"><i class="bi bi-inbox fs-4 d-block mb-2"></i>Aún no has subido ninguna evidencia.</td></tr>';
+                tabla.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4"><i class="bi bi-inbox fs-4 d-block mb-2"></i>Aún no has subido ninguna evidencia.</td></tr>';
                 return;
             }
 
+            const practicasSeleccionadas = Array.from(document.querySelectorAll('.filtro-practica:checked')).map(cb => cb.value);
             const tiposSeleccionados = Array.from(document.querySelectorAll('.filtro-tipo:checked')).map(cb => cb.value);
             const btnLimpiar = document.getElementById('btnLimpiarFiltros');
             
-            btnLimpiar.classList.toggle('d-none', tiposSeleccionados.length === 0);
+            if (practicasSeleccionadas.length > 0 || tiposSeleccionados.length > 0) {
+                btnLimpiar.classList.remove('d-none');
+            } else {
+                btnLimpiar.classList.add('d-none');
+            }
 
             const archivosFiltrados = archivosGlobales.filter(archivo => {
+                const numPrac = archivo.numeroPractica || (archivo.practica ? archivo.practica.numeroPractica : null);
                 const tipoDoc = archivo.tipoDocumento;
-                return tiposSeleccionados.length === 0 || (tipoDoc && tiposSeleccionados.includes(tipoDoc));
+
+                const coincidePractica = practicasSeleccionadas.length === 0 || (numPrac && practicasSeleccionadas.includes(numPrac.toString()));
+                const coincideTipo = tiposSeleccionados.length === 0 || (tipoDoc && tiposSeleccionados.includes(tipoDoc));
+
+                return coincidePractica && coincideTipo;
             });
 
             if (archivosFiltrados.length === 0) {
-                tabla.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4"><i class="bi bi-search me-2"></i>No hay documentos que coincidan con el filtro.</td></tr>';
+                tabla.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4"><i class="bi bi-search me-2"></i>No hay documentos que coincidan con los filtros.</td></tr>';
                 return;
             }
 
@@ -271,8 +303,12 @@
                       })
                     : 'Recién subido';
 
+                const numPrac = archivo.numeroPractica || (archivo.practica ? archivo.practica.numeroPractica : 'N/A');
                 const tipoDocText = formatoTipoDocumento(archivo.tipoDocumento);
-                const ruta = archivo.rutaServidor || '#';
+                let ruta = archivo.rutaServidor || '#';
+                if (!ruta.startsWith('/')) {
+                    ruta = '/' + ruta;
+                }
 
                 const fila = `
                     <tr>
@@ -281,8 +317,9 @@
                         </td>
                         <td><span class="badge bg-secondary">${tipoDocText}</span></td>
                         <td>${fecha}</td>
+                        <td class="text-center"><span class="badge bg-danger bg-opacity-75">Práctica ${numPrac}</span></td>
                         <td class="text-center">
-                            <a href="/${ruta}" target="_blank" class="btn btn-sm btn-outline-danger" title="Ver Documento">
+                            <a href="${ruta}" target="_blank" class="btn btn-sm btn-outline-danger" title="Ver Documento">
                                 <i class="bi bi-eye"></i>
                             </a>
                         </td>
