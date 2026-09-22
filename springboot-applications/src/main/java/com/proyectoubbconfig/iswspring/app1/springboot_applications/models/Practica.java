@@ -1,9 +1,10 @@
 package com.proyectoubbconfig.iswspring.app1.springboot_applications.models;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 import jakarta.persistence.*;
-import java.util.List;
 
 @Entity
 @Table(name = "practicas")
@@ -16,71 +17,54 @@ public class Practica {
     private Integer ano;
     private Integer semestre; // 1 o 2
     private Integer numeroPractica;
-    private Boolean aprobacion;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private EstadoPractica estado = EstadoPractica.PENDIENTE;
+    
     private Double notaAprobacion;
     
-    // manejo de fechas
+    // Manejo de fechas
     private LocalDate fechaInicio;
     private LocalDate fechaFin;
-    private LocalDate limitePlanificacion; // Hito a las 3 semanas
-    private LocalDate limiteInformeFinal;  // Hito a las 6 semanas
 
-    // Relación N:1 con Estudiante
+    // Relación N:1 con Estudiante mapeada por rut_estudiante
     @ManyToOne
-    @JoinColumn(name = "estudiante_id")
+    @JoinColumn(name = "rut_estudiante", referencedColumnName = "rut")
     private Estudiante estudiante;
 
-    // Relación N:1 con Profesor
+    // Relación N:1 con Profesor mapeada por rut_profesor
     @ManyToOne
-    @JoinColumn(name = "profesor_id")
+    @JoinColumn(name = "rut_profesor", referencedColumnName = "rut")
     private Profesor profesor;
 
-    
+    @OneToMany(mappedBy = "practica", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Documento> archivos = new ArrayList<>();
+
+    // Getters y Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-  
-    public Integer getAno() {
-        return ano;
-    }
-    public void setAno(Integer ano) {
-        this.ano = ano;
-    }
-    public Integer getSemestre() {
-        return semestre;
-    }
-    public void setSemestre(Integer semestre) {
-        this.semestre = semestre;
-    }
-    public Integer getNumeroPractica() {
-        return numeroPractica;
-    }
-    public void setNumeroPractica(Integer numeroPractica) {
-        this.numeroPractica = numeroPractica;
-    }
-    public Boolean getAprobacion() {
-        return aprobacion;
-    }
-    public void setAprobacion(Boolean aprobacion) {
-        this.aprobacion = aprobacion;
-    }
-    public Double getNotaAprobacion() {
-        return notaAprobacion;
-    }
-    public void setNotaAprobacion(Double notaAprobacion) {
-        this.notaAprobacion = notaAprobacion;
-    }
-    public Estudiante getEstudiante() {
-        return estudiante;
-    }
-    public void setEstudiante(Estudiante estudiante) {
-        this.estudiante = estudiante;
-    }
-    public Profesor getProfesor() {
-        return profesor;
-    }
-    public void setProfesor(Profesor profesor) {
-        this.profesor = profesor;
-    }
+
+    public Integer getAno() { return ano; }
+    public void setAno(Integer ano) { this.ano = ano; }
+
+    public Integer getSemestre() { return semestre; }
+    public void setSemestre(Integer semestre) { this.semestre = semestre; }
+
+    public Integer getNumeroPractica() { return numeroPractica; }
+    public void setNumeroPractica(Integer numeroPractica) { this.numeroPractica = numeroPractica; }
+
+    public EstadoPractica getEstado() { return estado; }
+    public void setEstado(EstadoPractica estado) { this.estado = estado; }
+
+    public Double getNotaAprobacion() { return notaAprobacion; }
+    public void setNotaAprobacion(Double notaAprobacion) { this.notaAprobacion = notaAprobacion; }
+
+    public Estudiante getEstudiante() { return estudiante; }
+    public void setEstudiante(Estudiante estudiante) { this.estudiante = estudiante; }
+
+    public Profesor getProfesor() { return profesor; }
+    public void setProfesor(Profesor profesor) { this.profesor = profesor; }
 
     public LocalDate getFechaInicio() { return fechaInicio; }
     public void setFechaInicio(LocalDate fechaInicio) { this.fechaInicio = fechaInicio; }
@@ -88,11 +72,6 @@ public class Practica {
     public LocalDate getFechaFin() { return fechaFin; }
     public void setFechaFin(LocalDate fechaFin) { this.fechaFin = fechaFin; }
 
-    public LocalDate getLimitePlanificacion() { return limitePlanificacion; }
-    public void setLimitePlanificacion(LocalDate limitePlanificacion) { this.limitePlanificacion = limitePlanificacion; }
-
-    public LocalDate getLimiteInformeFinal() { return limiteInformeFinal; }
-    public void setLimiteInformeFinal(LocalDate limiteInformeFinal) { this.limiteInformeFinal = limiteInformeFinal; }
-    
-    
+    public List<Documento> getArchivos() { return archivos; }
+    public void setArchivos(List<Documento> archivos) { this.archivos = archivos; }
 }

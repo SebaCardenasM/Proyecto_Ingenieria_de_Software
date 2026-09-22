@@ -16,7 +16,7 @@
             align-items: center;
             justify-content: center;
         }
-        .ubb-bg { background-color: #004b85; } /* Azul institucional */
+        .ubb-bg { background-color: #004b85; }
         .login-card {
             border: none;
             border-radius: 10px;
@@ -37,7 +37,6 @@
             <div class="col-md-5 col-lg-4">
                 <div class="card login-card">
                     
-                    <!-- Encabezado con color institucional -->
                     <div class="login-header ubb-bg">
                         <i class="bi bi-mortarboard-fill display-4 mb-2"></i>
                         <h4 class="fw-bold mb-0">VRIP Prácticas UBB</h4>
@@ -46,22 +45,19 @@
 
                     <div class="card-body p-4">
                         
-                        <!-- Mensaje de Error -->
+                        <!-- Mensaje de Error Actualizado -->
                         <div th:if="${param.error}" class="alert alert-danger text-center shadow-sm" role="alert">
-                            <i class="bi bi-exclamation-triangle-fill me-2"></i>Correo o contraseña incorrectos.
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>RUT o contraseña incorrectos.
                         </div>
 
-                        <!-- Mensaje de Cierre de Sesión -->
                         <div th:if="${param.logout}" class="alert alert-success text-center shadow-sm" role="alert">
                             <i class="bi bi-check-circle-fill me-2"></i>Has cerrado sesión correctamente.
                         </div>
 
-                        <!-- Mensaje de Registro Exitoso -->
                         <div th:if="${param.registrado}" class="alert alert-success text-center shadow-sm" role="alert">
                             <i class="bi bi-check-circle-fill me-2"></i>Usuario registrado. Inicia sesión.
                         </div>
 
-                        <!-- El Formulario apunta a /login -->
                         <form th:action="@{/login}" method="post">
                             
                            <div class="mb-3">

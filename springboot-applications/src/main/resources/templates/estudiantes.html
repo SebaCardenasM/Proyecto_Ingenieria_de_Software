@@ -33,24 +33,24 @@
                     <table class="table table-hover table-striped mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th>ID</th>
                                 <th>RUT</th>
                                 <th>Nombre</th>
                                 <th>Apellido</th>
                                 <th>Correo Electrónico</th>
                                 <th>Año Ingreso</th>
+                                <th>Práctica Actual</th>
                                 <th class="text-center">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Iteración de Thymeleaf sobre la lista de estudiantes -->
+                            <!-- Iteración directa sobre las propiedades heredadas de Usuario y propias de Estudiante -->
                             <tr th:each="estudiante : ${estudiantes}">
-                                <td th:text="${estudiante.id}">1</td>
-                                <td th:text="${estudiante.usuario != null ? estudiante.usuario.rut : 'Sin RUT'}">12.345.678-9</td>
-                                <td th:text="${estudiante.usuario != null ? estudiante.usuario.nombre : 'Sin Nombre'}">Juan</td>
-                                <td th:text="${estudiante.usuario != null ? estudiante.usuario.apellido : 'Sin Apellido'}">Pérez</td>
-                                <td th:text="${estudiante.usuario != null ? estudiante.usuario.correo : 'Sin Correo'}">juan.perez@alumnos.ubiobio.cl</td>
+                                <td th:text="${estudiante.rut}">11.111.111-1</td>
+                                <td th:text="${estudiante.nombre}">Juan</td>
+                                <td th:text="${estudiante.apellido}">Pérez</td>
+                                <td th:text="${estudiante.correo}">juan.perez@alumnos.ubiobio.cl</td>
                                 <td th:text="${estudiante.anoIngreso != null ? estudiante.anoIngreso : 'N/A'}">2024</td>
+                                <td th:text="${estudiante.practicaActual != null ? estudiante.practicaActual : 'Sin asignar'}">1</td>
                                 <td class="text-center">
                                     <button class="btn btn-sm btn-outline-secondary" title="Editar"><i class="bi bi-pencil"></i></button>
                                 </td>
@@ -65,5 +65,6 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

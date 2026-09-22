@@ -52,8 +52,10 @@
                                         <span class="input-group-text bg-light"><i class="bi bi-person-badge"></i></span>
                                         <select class="form-select" th:field="*{rol}" required>
                                             <option value="" disabled selected>Seleccione un perfil...</option>
-                                            <option value="ROLE_ESTUDIANTE">Estudiante</option>
-                                            <option value="ROLE_PROFESOR">Profesor</option>
+                                            <option th:each="r : ${T(com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Rol).values()}" 
+                                                    th:value="${r}" 
+                                                    th:text="${r}">
+                                            </option>
                                         </select>
                                     </div>
                                 </div>
