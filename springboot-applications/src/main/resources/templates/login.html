@@ -28,6 +28,12 @@
             text-align: center;
             color: white;
         }
+        /* Estilo para ajustar el tamaño del logo institucional */
+        .login-logo {
+            max-width: 120px;
+            height: auto;
+            margin-bottom: 12px;
+        }
     </style>
 </head>
 <body>
@@ -38,7 +44,8 @@
                 <div class="card login-card">
                     
                     <div class="login-header ubb-bg">
-                        <i class="bi bi-mortarboard-fill display-4 mb-2"></i>
+                        <!-- Logo institucional con el nombre exacto solicitado -->
+                        <img th:src="@{/images/escudo-monocromatico-oscuro.png}" alt="Escudo Universidad del Bío-Bío" class="login-logo">
                         <h4 class="fw-bold mb-0">Prácticas UBB</h4>
                         <p class="mb-0 text-white-50">Acceso a la plataforma</p>
                     </div>
@@ -64,7 +71,6 @@
                                 <label for="rutLogin" class="form-label fw-bold text-secondary">RUT</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-light"><i class="bi bi-person-badge"></i></span>
-                                    <!-- IMPORTANTE: El 'name' debe ser rut si ajustas tu SecurityConfig, o 'correo' si lo mantuviste así por defecto -->
                                     <input type="text" class="form-control" id="rutLogin" name="rut" placeholder="Ej: 12345678-9" maxlength="12" required autofocus>
                                     <div class="invalid-feedback">El RUT ingresado no es válido.</div>
                                 </div>
@@ -145,7 +151,6 @@
             }
         });
     </script>
-
 
 </body>
 </html>
