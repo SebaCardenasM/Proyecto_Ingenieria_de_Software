@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>4.1.1</version>
+		<version>4.1.1</version>  <!-- actualizado -->
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.proyectoubbconfig.iswspring.app1</groupId>
@@ -27,7 +27,7 @@
 		<url/>
 	</scm>
 	<properties>
-		<java.version>25</java.version>
+		<java.version>25</java.version><!-- v25 de java -->
 	</properties>
 	<dependencies>
 		<dependency>
@@ -70,7 +70,7 @@
 		<dependency>
 			<groupId>com.mysql</groupId>
 			<artifactId>mysql-connector-j</artifactId>
-			<scope>runtime</scope>
+			<scope>runtime</scope> <!-- actualizado -->
 		</dependency>
 	</dependencies>
 
