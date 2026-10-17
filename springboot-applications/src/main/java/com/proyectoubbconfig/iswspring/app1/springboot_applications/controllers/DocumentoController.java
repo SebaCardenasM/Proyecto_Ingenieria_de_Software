@@ -40,4 +40,13 @@ public class DocumentoController {
         }
         return ResponseEntity.ok(documentos);
     }
+    
+    @GetMapping("/todos")
+    public ResponseEntity<List<Documento>> listarTodosLosDocumentos() {
+        List<Documento> documentos = documentoService.obtenerTodosLosDocumentos();
+        if (documentos == null || documentos.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(documentos);
+    }
 }

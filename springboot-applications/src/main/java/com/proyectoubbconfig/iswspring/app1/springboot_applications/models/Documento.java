@@ -29,11 +29,12 @@ public abstract class Documento {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "practica_id")
-    @JsonIgnoreProperties({"archivos", "estudiante", "profesor"})
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "archivos", "estudiante", "profesor"})
     private Practica practica;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "estudiante_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "practicas", "profesorCoordinador"})
     private Estudiante estudiante;
 
     public Documento() {}

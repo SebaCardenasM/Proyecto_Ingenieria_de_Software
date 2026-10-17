@@ -45,7 +45,7 @@
                             <tr th:each="p : ${practicas}">
                                 <td th:text="${p.id}">1</td>
                                 
-                                <!-- Mapeo directo a los atributos de Estudiante heredados de Usuario -->
+                                <!-- Mapeo directo a los atributos de Estudiante heredados de Usuario (con RUT) -->
                                 <td class="text-start">
                                     <span th:if="${p.estudiante != null}" 
                                           th:text="${p.estudiante.nombre + ' ' + p.estudiante.apellido + ' (' + p.estudiante.rut + ')'}">

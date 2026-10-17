@@ -30,23 +30,27 @@ public class SecurityConfig {
                         "/images/**", 
                         "/login", 
                         "/registro", 
-                        "/usuarios/**"
+                        "/guardar"
                     ).permitAll()
+                    
                     // Control de acceso por rol a cada sección
                     .requestMatchers("/estudiante/**").hasRole("ESTUDIANTE")
                     .requestMatchers("/profesor/**").hasRole("PROFESOR")
-                    .requestMatchers("/index", "/").hasAnyRole("COORDINADOR", "PROFESOR", "ESTUDIANTE")
+                    
+                    // Rutas exclusivas para el Coordinador (bloqueadas para estudiantes y profesores)
+                    .requestMatchers("/estudiantes/**", "/profesores/**", "/practicas/**", "/gestor-archivos/**", "/portafolios/**", "/usuarios/**", "/index").hasRole("COORDINADOR")
+                    
                     .anyRequest().authenticated()
             )
             .formLogin(form -> form
                 .loginPage("/login")
-                // 👇 Se cambia "correo" por "rut" para procesar el formulario con este parámetro
-                .usernameParameter("rut") 
+                .usernameParameter("rut")
                 .passwordParameter("password")
                 // Redirección personalizada según el rol del usuario
                 .successHandler(successHandler)
                 .permitAll()
             )
+            
             .logout(logout -> logout
                 .logoutSuccessUrl("/login?logout")
                 .permitAll()

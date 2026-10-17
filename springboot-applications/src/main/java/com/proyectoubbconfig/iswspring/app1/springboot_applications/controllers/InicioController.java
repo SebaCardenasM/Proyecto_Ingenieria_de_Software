@@ -4,6 +4,7 @@ import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Usuar
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,8 +30,31 @@ public class InicioController {
         }
     }
 
-    // Index Coordinador / Administrador General
-    @GetMapping({"/", "/index"})
+    // Enrutador inteligente para la raíz ("/") según el rol
+    @GetMapping("/")
+    public String raiz(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return "redirect:/login";
+        }
+
+        // Evaluamos el rol del usuario autenticado
+        for (GrantedAuthority authority : authentication.getAuthorities()) {
+            String rol = authority.getAuthority();
+            
+            if (rol.equals("ROLE_ESTUDIANTE")) {
+                return "redirect:/estudiante/index";
+            } else if (rol.equals("ROLE_PROFESOR")) {
+                return "redirect:/profesor/index";
+            } else if (rol.equals("ROLE_COORDINADOR")) {
+                return "redirect:/index";
+            }
+        }
+
+        return "redirect:/login";
+    }
+
+    // Index Coordinador / Administrador General (Protegido por SecurityConfig)
+    @GetMapping("/index")
     public String inicio(Model model, Authentication authentication) {
         cargarDatosUsuario(model, authentication);
         return "index";

@@ -7,12 +7,16 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Documento;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Estudiante;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.TipoDocumento;
 
 @Repository
 public interface DocumentoRepository extends JpaRepository<Documento, Long> {
 
-    // 1. Para Estudiantes (Ver solo sus propios documentos)
+    // Método para buscar documentos pasando la entidad Estudiante directamente
+    List<Documento> findByEstudiante(Estudiante estudiante);
+
+    // 1. Para Estudiantes (Ver solo sus propios documentos por correo)
     @Query("SELECT d FROM Documento d WHERE d.practica.estudiante.correo = :correo")
     List<Documento> findByEstudianteCorreo(@Param("correo") String correo);
 
