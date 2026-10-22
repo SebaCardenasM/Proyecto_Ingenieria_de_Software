@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "documentos")
+@Table(name = "Documento")
 @Inheritance(strategy = InheritanceType.JOINED)
 public abstract class Documento {
 
