@@ -4,7 +4,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "planificaciones")
+@Table(name = "Planificacion")
 public class Planificacion extends Documento {
 
     public Planificacion() {

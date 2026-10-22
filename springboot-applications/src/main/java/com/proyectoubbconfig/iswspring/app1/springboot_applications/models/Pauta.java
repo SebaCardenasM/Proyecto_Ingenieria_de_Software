@@ -5,7 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "pautas")
+@Table(name = "Pauta")
 public class Pauta extends Documento {
 
     private Double puntajeObtenido;

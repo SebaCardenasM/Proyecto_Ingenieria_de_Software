@@ -3,7 +3,7 @@ package com.proyectoubbconfig.iswspring.app1.springboot_applications.models;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "usuarios")
+@Table(name = "Usuario")
 @Inheritance(strategy = InheritanceType.JOINED)
 public abstract class Usuario {
 
