@@ -18,39 +18,52 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        
+
+        // CSRF queda activo por defecto (se eliminó csrf.disable())
         http
-            // Desactivamos la protección CSRF para peticiones POST/Fetch externas
-            .csrf(csrf -> csrf.disable())
-            
             .authorizeHttpRequests(auth -> auth
+                    // Recursos estáticos y páginas públicas de registro/login
                     .requestMatchers(
-                        "/css/**", 
-                        "/js/**", 
-                        "/images/**", 
-                        "/login", 
-                        "/registro", 
-                        "/guardar"
+                        "/css/**",
+                        "/js/**",
+                        "/images/**",
+                        "/login",
+                        "/registro",
+                        "/guardar",
+                        "/evaluacion-colaborador/**" // Acceso por token al Colaborador del colegio
                     ).permitAll()
-                    
-                    // Control de acceso por rol a cada sección
+
+                    // Archivos subidos: solo usuarios autenticados
+                    .requestMatchers("/uploads/**").authenticated()
+
+                    // Selector de roles para usuarios con múltiples perfiles
+                    .requestMatchers("/seleccionar-rol").authenticated()
+
+                    // Control de acceso por rol a cada módulo
                     .requestMatchers("/estudiante/**").hasRole("ESTUDIANTE")
-                    .requestMatchers("/profesor/**").hasRole("PROFESOR")
-                    
-                    // Rutas exclusivas para el Coordinador (bloqueadas para estudiantes y profesores)
-                    .requestMatchers("/estudiantes/**", "/profesores/**", "/practicas/**", "/gestor-archivos/**", "/portafolios/**", "/usuarios/**", "/index").hasRole("COORDINADOR")
-                    
+                    .requestMatchers("/profesor/**").hasRole("PROFESOR_ASIGNATURA")
+                    .requestMatchers("/tutor/**").hasRole("TUTOR")
+
+                    // Rutas exclusivas para la coordinación / administración
+                    .requestMatchers(
+                        "/estudiantes/**",
+                        "/profesores/**",
+                        "/practicas/**",
+                        "/gestor-archivos/**",
+                        "/portafolios/**",
+                        "/usuarios/**",
+                        "/index"
+                    ).hasRole("COORDINADOR")
+
                     .anyRequest().authenticated()
             )
             .formLogin(form -> form
                 .loginPage("/login")
                 .usernameParameter("rut")
                 .passwordParameter("password")
-                // Redirección personalizada según el rol del usuario
                 .successHandler(successHandler)
                 .permitAll()
             )
-            
             .logout(logout -> logout
                 .logoutSuccessUrl("/login?logout")
                 .permitAll()

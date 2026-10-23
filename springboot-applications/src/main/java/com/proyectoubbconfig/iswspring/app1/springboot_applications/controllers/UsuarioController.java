@@ -36,7 +36,6 @@ public class UsuarioController {
 
     @GetMapping("/registro")
     public String mostrarRegistro(Model model) {
-        // Se envía el DTO plano al formulario
         model.addAttribute("usuario", new UsuarioRegistroDTO());
         return "registroUsuario";
     }
@@ -45,22 +44,33 @@ public class UsuarioController {
     public String guardarUsuario(@ModelAttribute("usuario") UsuarioRegistroDTO dto) {
         String passwordEncriptada = passwordEncoder.encode(dto.getPassword());
 
-        // Según el rol seleccionado en el DTO, se instancia la entidad concreta adecuada
         if (dto.getRol() == Rol.ESTUDIANTE) {
             Estudiante estudiante = new Estudiante();
             copiarDatosBase(dto, estudiante, passwordEncriptada);
+            estudiante.addRol(Rol.ESTUDIANTE);
             estudianteRepository.save(estudiante);
             return "redirect:/estudiantes";
 
-        } else if (dto.getRol() == Rol.PROFESOR) {
+        } else if (dto.getRol() == Rol.PROFESOR_ASIGNATURA) {
             Profesor profesor = new Profesor();
             copiarDatosBase(dto, profesor, passwordEncriptada);
+            profesor.addRol(Rol.PROFESOR_ASIGNATURA);
             profesorRepository.save(profesor);
+            return "redirect:/profesores";
+
+        } else if (dto.getRol() == Rol.TUTOR) {
+            // El Tutor Supervisor a honorarios también se guarda en la entidad Profesor
+            Profesor tutor = new Profesor();
+            copiarDatosBase(dto, tutor, passwordEncriptada);
+            tutor.getRoles().clear(); // Limpia el rol por defecto si aplicara
+            tutor.addRol(Rol.TUTOR);
+            profesorRepository.save(tutor);
             return "redirect:/profesores";
 
         } else if (dto.getRol() == Rol.COORDINADOR && coordinadorRepository != null) {
             Coordinador coordinador = new Coordinador();
             copiarDatosBase(dto, coordinador, passwordEncriptada);
+            coordinador.addRol(Rol.COORDINADOR);
             coordinadorRepository.save(coordinador);
             return "redirect:/";
         }

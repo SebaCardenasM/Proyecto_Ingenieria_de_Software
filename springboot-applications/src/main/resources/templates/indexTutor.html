@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Panel Tutor Supervisor - Prácticas UBB</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .ubb-bg { background-color: #004b85; }
+        .card:hover { transform: translateY(-3px); transition: 0.3s; box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body class="bg-light">
+
+    <!-- Barra de Navegación -->
+    <nav class="navbar navbar-expand-lg navbar-dark ubb-bg mb-4 shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold" th:href="@{/tutor/index}">
+                <i class="bi bi-mortarboard-fill me-2"></i>Plataforma de Prácticas
+            </a>
+            
+            <div class="d-flex text-white align-items-center ms-auto">
+                <i class="bi bi-person-circle fs-3 me-2"></i>
+                <div class="d-flex flex-column text-end me-3">
+                    <span class="fw-bold lh-1" th:text="${usuarioActivo != null ? usuarioActivo.nombre + ' ' + usuarioActivo.apellido : 'Tutor'}">Tutor</span>
+                    <small class="text-white-50 mt-1" style="font-size: 0.75rem;">TUTOR SUPERVISOR</small>
+                </div>
+
+                <!-- Botón de cambio de rol si el tutor también es Profesor de Asignatura o Coordinador -->
+                <div th:if="${rolesUsuario != null and rolesUsuario.size() > 1}" class="me-2">
+                    <a th:href="@{/seleccionar-rol}" class="btn btn-outline-light btn-sm" title="Cambiar de perfil">
+                        <i class="bi bi-person-gear"></i> Cambiar Perfil
+                    </a>
+                </div>
+
+                <form th:action="@{/logout}" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-outline-light btn-sm" title="Cerrar sesión">
+                        <i class="bi bi-box-arrow-right"></i> Salir
+                    </button>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Contenedor Principal -->
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col-12">
+                <h2 class="fw-bold text-dark">Portal del Tutor Supervisor</h2>
+                <p class="text-muted">Supervisión en terreno, visitas a centros de práctica y aplicación de evaluaciones por voz.</p>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Alumnos a Supervisar -->
+            <div class="col-md-6">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body pt-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="display-5 text-primary me-3"><i class="bi bi-geo-alt-fill"></i></div>
+                            <h4 class="card-title fw-bold mb-0">Visitas a Terreno</h4>
+                        </div>
+                        <p class="card-text text-muted mb-4">Consulta la lista de estudiantes asignados y sus colegios de práctica para programar observaciones.</p>
+                        <div class="d-grid gap-2">
+                            <a th:href="@{/tutor/alumnos}" class="btn btn-outline-primary">
+                                <i class="bi bi-list-check me-1"></i> Ver Alumnos Supervisados
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Evaluaciones y Grabado por Voz -->
+            <div class="col-md-6">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body pt-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="display-5 text-success me-3"><i class="bi bi-mic-fill"></i></div>
+                            <h4 class="card-title fw-bold mb-0">Evaluación y Dictado por Voz</h4>
+                        </div>
+                        <p class="card-text text-muted mb-4">Aplica rúbricas de desempeño y graba notas de voz con transcripción automática a texto.</p>
+                        <div class="d-grid gap-2">
+                            <a th:href="@{/tutor/evaluaciones}" class="btn btn-outline-success">
+                                <i class="bi bi-plus-circle me-1"></i> Nueva Evaluación / Audio
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

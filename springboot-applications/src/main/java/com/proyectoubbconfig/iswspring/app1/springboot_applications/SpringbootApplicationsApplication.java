@@ -9,7 +9,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Coordinador;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Estudiante;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Profesor;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Rol;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Usuario;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.UsuarioRepository;
+
+import java.util.Optional;
 
 @SpringBootApplication
 public class SpringbootApplicationsApplication {
@@ -18,37 +22,55 @@ public class SpringbootApplicationsApplication {
         SpringApplication.run(SpringbootApplicationsApplication.class, args);
     }
 
-    // Este Bean se ejecuta automáticamente cada vez que arranca la aplicación
     @Bean
     public CommandLineRunner crearUsuariosPrueba(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
         return args -> {
             
-            // 1. Crear Usuario COORDINADOR de prueba
-            if (usuarioRepository.findByCorreo("coordinador@ubb.cl").isEmpty()) {
+            // 1. COORDINADOR
+            Optional<Usuario> coordOpt = usuarioRepository.findByCorreo("coordinador@ubb.cl");
+            if (coordOpt.isEmpty()) {
                 Coordinador coordinador = new Coordinador();
                 coordinador.setRut("11.111.111-1");
                 coordinador.setNombre("Prueba");
                 coordinador.setApellido("Coordinador");
                 coordinador.setCorreo("coordinador@ubb.cl");
                 coordinador.setPassword(passwordEncoder.encode("admin"));
+                coordinador.addRol(Rol.COORDINADOR);
 
                 usuarioRepository.save(coordinador);
+            } else {
+                Usuario coord = coordOpt.get();
+                if (coord.getRoles().isEmpty()) {
+                    coord.addRol(Rol.COORDINADOR);
+                    usuarioRepository.save(coord);
+                }
             }
 
-            // 2. Crear Usuario PROFESOR de prueba
-            if (usuarioRepository.findByCorreo("profesor@ubb.cl").isEmpty()) {
+            // 2. PROFESOR DE ASIGNATURA Y TUTOR (Asignamos ambos roles de prueba)
+            Optional<Usuario> profOpt = usuarioRepository.findByCorreo("profesor@ubb.cl");
+            if (profOpt.isEmpty()) {
                 Profesor profesor = new Profesor();
                 profesor.setRut("22.222.222-2");
                 profesor.setNombre("Prueba");
                 profesor.setApellido("Profesor");
                 profesor.setCorreo("profesor@ubb.cl");
                 profesor.setPassword(passwordEncoder.encode("profe"));
+                profesor.addRol(Rol.PROFESOR_ASIGNATURA);
+                profesor.addRol(Rol.TUTOR); // Prueba de rol múltiple
 
                 usuarioRepository.save(profesor);
+            } else {
+                Usuario prof = profOpt.get();
+                if (prof.getRoles().isEmpty()) {
+                    prof.addRol(Rol.PROFESOR_ASIGNATURA);
+                    prof.addRol(Rol.TUTOR);
+                    usuarioRepository.save(prof);
+                }
             }
 
-            // 3. Crear Usuario ESTUDIANTE de prueba
-            if (usuarioRepository.findByCorreo("estudiante@ubb.cl").isEmpty()) {
+            // 3. ESTUDIANTE
+            Optional<Usuario> estOpt = usuarioRepository.findByCorreo("estudiante@ubb.cl");
+            if (estOpt.isEmpty()) {
                 Estudiante estudiante = new Estudiante();
                 estudiante.setRut("33.333.333-3");
                 estudiante.setNombre("Prueba");
@@ -57,8 +79,15 @@ public class SpringbootApplicationsApplication {
                 estudiante.setPassword(passwordEncoder.encode("estudiante"));
                 estudiante.setAnoIngreso(2023);
                 estudiante.setPracticaActual(1);
+                estudiante.addRol(Rol.ESTUDIANTE);
 
                 usuarioRepository.save(estudiante);
+            } else {
+                Usuario est = estOpt.get();
+                if (est.getRoles().isEmpty()) {
+                    est.addRol(Rol.ESTUDIANTE);
+                    usuarioRepository.save(est);
+                }
             }
 
         };
