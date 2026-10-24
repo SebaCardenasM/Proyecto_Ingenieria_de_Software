@@ -17,7 +17,6 @@ public class PautaController {
 
     @PostMapping("/guardar")
     public String guardarPauta(@ModelAttribute Pauta pauta) {
-        // Guardar la pauta (incluye el tipo de documento PAUTA, observaciones y puntaje)
         pautaRepository.save(pauta);
         return "redirect:/"; 
     }

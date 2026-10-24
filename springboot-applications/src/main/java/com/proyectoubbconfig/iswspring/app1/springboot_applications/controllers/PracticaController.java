@@ -31,33 +31,29 @@ public class PracticaController {
         model.addAttribute("practicas", listaPracticas);
         model.addAttribute("estudiantes", estudianteRepository.findAll());
         model.addAttribute("profesores", profesorRepository.findAll());
-        return "practicas";
+        return "Coordinador/practicas";
     }
     
-    // Cargar las listas en el modelo para el formulario de registro
     @GetMapping("/practicas/registro")
     public String mostrarFormulario(Model model) {
         model.addAttribute("practica", new Practica());
         model.addAttribute("estudiantes", estudianteRepository.findAll());
         model.addAttribute("profesores", profesorRepository.findAll());
-        return "registro_practica";
+        return "Coordinador/registro_practica";
     }
 
-    // Validación de fechas + Vinculación segura de referencias por RUT
     @PostMapping("/practicas/guardar")
     public String guardarPractica(@ModelAttribute("practica") Practica practica, Model model) {
         
-        // Validación: La fecha de fin no puede ser anterior a la fecha de inicio
         if (practica.getFechaInicio() != null && practica.getFechaFin() != null) {
             if (practica.getFechaFin().isBefore(practica.getFechaInicio())) {
                 model.addAttribute("error", "La fecha de fin no puede ser anterior a la fecha de inicio.");
                 model.addAttribute("estudiantes", estudianteRepository.findAll());
                 model.addAttribute("profesores", profesorRepository.findAll());
-                return "registro_practica"; // Retorna al formulario mostrando la alerta de error
+                return "Coordinador/registro_practica";
             }
         }
 
-        // Vincular correctamente las entidades por su RUT (esencial para la arquitectura nueva)
         if (practica.getEstudiante() != null && practica.getEstudiante().getRut() != null) {
             estudianteRepository.findById(practica.getEstudiante().getRut())
                 .ifPresent(practica::setEstudiante);

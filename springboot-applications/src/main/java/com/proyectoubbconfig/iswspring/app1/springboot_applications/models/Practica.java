@@ -40,6 +40,10 @@ public class Practica {
     private Colaborador colaborador;
 
     @ManyToOne
+    @JoinColumn(name = "rut_tutor", referencedColumnName = "rut", nullable = true)
+    private Profesor tutor;
+
+    @ManyToOne
     @JoinColumn(name = "centro_practica_id", referencedColumnName = "id", nullable = true)
     private CentroPractica centroPractica;
 
@@ -86,4 +90,7 @@ public class Practica {
 
     public List<Documento> getArchivos() { return archivos; }
     public void setArchivos(List<Documento> archivos) { this.archivos = archivos; }
+
+    public Profesor getTutor() { return tutor; }
+    public void setTutor(Profesor tutor) { this.tutor = tutor; }
 }

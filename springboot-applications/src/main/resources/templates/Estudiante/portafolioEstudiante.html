@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mi Portafolio - Prácticas Educación Matemática</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .ubb-bg { background-color: #004b85; }
+    </style>
+</head>
+<body class="bg-light">
+
+    <!-- Barra de Navegación -->
+    <nav class="navbar navbar-expand-lg navbar-dark ubb-bg mb-4 shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold" th:href="@{/estudiante/index}">
+                <i class="bi bi-mortarboard-fill me-2"></i>Plataforma de Prácticas
+            </a>
+
+            <div class="d-flex text-white align-items-center ms-auto">
+                <i class="bi bi-person-circle fs-3 me-2"></i>
+                <div class="d-flex flex-column text-end me-3">
+                    <span class="fw-bold lh-1" th:text="${usuarioActivo != null ? usuarioActivo.nombre + ' ' + usuarioActivo.apellido : 'Usuario'}">Usuario</span>
+                    <small class="text-white-50 mt-1" style="font-size: 0.75rem;" th:text="${#strings.arrayJoin(rolesUsuario, ', ')}">ESTUDIANTE</small>
+                </div>
+
+                <div th:if="${rolesUsuario != null and rolesUsuario.size() > 1}" class="me-2">
+                    <a th:href="@{/seleccionar-rol}" class="btn btn-outline-light btn-sm" title="Cambiar de perfil">
+                        <i class="bi bi-person-gear"></i> Cambiar Perfil
+                    </a>
+                </div>
+
+                <form th:action="@{/logout}" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-outline-light btn-sm" title="Cerrar sesión">
+                        <i class="bi bi-box-arrow-right"></i> Salir
+                    </button>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="fw-bold text-dark mb-0">Perfil</h2>
+            <a th:href="@{/estudiante/index}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left me-1"></i> Volver al panel
+            </a>
+        </div>
+
+        <!-- Datos del estudiante -->
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="text-muted small">Nombre</div>
+                        <div class="fw-bold" th:text="${nombreEstudiante}">Nombre</div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="text-muted small">Rut</div>
+                        <div class="fw-bold" th:text="${estudiante.rut}">00.000.000-0</div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="text-muted small">Año de ingreso</div>
+                        <div class="fw-bold" th:text="${estudiante.anoIngreso} ?: '—'">2024</div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="text-muted small">Práctica actual</div>
+                        <div class="fw-bold" th:text="${estudiante.practicaActual} ?: '—'">1</div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="text-muted small">Profesor coordinador</div>
+                        <div class="fw-bold" th:text="${coordinador} ?: '—'">—</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de prácticas -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle text-center mb-0">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Práctica</th>
+                        <th>Año</th>
+                        <th>Semestre</th>
+                        <th>Profesor</th>
+                        <th>Tutor</th>
+                        <th>Centro de práctica</th>
+                        <th>Fecha inicio</th>
+                        <th>Fecha término</th>
+                        <th>Estado</th>
+                        <th>Nota final</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    <tr th:each="f : ${filas}" th:classappend="${!f.vigente} ? 'text-muted'">
+                        <td class="text-start">
+                            <span th:text="${'Práctica ' + f.numero}">Práctica 1</span>
+                            <div th:if="${f.intentos > 1}" class="small"
+                                 th:text="${'Intento ' + f.intento + ' de ' + f.intentos}">Intento 1 de 2</div>
+                        </td>
+                        <td th:text="${f.ano} ?: '—'"></td>
+                        <td th:text="${f.semestre} ?: '—'"></td>
+                        <td th:text="${f.profesor} ?: '—'"></td>
+                        <td th:text="${f.tutor} ?: '—'"></td>
+                        <td th:text="${f.centro} ?: '—'"></td>
+                        <td th:text="${#temporals.format(f.fechaInicio, 'dd/MM/yyyy')} ?: '—'"></td>
+                        <td th:text="${#temporals.format(f.fechaFin, 'dd/MM/yyyy')} ?: '—'"></td>
+                        <td th:text="${f.existe} ? ${f.estado} : 'Sin iniciar'"></td>
+                        <td th:classappend="${f.nota != null and f.nota < 4.0} ? 'text-danger fw-bold'"
+                            th:text="${f.nota != null} ? ${#numbers.formatDecimal(f.nota, 1, 'POINT', 1, 'COMMA')} : '—'"></td>
+                    </tr>
+                    </tbody>
+
+                    <tfoot class="table-light fw-bold">
+                    <tr>
+                        <td class="text-start">Total</td>
+                        <td colspan="8" class="text-end">Promedio (último intento de cada práctica)</td>
+                        <td th:text="${promedio != null} ? ${#numbers.formatDecimal(promedio, 1, 'POINT', 1, 'COMMA')} : '—'"></td>
+                    </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

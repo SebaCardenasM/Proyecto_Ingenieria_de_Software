@@ -37,7 +37,7 @@ public class UsuarioController {
     @GetMapping("/registro")
     public String mostrarRegistro(Model model) {
         model.addAttribute("usuario", new UsuarioRegistroDTO());
-        return "registroUsuario";
+        return "Coordinador/registroUsuario";
     }
 
     @PostMapping("/guardar")
@@ -59,10 +59,10 @@ public class UsuarioController {
             return "redirect:/profesores";
 
         } else if (dto.getRol() == Rol.TUTOR) {
-            // El Tutor Supervisor a honorarios también se guarda en la entidad Profesor
+
             Profesor tutor = new Profesor();
             copiarDatosBase(dto, tutor, passwordEncriptada);
-            tutor.getRoles().clear(); // Limpia el rol por defecto si aplicara
+            tutor.getRoles().clear();
             tutor.addRol(Rol.TUTOR);
             profesorRepository.save(tutor);
             return "redirect:/profesores";

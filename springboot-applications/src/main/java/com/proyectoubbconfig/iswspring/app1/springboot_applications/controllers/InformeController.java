@@ -40,7 +40,6 @@ public class InformeController {
             Path rutaFisica = uploadPath.resolve(nombreUnico);
             Files.write(rutaFisica, archivo.getBytes());
 
-            // Instanciamos la subclase concreta
             Informe nuevoInforme = new Informe();
             nuevoInforme.setNombreArchivo(archivo.getOriginalFilename());
             nuevoInforme.setRutaServidor(rutaFisica.toString());

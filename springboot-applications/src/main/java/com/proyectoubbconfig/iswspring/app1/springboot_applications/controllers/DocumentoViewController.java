@@ -8,6 +8,6 @@ public class DocumentoViewController {
 
     @GetMapping("/gestor-archivos")
     public String mostrarGestorArchivos() {
-        return "gestor-archivos"; 
+        return "Coordinador/gestor-archivos";
     }
 }

@@ -25,7 +25,6 @@ public class Colaborador {
 
     public Colaborador() {}
 
-    // Getters y Setters
     public String getRut() { return rut; }
     public void setRut(String rut) { this.rut = rut; }
 

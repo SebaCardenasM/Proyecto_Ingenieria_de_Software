@@ -24,8 +24,17 @@
                 <i class="bi bi-person-circle fs-3 me-2"></i>
                 <div class="d-flex flex-column text-end me-3">
                     <span class="fw-bold lh-1" th:text="${usuarioActivo != null ? usuarioActivo.nombre + ' ' + usuarioActivo.apellido : 'Estudiante'}">Estudiante</span>
-                    <small class="text-white-50 mt-1" style="font-size: 0.75rem;">ESTUDIANTE</small>
+                    <small class="text-white-50 mt-1" style="font-size: 0.75rem;"
+                        th:text="${rolesUsuario != null ? #strings.arrayJoin(rolesUsuario, ', ') : 'ESTUDIANTE'}">ESTUDIANTE</small>
                 </div>
+
+                <!-- Botón de cambio de rol si posee más de uno -->
+                <div th:if="${rolesUsuario != null and rolesUsuario.size() > 1}" class="me-2">
+                    <a th:href="@{/seleccionar-rol}" class="btn btn-outline-light btn-sm" title="Cambiar de perfil">
+                        <i class="bi bi-person-gear"></i> Cambiar Perfil
+                    </a>
+                </div>
+
                 <form th:action="@{/logout}" method="post" class="d-inline">
                     <button type="submit" class="btn btn-outline-light btn-sm" title="Cerrar sesión">
                         <i class="bi bi-box-arrow-right"></i> Salir

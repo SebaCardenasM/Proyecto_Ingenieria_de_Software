@@ -26,7 +26,6 @@ public class SpringbootApplicationsApplication {
     public CommandLineRunner crearUsuariosPrueba(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
         return args -> {
             
-            // 1. COORDINADOR
             Optional<Usuario> coordOpt = usuarioRepository.findByCorreo("coordinador@ubb.cl");
             if (coordOpt.isEmpty()) {
                 Coordinador coordinador = new Coordinador();
@@ -46,7 +45,6 @@ public class SpringbootApplicationsApplication {
                 }
             }
 
-            // 2. PROFESOR DE ASIGNATURA Y TUTOR (Asignamos ambos roles de prueba)
             Optional<Usuario> profOpt = usuarioRepository.findByCorreo("profesor@ubb.cl");
             if (profOpt.isEmpty()) {
                 Profesor profesor = new Profesor();
@@ -56,7 +54,7 @@ public class SpringbootApplicationsApplication {
                 profesor.setCorreo("profesor@ubb.cl");
                 profesor.setPassword(passwordEncoder.encode("profe"));
                 profesor.addRol(Rol.PROFESOR_ASIGNATURA);
-                profesor.addRol(Rol.TUTOR); // Prueba de rol múltiple
+                profesor.addRol(Rol.TUTOR);
 
                 usuarioRepository.save(profesor);
             } else {
@@ -68,7 +66,6 @@ public class SpringbootApplicationsApplication {
                 }
             }
 
-            // 3. ESTUDIANTE
             Optional<Usuario> estOpt = usuarioRepository.findByCorreo("estudiante@ubb.cl");
             if (estOpt.isEmpty()) {
                 Estudiante estudiante = new Estudiante();

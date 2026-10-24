@@ -36,7 +36,6 @@ public class PlanificacionController {
             Path rutaFisica = uploadPath.resolve(nombreUnico);
             Files.write(rutaFisica, archivo.getBytes());
 
-            // Instanciamos la subclase concreta
             Planificacion nuevaPlanificacion = new Planificacion();
             nuevaPlanificacion.setNombreArchivo(archivo.getOriginalFilename());
             nuevaPlanificacion.setRutaServidor(rutaFisica.toString());

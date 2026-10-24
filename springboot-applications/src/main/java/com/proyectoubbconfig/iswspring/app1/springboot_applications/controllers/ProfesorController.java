@@ -16,11 +16,10 @@ public class ProfesorController {
     @Autowired
     private ProfesorRepository profesorRepository;
 
-    // Mostrar la lista de profesores
     @GetMapping("/profesores")
     public String listarProfesores(Model model) {
         List<Profesor> listaProfesores = profesorRepository.findAll();
         model.addAttribute("profesores", listaProfesores);
-        return "profesores";
+        return "Coordinador/profesores";
     }
 }
