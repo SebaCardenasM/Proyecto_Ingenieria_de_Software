@@ -10,9 +10,6 @@ import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Estud
 // Actualizado a String según el cambio de Luis, manteniendo tu método de búsqueda
 public interface EstudianteRepository extends JpaRepository<Estudiante, String> {
     
-    // Spring Boot leerá esto como: "Busca el Usuario asociado al Estudiante, y revisa su Correo"
-    Estudiante findByCorreo(String correo);
-    
     @Query("SELECT DISTINCT e FROM Estudiante e LEFT JOIN FETCH e.practicas")
     List<Estudiante> findAllConPracticas();
 }

@@ -52,12 +52,6 @@
                 <h2 class="fw-bold text-dark mb-0"><i class="bi bi-folder2-open text-primary me-2"></i>Gestor de Archivos</h2>
                 <p class="text-muted mt-1 mb-0">Revisa los documentos subidos de tus prácticas anteriores y actuales.</p>
             </div>
-            <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                <!-- Botón que abre el modal -->
-                <button type="button" class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#modalSubirArchivo">
-                    <i class="bi bi-cloud-upload me-1"></i> Añadir Archivo
-                </button>
-            </div>
         </div>
 
         <div class="row g-4">
@@ -128,58 +122,6 @@
                         </button>
 
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL PARA SUBIR ARCHIVO -->
-    <div class="modal fade" id="modalSubirArchivo" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-header ubb-bg text-white">
-                    <h5 class="modal-title" id="modalLabel"><i class="bi bi-cloud-arrow-up-fill me-2"></i>Subir Documento</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body p-4">
-                    <form id="formularioSubida" enctype="multipart/form-data">
-                        
-                        <div class="mb-3">
-                            <label for="numeroPracticaSelect" class="form-label fw-semibold text-secondary">N° de Práctica</label>
-                            <select class="form-select" id="numeroPracticaSelect" name="numeroPractica" required>
-                                <option value="" selected disabled>Seleccione una práctica...</option>
-                                <option value="1">Práctica 1</option>
-                                <option value="2">Práctica 2</option>
-                                <option value="3">Práctica 3</option>
-                                <option value="4">Práctica 4</option>
-                                <option value="5">Práctica 5</option>
-                                <option value="6">Práctica 6</option>
-                            </select>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="tipoDocumentoSelect" class="form-label fw-semibold text-secondary">Tipo de Documento</label>
-                            <select class="form-select" id="tipoDocumentoSelect" name="tipoDocumento" required>
-                                <option value="" selected disabled>Seleccione el tipo...</option>
-                                <option value="PLANIFICACION">Planificación</option>
-                                <option value="INFORME_FINAL">Informe Final</option>
-                                <option value="PAUTA">Evaluación / Pauta</option>
-                            </select>
-                        </div>
-
-                        <div class="mb-4">
-                            <label for="archivoInput" class="form-label fw-semibold text-secondary">Seleccione el archivo</label>
-                            <input type="file" class="form-control" id="archivoInput" name="archivo" required>
-                        </div>
-
-                        <div id="mensajeAlerta" class="alert d-none" role="alert"></div>
-
-                        <div class="d-grid">
-                            <button class="btn btn-primary btn-lg" type="submit">
-                                Subir Archivo
-                            </button>
-                        </div>
-                    </form>
                 </div>
             </div>
         </div>
@@ -260,20 +202,25 @@
         async function cargarArchivos() {
             const tabla = document.getElementById('tablaArchivos');
             try {
-                // Ahora consume el nuevo endpoint que trae todos los documentos
-                const respuesta = await fetch('/api/documentos/todos');
-                
+                const respuesta = await fetch('/api/documentos/mis-documentos', {
+                    headers: { 'Accept': 'application/json' }
+                });
                 if (respuesta.status === 204 || respuesta.status === 404) {
                     archivosGlobales = [];
                     renderizarTabla();
                     return;
                 }
-
+                if (!respuesta.ok) throw new Error('El servidor respondió ' + respuesta.status);
+                if (!(respuesta.headers.get('content-type') || '').includes('application/json')) {
+                    throw new Error('La respuesta no es JSON (¿sesión expirada?)');
+                }
                 archivosGlobales = await respuesta.json();
                 renderizarTabla();
-
             } catch (error) {
-                tabla.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4"><i class="bi bi-exclamation-triangle-fill me-2"></i>Error al cargar los documentos.</td></tr>';
+                console.error('Error cargando documentos:', error);
+                tabla.innerHTML = '<tr><td colspan="5" class="text-center text-danger py-4">' +
+                    '<i class="bi bi-exclamation-triangle-fill me-2"></i>Error al cargar los documentos (' +
+                    escapeHtml(error.message) + ').</td></tr>';
             }
         }
 
@@ -322,6 +269,23 @@
 
                 const numPrac = archivo.numeroPractica || (archivo.practica ? archivo.practica.numeroPractica : 'N/A');
                 const tipoDocText = formatoTipoDocumento(archivo.tipoDocumento);
+                
+                // Convierte texto en algo inofensivo para insertarlo en HTML
+                function escapeHtml(valor) {
+                    return String(valor ?? '')
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/"/g, '&quot;')
+                        .replace(/'/g, '&#39;');
+                }
+
+                // Solo permite enlaces a /uploads/... (bloquea javascript: y otras URLs)
+                function rutaSegura(ruta) {
+                    if (!ruta) return '#';
+                    const r = ruta.startsWith('/') ? ruta : '/' + ruta;
+                    return r.startsWith('/uploads/') ? r : '#';
+                }
 
                 // Extraer el nombre del estudiante asignado
                 let nombreEstudiante = "Desconocido";
@@ -334,14 +298,15 @@
                 const fila = `
                     <tr>
                         <td class="ps-4 fw-semibold text-primary">
-                            <i class="bi bi-file-earmark-text me-2 text-secondary"></i>${archivo.nombreArchivo}
+                            <i class="bi bi-file-earmark-text me-2 text-secondary"></i>${escapeHtml(archivo.nombreArchivo)}
                         </td>
-                        <td><span class="fw-semibold text-dark">${nombreEstudiante}</span></td>
-                        <td><span class="badge bg-secondary">${tipoDocText}</span></td>
-                        <td>${fecha}</td>
-                        <td class="text-center"><span class="badge bg-info text-dark">Práctica ${numPrac}</span></td>
+                        <td><span class="fw-semibold text-dark">${escapeHtml(nombreEstudiante)}</span></td>
+                        <td><span class="badge bg-secondary">${escapeHtml(tipoDocText)}</span></td>
+                        <td>${escapeHtml(fecha)}</td>
+                        <td class="text-center"><span class="badge bg-info text-dark">Práctica ${escapeHtml(numPrac)}</span></td>
                         <td class="text-center">
-                            <a href="${archivo.rutaServidor}" target="_blank" class="btn btn-sm btn-outline-primary" title="Descargar/Ver">
+                            <a href="${escapeHtml(rutaSegura(archivo.rutaServidor))}" target="_blank" rel="noopener noreferrer"
+                            class="btn btn-sm btn-outline-primary" title="Descargar/Ver">
                                 <i class="bi bi-download"></i>
                             </a>
                         </td>
@@ -360,10 +325,11 @@
             }
         }
 
-        function mostrarAlerta(mensaje, clase) {
+       function mostrarAlerta(mensaje, clase) {
             const alerta = document.getElementById('mensajeAlerta');
             alerta.className = `alert ${clase} mt-3 mb-0`;
-            alerta.innerHTML = `<i class="bi bi-info-circle-fill me-2"></i>${mensaje}`;
+            alerta.innerHTML = '<i class="bi bi-info-circle-fill me-2"></i>';
+            alerta.append(document.createTextNode(mensaje)); // texto plano, no HTML
             setTimeout(() => alerta.className = 'alert d-none', 4000);
         }
     </script>

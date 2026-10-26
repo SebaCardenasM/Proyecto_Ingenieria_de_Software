@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name = "Usuario")
 @Inheritance(strategy = InheritanceType.JOINED)
@@ -20,6 +22,7 @@ public abstract class Usuario {
     private String correo;
 
     @Column(nullable = false)
+    @JsonIgnore
     private String password;
 
     // Relación de un usuario con múltiples roles

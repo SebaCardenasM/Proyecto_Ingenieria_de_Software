@@ -3,6 +3,7 @@ package com.proyectoubbconfig.iswspring.app1.springboot_applications.config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -19,43 +20,36 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
-        // CSRF queda activo por defecto (se eliminó csrf.disable())
         http
             .authorizeHttpRequests(auth -> auth
-                    // Recursos estáticos y páginas públicas de registro/login
-                    .requestMatchers(
-                        "/css/**",
-                        "/js/**",
-                        "/images/**",
-                        "/login",
-                        "/registro",
-                        "/guardar",
-                        "/evaluacion-colaborador/**" // Acceso por token al Colaborador del colegio
-                    ).permitAll()
+                // Públicas: estáticos, login y acceso por token del colaborador
+                .requestMatchers("/css/**", "/js/**", "/images/**",
+                                 "/login", "/evaluacion-colaborador/**").permitAll()
 
-                    // Archivos subidos: solo usuarios autenticados
-                    .requestMatchers("/uploads/**").authenticated()
+                // Cualquier usuario autenticado (el acceso fino a /uploads lo valida el interceptor)
+                .requestMatchers("/seleccionar-rol", "/uploads/**").authenticated()
 
-                    // Selector de roles para usuarios con múltiples perfiles
-                    .requestMatchers("/seleccionar-rol").authenticated()
+                // API de documentos: cada endpoint con su rol
+                .requestMatchers(HttpMethod.POST, "/api/documentos/subir").hasRole("ESTUDIANTE")
+                .requestMatchers("/api/documentos/mis-documentos")
+                    .hasAnyRole("ESTUDIANTE", "PROFESOR_ASIGNATURA", "TUTOR", "COORDINADOR")
+                .requestMatchers("/api/documentos/mis-estudiantes-documentos")
+                    .hasAnyRole("PROFESOR_ASIGNATURA", "TUTOR", "COORDINADOR")
+                .requestMatchers("/api/documentos/todos").hasRole("COORDINADOR")
+                .requestMatchers("/api/**").denyAll() // cualquier endpoint de API nuevo queda bloqueado hasta que lo autorices
 
-                    // Control de acceso por rol a cada módulo
-                    .requestMatchers("/estudiante/**").hasRole("ESTUDIANTE")
-                    .requestMatchers("/profesor/**").hasRole("PROFESOR_ASIGNATURA")
-                    .requestMatchers("/tutor/**").hasRole("TUTOR")
+                // Paneles por rol (lo específico va antes que lo general)
+                .requestMatchers("/estudiante/**").hasRole("ESTUDIANTE")
+                .requestMatchers("/profesor/archivos").hasAnyRole("PROFESOR_ASIGNATURA", "TUTOR")
+                .requestMatchers("/profesor/**").hasRole("PROFESOR_ASIGNATURA")
+                .requestMatchers("/tutor/**").hasRole("TUTOR")
 
-                    // Rutas exclusivas para la coordinación / administración
-                    .requestMatchers(
-                        "/estudiantes/**",
-                        "/profesores/**",
-                        "/practicas/**",
-                        "/gestor-archivos/**",
-                        "/portafolios/**",
-                        "/usuarios/**",
-                        "/index"
-                    ).hasRole("COORDINADOR")
+                // Coordinación
+                .requestMatchers("/estudiantes/**", "/profesores/**", "/practicas/**",
+                                 "/gestor-archivos/**", "/portafolios/**", "/usuarios/**",
+                                 "/index").hasRole("COORDINADOR")
 
-                    .anyRequest().authenticated()
+                .anyRequest().authenticated()
             )
             .formLogin(form -> form
                 .loginPage("/login")

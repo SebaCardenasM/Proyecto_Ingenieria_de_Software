@@ -21,12 +21,6 @@ public interface PracticaRepository extends JpaRepository<Practica, Long> {
     // Buscar prácticas asignadas a un Profesor / Tutor Supervisor
     List<Practica> findByProfesor(Profesor profesor);
 
-    // Buscar prácticas guiadas por un Colaborador del colegio
-    List<Practica> findByColaborador(Colaborador colaborador);
-
-    // Buscar prácticas realizadas en un Centro de Práctica específico
-    List<Practica> findByCentroPracticaId(Long centroPracticaId);
-
     @Query("SELECT p FROM Practica p " +
        "LEFT JOIN FETCH p.profesor LEFT JOIN FETCH p.tutor LEFT JOIN FETCH p.centroPractica " +
        "WHERE p.estudiante.rut = :rut")

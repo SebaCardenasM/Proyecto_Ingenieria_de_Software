@@ -245,19 +245,25 @@
         async function cargarArchivos() {
             const tabla = document.getElementById('tablaArchivos');
             try {
-                const respuesta = await fetch('/api/documentos/mis-documentos');
-                
+                const respuesta = await fetch('/api/documentos/mis-documentos', {
+                    headers: { 'Accept': 'application/json' }
+                });
                 if (respuesta.status === 204 || respuesta.status === 404) {
                     archivosGlobales = [];
                     renderizarTabla();
                     return;
                 }
-
+                if (!respuesta.ok) throw new Error('El servidor respondió ' + respuesta.status);
+                if (!(respuesta.headers.get('content-type') || '').includes('application/json')) {
+                    throw new Error('La respuesta no es JSON (¿sesión expirada?)');
+                }
                 archivosGlobales = await respuesta.json();
                 renderizarTabla();
-
             } catch (error) {
-                tabla.innerHTML = '<tr><td colspan="5" class="text-center text-danger py-4"><i class="bi bi-exclamation-triangle-fill me-2"></i>Error al cargar los documentos.</td></tr>';
+                console.error('Error cargando documentos:', error);
+                tabla.innerHTML = '<tr><td colspan="5" class="text-center text-danger py-4">' +
+                    '<i class="bi bi-exclamation-triangle-fill me-2"></i>Error al cargar los documentos (' +
+                    escapeHtml(error.message) + ').</td></tr>';
             }
         }
 
@@ -313,13 +319,14 @@
                 const fila = `
                     <tr>
                         <td class="ps-4 fw-semibold text-dark">
-                            <i class="bi bi-file-earmark-pdf text-danger me-2"></i>${archivo.nombreArchivo || 'Documento'}
+                            <i class="bi bi-file-earmark-pdf text-danger me-2"></i>${escapeHtml(archivo.nombreArchivo || 'Documento')}
                         </td>
-                        <td><span class="badge bg-secondary">${tipoDocText}</span></td>
-                        <td>${fecha}</td>
-                        <td class="text-center"><span class="badge bg-danger bg-opacity-75">Práctica ${numPrac}</span></td>
+                        <td><span class="badge bg-secondary">${escapeHtml(tipoDocText)}</span></td>
+                        <td>${escapeHtml(fecha)}</td>
+                        <td class="text-center"><span class="badge bg-danger bg-opacity-75">Práctica ${escapeHtml(numPrac)}</span></td>
                         <td class="text-center">
-                            <a href="${ruta}" target="_blank" class="btn btn-sm btn-outline-danger" title="Ver Documento">
+                            <a href="${escapeHtml(rutaSegura(archivo.rutaServidor))}" target="_blank" rel="noopener noreferrer"
+                            class="btn btn-sm btn-outline-danger" title="Ver Documento">
                                 <i class="bi bi-eye"></i>
                             </a>
                         </td>
@@ -327,6 +334,21 @@
                 `;
                 tabla.insertAdjacentHTML('beforeend', fila);
             });
+        }
+
+        function escapeHtml(valor) {
+            return String(valor ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function rutaSegura(ruta) {
+            if (!ruta) return '#';
+            const r = ruta.startsWith('/') ? ruta : '/' + ruta;
+            return r.startsWith('/uploads/') ? r : '#';
         }
 
         function formatoTipoDocumento(tipo) {
@@ -341,7 +363,8 @@
         function mostrarAlerta(mensaje, clase) {
             const alerta = document.getElementById('mensajeAlerta');
             alerta.className = `alert ${clase} mt-3 mb-0`;
-            alerta.innerHTML = `<i class="bi bi-info-circle-fill me-2"></i>${mensaje}`;
+            alerta.innerHTML = '<i class="bi bi-info-circle-fill me-2"></i>';
+            alerta.append(document.createTextNode(mensaje)); // texto plano, no HTML
             setTimeout(() => alerta.className = 'alert d-none', 4000);
         }
     </script>

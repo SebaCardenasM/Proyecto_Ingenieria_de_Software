@@ -27,7 +27,8 @@ public class NotasController {
     private NotasService notasService;
 
     @GetMapping
-    public String verNotas(@RequestParam Map<String, String> params, Model model) {
+    public String verNotas(@RequestParam Map<String, String> params, Model model,
+                        Authentication authentication) {
         NotasFiltro filtro = NotasFiltro.desde(params);
         List<NotaEstudianteFila> filas = notasService.obtenerFilas(filtro);
 
@@ -35,6 +36,11 @@ public class NotasController {
         model.addAttribute("filas", filas);
         model.addAttribute("total", filas.size());
         model.addAttribute("promedios", notasService.promedios(filas));
+
+        usuarioRepository.findByRut(authentication.getName()).ifPresent(u -> {
+            model.addAttribute("usuarioActivo", u);
+            model.addAttribute("rolesUsuario", u.getRoles().stream().map(Enum::name).toList());
+        });
         return "Coordinador/notasEstudiantiles";
     }
 

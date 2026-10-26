@@ -27,12 +27,12 @@ public abstract class Documento {
     @Column(nullable = false)
     private TipoDocumento tipoDocumento;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER) 
     @JoinColumn(name = "practica_id")
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "archivos", "estudiante", "profesor"})
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "archivos", "estudiante", "profesor", "colaborador", "tutor"})
     private Practica practica;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "estudiante_id")
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "practicas", "profesorCoordinador"})
     private Estudiante estudiante;
@@ -46,7 +46,6 @@ public abstract class Documento {
         }
     }
 
-    // Getters y Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 

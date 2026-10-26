@@ -9,6 +9,8 @@ import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Usuar
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.CoordinadorRepository;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.EstudianteRepository;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.ProfesorRepository;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.UsuarioRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
@@ -32,6 +34,9 @@ public class UsuarioController {
     private CoordinadorRepository coordinadorRepository;
 
     @Autowired
+    private UsuarioRepository usuarioRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @GetMapping("/registro")
@@ -42,8 +47,11 @@ public class UsuarioController {
 
     @PostMapping("/guardar")
     public String guardarUsuario(@ModelAttribute("usuario") UsuarioRegistroDTO dto) {
+        if (usuarioRepository.existsById(dto.getRut())) {
+            return "redirect:/usuarios/registro?duplicado";
+        }
         String passwordEncriptada = passwordEncoder.encode(dto.getPassword());
-
+        
         if (dto.getRol() == Rol.ESTUDIANTE) {
             Estudiante estudiante = new Estudiante();
             copiarDatosBase(dto, estudiante, passwordEncriptada);
