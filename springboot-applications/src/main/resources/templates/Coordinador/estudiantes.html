@@ -12,10 +12,10 @@
 </head>
 <body class="bg-light">
 
-    <!-- Barra de Navegación Simple -->
+    <!-- Barra de Navegación -->
     <nav class="navbar navbar-dark ubb-bg mb-4 shadow-sm">
         <div class="container">
-            <a class="navbar-brand fw-bold" th:href="@{/}">
+            <a class="navbar-brand fw-bold" th:href="@{/index}">
                 <i class="bi bi-arrow-left-circle me-2"></i>Volver al Dashboard
             </a>
         </div>
@@ -30,7 +30,7 @@
         <div class="card shadow-sm border-0">
             <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover table-striped mb-0">
+                    <table class="table table-hover table-striped mb-0 align-middle">
                         <thead class="table-light">
                             <tr>
                                 <th>RUT</th>
@@ -43,14 +43,18 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Iteración directa sobre las propiedades heredadas de Usuario y propias de Estudiante -->
                             <tr th:each="estudiante : ${estudiantes}">
                                 <td th:text="${estudiante.rut}">11.111.111-1</td>
                                 <td th:text="${estudiante.nombre}">Juan</td>
                                 <td th:text="${estudiante.apellido}">Pérez</td>
                                 <td th:text="${estudiante.correo}">juan.perez@alumnos.ubiobio.cl</td>
                                 <td th:text="${estudiante.anoIngreso != null ? estudiante.anoIngreso : 'N/A'}">2024</td>
-                                <td th:text="${estudiante.practicaActual != null ? estudiante.practicaActual : 'Sin asignar'}">1</td>
+                                <td>
+                                    <span class="badge bg-primary" 
+                                          th:text="${estudiante.practicaActual != null ? 'Práctica ' + estudiante.practicaActual : 'Sin asignar'}">
+                                        Práctica 1
+                                    </span>
+                                </td>
                                 <td class="text-center">
                                     <button class="btn btn-sm btn-outline-secondary" title="Editar"><i class="bi bi-pencil"></i></button>
                                 </td>

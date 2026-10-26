@@ -3,7 +3,7 @@ package com.proyectoubbconfig.iswspring.app1.springboot_applications.models;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "coordinadores")
+@Table(name = "Coordinador")
 @PrimaryKeyJoinColumn(name = "rut")
 public class Coordinador extends Usuario {
 
@@ -11,5 +11,13 @@ public class Coordinador extends Usuario {
         super(Rol.COORDINADOR);
     }
 
-    // Getters y Setters
+    public Coordinador(Rol... rolesAdicionales) {
+        super(Rol.COORDINADOR);
+        if (rolesAdicionales != null) {
+            for (Rol r : rolesAdicionales) {
+                addRol(r);
+            }
+        }
+    }
+
 }

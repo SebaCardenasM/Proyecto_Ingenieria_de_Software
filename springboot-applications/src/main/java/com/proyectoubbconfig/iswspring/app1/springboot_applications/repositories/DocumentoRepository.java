@@ -16,26 +16,17 @@ public interface DocumentoRepository extends JpaRepository<Documento, Long> {
     // Método para buscar documentos pasando la entidad Estudiante directamente
     List<Documento> findByEstudiante(Estudiante estudiante);
 
-    // 1. Para Estudiantes (Ver solo sus propios documentos por correo)
-    @Query("SELECT d FROM Documento d WHERE d.practica.estudiante.correo = :correo")
-    List<Documento> findByEstudianteCorreo(@Param("correo") String correo);
 
     // 2. Para Profesores (Ver documentos de los alumnos que coordina)
-    @Query("SELECT d FROM Documento d WHERE d.practica.estudiante.profesorCoordinador.correo = :correoProfesor")
-    List<Documento> findByProfesorCorreo(@Param("correoProfesor") String correoProfesor);
+    // Documentos que le corresponden a un académico (por RUT):
+    // profesor de la práctica, tutor de la práctica o coordinador del estudiante
+    @Query("SELECT DISTINCT d FROM Documento d " +
+        "LEFT JOIN d.practica p " +
+        "LEFT JOIN p.profesor pp " +
+        "LEFT JOIN p.tutor pt " +
+        "LEFT JOIN d.estudiante e " +
+        "LEFT JOIN e.profesorCoordinador pc " +
+        "WHERE pp.rut = :rut OR pt.rut = :rut OR pc.rut = :rut")
+    List<Documento> findByAcademicoRut(@Param("rut") String rut);
 
-    // 3. Filtros avanzados
-    @Query("SELECT d FROM Documento d " +
-           "JOIN d.practica p " +
-           "JOIN p.estudiante e " +
-           "WHERE (:busqueda IS NULL OR LOWER(e.nombre) LIKE LOWER(CONCAT('%', :busqueda, '%')) " +
-           "   OR LOWER(e.apellido) LIKE LOWER(CONCAT('%', :busqueda, '%')) " +
-           "   OR e.rut LIKE CONCAT('%', :busqueda, '%')) " +
-           "AND (:numPractica IS NULL OR p.numeroPractica = :numPractica) " +
-           "AND (:tipo IS NULL OR d.tipoDocumento = :tipo)")
-    List<Documento> buscarConFiltros(
-        @Param("busqueda") String busqueda,
-        @Param("numPractica") Integer numPractica,
-        @Param("tipo") TipoDocumento tipo
-    );
 }

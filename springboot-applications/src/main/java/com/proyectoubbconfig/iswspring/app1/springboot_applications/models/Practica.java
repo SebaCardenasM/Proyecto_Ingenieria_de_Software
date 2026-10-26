@@ -7,7 +7,7 @@ import java.util.List;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "practicas")
+@Table(name = "Practica")
 public class Practica {
 
     @Id
@@ -24,24 +24,34 @@ public class Practica {
     
     private Double notaAprobacion;
     
-    // Manejo de fechas
     private LocalDate fechaInicio;
     private LocalDate fechaFin;
 
-    // Relación N:1 con Estudiante mapeada por rut_estudiante
     @ManyToOne
     @JoinColumn(name = "rut_estudiante", referencedColumnName = "rut")
     private Estudiante estudiante;
 
-    // Relación N:1 con Profesor mapeada por rut_profesor
     @ManyToOne
-    @JoinColumn(name = "rut_profesor", referencedColumnName = "rut")
+    @JoinColumn(name = "rut_profesor", referencedColumnName = "rut", nullable = true)
     private Profesor profesor;
+
+    @ManyToOne
+    @JoinColumn(name = "rut_colaborador", referencedColumnName = "rut", nullable = true)
+    private Colaborador colaborador;
+
+    @ManyToOne
+    @JoinColumn(name = "rut_tutor", referencedColumnName = "rut", nullable = true)
+    private Profesor tutor;
+
+    @ManyToOne
+    @JoinColumn(name = "centro_practica_id", referencedColumnName = "id", nullable = true)
+    private CentroPractica centroPractica;
 
     @OneToMany(mappedBy = "practica", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Documento> archivos = new ArrayList<>();
 
-    // Getters y Setters
+    public Practica() {}
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -66,6 +76,12 @@ public class Practica {
     public Profesor getProfesor() { return profesor; }
     public void setProfesor(Profesor profesor) { this.profesor = profesor; }
 
+    public Colaborador getColaborador() { return colaborador; }
+    public void setColaborador(Colaborador colaborador) { this.colaborador = colaborador; }
+
+    public CentroPractica getCentroPractica() { return centroPractica; }
+    public void setCentroPractica(CentroPractica centroPractica) { this.centroPractica = centroPractica; }
+
     public LocalDate getFechaInicio() { return fechaInicio; }
     public void setFechaInicio(LocalDate fechaInicio) { this.fechaInicio = fechaInicio; }
 
@@ -74,4 +90,7 @@ public class Practica {
 
     public List<Documento> getArchivos() { return archivos; }
     public void setArchivos(List<Documento> archivos) { this.archivos = archivos; }
+
+    public Profesor getTutor() { return tutor; }
+    public void setTutor(Profesor tutor) { this.tutor = tutor; }
 }

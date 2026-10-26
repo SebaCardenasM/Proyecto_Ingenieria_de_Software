@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import java.util.List;
 
 @Entity
-@Table(name = "estudiantes")
+@Table(name = "Estudiante")
 @PrimaryKeyJoinColumn(name = "rut")
 public class Estudiante extends Usuario {
 

@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import java.util.List;
 
 @Entity
-@Table(name = "profesores")
+@Table(name = "Profesor")
 @PrimaryKeyJoinColumn(name = "rut")
 public class Profesor extends Usuario {
 
@@ -12,7 +12,16 @@ public class Profesor extends Usuario {
     private List<Estudiante> estudiantesCoordinados;
 
     public Profesor() {
-        super(Rol.PROFESOR);
+        super(Rol.PROFESOR_ASIGNATURA);
+    }
+
+    public Profesor(Rol... rolesAdicionales) {
+        super(Rol.PROFESOR_ASIGNATURA);
+        if (rolesAdicionales != null) {
+            for (Rol r : rolesAdicionales) {
+                addRol(r);
+            }
+        }
     }
 
     // Getters y Setters
