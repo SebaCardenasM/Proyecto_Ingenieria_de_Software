@@ -31,3 +31,11 @@ build/
 
 ### VS Code ###
 .vscode/
+
+.env
+target/
+*.log
+.idea/
+.vscode/
+node_modules/
+springboot-applications/.env

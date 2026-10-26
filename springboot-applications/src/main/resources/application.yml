@@ -1,0 +1,11 @@
+spring:
+  config:
+    import: optional:file:.env[.properties]
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/practicas_db?serverTimezone=UTC}
+    username: ${DB_USER:app_practicas}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false

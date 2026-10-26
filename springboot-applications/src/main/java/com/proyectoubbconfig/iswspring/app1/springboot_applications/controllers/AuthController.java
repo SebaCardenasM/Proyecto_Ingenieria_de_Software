@@ -8,6 +8,6 @@ public class AuthController {
 
     @GetMapping("/login")
     public String mostrarLogin() {
-        return "login"; // Le dice a Spring que busque el archivo login.html
+        return "login"; 
     }
 }

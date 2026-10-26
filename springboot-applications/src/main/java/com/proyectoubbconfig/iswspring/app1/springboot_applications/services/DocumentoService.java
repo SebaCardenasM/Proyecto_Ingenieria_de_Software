@@ -23,10 +23,16 @@ import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.TipoD
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Usuario;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.DocumentoRepository;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.UsuarioRepository;
+import java.util.Set;
+import org.springframework.util.StringUtils;
+import org.springframework.transaction.annotation.Transactional;
 
-@Service
+
+@Service    
 public class DocumentoService {
-
+    private static final Set<String> EXTENSIONES_PERMITIDAS =
+        Set.of("pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "jpg", "jpeg", "png");
+        
     @Autowired
     private DocumentoRepository documentoRepository;
 
@@ -37,29 +43,32 @@ public class DocumentoService {
 
     public List<Documento> obtenerDocumentosSegunRol() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String identificador = auth.getName();
+        String rut = auth.getName(); // el username es el RUT (CustomUserDetailsService)
 
-        // Si es Coordinador, ve todos los documentos
-        if (auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_COORDINADOR"))) {
+        boolean esCoordinador = tieneRol(auth, "ROLE_COORDINADOR");
+        boolean esAcademico = tieneRol(auth, "ROLE_PROFESOR_ASIGNATURA")
+                        || tieneRol(auth, "ROLE_TUTOR");
+
+        // Coordinador: ve todo
+        if (esCoordinador) {
             return documentoRepository.findAll();
-        } 
-        // Si es Profesor, ve los de sus alumnos
-        else if (auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_PROFESOR"))) {
-            return documentoRepository.findByProfesorCorreo(identificador);
-        } 
-        // Si es Estudiante, filtramos de manera segura por su entidad
-        else {
-            Usuario usuario = usuarioRepository.findById(identificador).orElse(null);
-            if (usuario == null) {
-                usuario = usuarioRepository.findByCorreo(identificador).orElse(null);
-            }
-            
-            if (usuario instanceof Estudiante) {
-                return documentoRepository.findByEstudiante((Estudiante) usuario);
-            }
-            
-            return documentoRepository.findByEstudianteCorreo(identificador);
         }
+
+        // Profesor de asignatura o tutor: ve lo de sus estudiantes
+        if (esAcademico) {
+            return documentoRepository.findByAcademicoRut(rut);
+        }
+
+        // Estudiante: solo lo suyo
+        return usuarioRepository.findById(rut)
+                .filter(u -> u instanceof Estudiante)
+                .map(u -> documentoRepository.findByEstudiante((Estudiante) u))
+                .orElse(List.of());
+    }
+
+    private boolean tieneRol(Authentication auth, String rol) {
+        return auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals(rol));
     }
 
     public Documento subirArchivo(MultipartFile archivo, Integer numeroPractica, TipoDocumento tipoDocumento) throws Exception {
@@ -67,42 +76,50 @@ public class DocumentoService {
             throw new Exception("El archivo está vacío");
         }
 
-        String identificador = SecurityContextHolder.getContext().getAuthentication().getName();
-        
-        // Buscamos primero por ID (RUT) y como respaldo por correo electrónico
-        Usuario usuario = usuarioRepository.findById(identificador).orElse(null);
-        if (usuario == null) {
-            usuario = usuarioRepository.findByCorreo(identificador)
-                .orElseThrow(() -> new Exception("No se encontró el usuario con identificador: " + identificador));
+        // --- Nombre y extensión seguros ---
+        String limpio = StringUtils.cleanPath(archivo.getOriginalFilename() == null ? "" : archivo.getOriginalFilename());
+        String nombreVisible = limpio.substring(limpio.lastIndexOf('/') + 1); // descarta cualquier ruta
+        if (nombreVisible.length() > 150 || nombreVisible.matches(".*[<>\"'`].*")) {
+            throw new Exception("El nombre del archivo contiene caracteres no permitidos");
         }
+        if (nombreVisible.isBlank()) {
+            throw new Exception("El nombre del archivo no es válido");
+        }
+        String extension = StringUtils.getFilenameExtension(nombreVisible);
+        if (extension == null || !EXTENSIONES_PERMITIDAS.contains(extension.toLowerCase())) {
+            throw new Exception("Tipo de archivo no permitido. Formatos aceptados: " + EXTENSIONES_PERMITIDAS);
+        }
+
+        String identificador = SecurityContextHolder.getContext().getAuthentication().getName();
+        Usuario usuario = usuarioRepository.findById(identificador)
+                .orElseThrow(() -> new Exception("No se encontró el usuario: " + identificador));
 
         if (!(usuario instanceof Estudiante)) {
             throw new Exception("El usuario autenticado no es un Estudiante.");
         }
-
         Estudiante estudiante = (Estudiante) usuario;
 
-        // Búsqueda segura de la práctica del estudiante
         Practica practicaEncontrada = null;
         if (estudiante.getPracticas() != null) {
             practicaEncontrada = estudiante.getPracticas().stream()
-                .filter(p -> p.getNumeroPractica() != null && p.getNumeroPractica().equals(numeroPractica))
-                .findFirst()
-                .orElse(null);
+                    .filter(p -> numeroPractica.equals(p.getNumeroPractica()))
+                    .findFirst()
+                    .orElse(null);
         }
 
-        Path directorio = Paths.get(CARPETA_SUBIDAS);
-        if (!Files.exists(directorio)) {
-            Files.createDirectories(directorio);
+        // --- Ruta física controlada por nosotros ---
+        Path directorio = Paths.get(CARPETA_SUBIDAS).toAbsolutePath().normalize();
+        Files.createDirectories(directorio);
+
+        String nombreFisico = UUID.randomUUID() + "." + extension.toLowerCase();
+        Path rutaFinal = directorio.resolve(nombreFisico).normalize();
+        if (!rutaFinal.startsWith(directorio)) {
+            throw new Exception("Ruta de archivo no válida");
+        }
+        try (var in = archivo.getInputStream()) {
+            Files.copy(in, rutaFinal, StandardCopyOption.REPLACE_EXISTING);
         }
 
-        String nombreOriginal = archivo.getOriginalFilename();
-        String nombreUnico = UUID.randomUUID().toString() + "_" + nombreOriginal;
-        Path rutaFinal = directorio.resolve(nombreUnico);
-
-        Files.copy(archivo.getInputStream(), rutaFinal, StandardCopyOption.REPLACE_EXISTING);
-
-        // Instanciamos la subclase concreta dependiendo del Enum TipoDocumento
         Documento nuevoDocumento;
         if (tipoDocumento == TipoDocumento.PLANIFICACION) {
             nuevoDocumento = new Planificacion();
@@ -114,11 +131,10 @@ public class DocumentoService {
             throw new Exception("Tipo de documento no soportado: " + tipoDocumento);
         }
 
-        // Poblamos los atributos base heredados
-        nuevoDocumento.setNombreArchivo(nombreOriginal);
-        nuevoDocumento.setRutaServidor(rutaFinal.toString().replace("\\", "/"));
+        nuevoDocumento.setNombreArchivo(nombreVisible);                 // lo que ve el usuario
+        nuevoDocumento.setRutaServidor(CARPETA_SUBIDAS + nombreFisico); // lo que se sirve por /uploads/**
         nuevoDocumento.setNumeroPractica(numeroPractica);
-        nuevoDocumento.setPractica(practicaEncontrada); 
+        nuevoDocumento.setPractica(practicaEncontrada);
         nuevoDocumento.setEstudiante(estudiante);
 
         return documentoRepository.save(nuevoDocumento);
@@ -127,5 +143,15 @@ public class DocumentoService {
 
     public List<Documento> obtenerTodosLosDocumentos() {
         return documentoRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public boolean puedeVerArchivo(String rutaRelativa) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null) return false;
+        if (tieneRol(auth, "ROLE_COORDINADOR")) return true;
+
+        return obtenerDocumentosSegunRol().stream()
+                .anyMatch(d -> rutaRelativa.equals(d.getRutaServidor()));
     }
 }
