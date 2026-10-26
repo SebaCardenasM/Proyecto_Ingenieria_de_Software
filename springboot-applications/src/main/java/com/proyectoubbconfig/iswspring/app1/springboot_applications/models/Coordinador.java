@@ -11,5 +11,13 @@ public class Coordinador extends Usuario {
         super(Rol.COORDINADOR);
     }
 
-    // Getters y Setters
+    public Coordinador(Rol... rolesAdicionales) {
+        super(Rol.COORDINADOR);
+        if (rolesAdicionales != null) {
+            for (Rol r : rolesAdicionales) {
+                addRol(r);
+            }
+        }
+    }
+
 }

@@ -1,6 +1,10 @@
 package com.proyectoubbconfig.iswspring.app1.springboot_applications.models;
 
 import jakarta.persistence.*;
+import java.util.HashSet;
+import java.util.Set;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "Usuario")
@@ -18,16 +22,39 @@ public abstract class Usuario {
     private String correo;
 
     @Column(nullable = false)
+    @JsonIgnore
     private String password;
 
+    // Relación de un usuario con múltiples roles
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "usuario_roles", joinColumns = @JoinColumn(name = "usuario_rut"))
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Rol rol;
+    @Column(name = "rol", nullable = false)
+    private Set<Rol> roles = new HashSet<>();
 
     public Usuario() {}
 
-    public Usuario(Rol rol) {
-        this.rol = rol;
+    public Usuario(Set<Rol> roles) {
+        if (roles != null) {
+            this.roles = roles;
+        }
+    }
+
+    public Usuario(Rol... roles) {
+        if (roles != null) {
+            for (Rol r : roles) {
+                this.roles.add(r);
+            }
+        }
+    }
+
+    // Helpers de Roles
+    public void addRol(Rol rol) {
+        this.roles.add(rol);
+    }
+
+    public boolean hasRol(Rol rol) {
+        return this.roles.contains(rol);
     }
 
     // Getters y Setters
@@ -46,6 +73,6 @@ public abstract class Usuario {
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
 
-    public Rol getRol() { return rol; }
-    public void setRol(Rol rol) { this.rol = rol; }
+    public Set<Rol> getRoles() { return roles; }
+    public void setRoles(Set<Rol> roles) { this.roles = roles; }
 }
