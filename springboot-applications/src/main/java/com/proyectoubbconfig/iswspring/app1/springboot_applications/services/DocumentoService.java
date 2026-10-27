@@ -20,7 +20,9 @@ import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Infor
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Pauta;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Planificacion;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Practica;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Profesor;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.TipoDocumento;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.TipoEvaluador;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Usuario;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.DocumentoRepository;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.UsuarioRepository;
@@ -63,12 +65,16 @@ public class DocumentoService {
         else if (esProfesorAsignatura || esTutor) {
             documentos = documentoRepository.findByAcademicoRut(rut);
         } 
-        // Estudiante: solo lo suyo
+        // Estudiante: solo lo suyo (excluyendo pautas, ya que van en su propia pestaña)
         else {
-            return usuarioRepository.findById(rut)
+            List<Documento> docsEstudiante = usuarioRepository.findById(rut)
                     .filter(u -> u instanceof Estudiante)
                     .map(u -> documentoRepository.findByEstudiante((Estudiante) u))
                     .orElse(List.of());
+
+            return docsEstudiante.stream()
+                    .filter(doc -> !(doc instanceof Pauta) && (doc.getTipoDocumento() == null || !doc.getTipoDocumento().name().equals("PAUTA")))
+                    .collect(Collectors.toList());
         }
 
         // SI ES PROFESOR DE ASIGNATURA: Excluimos de forma estricta las PAUTAS de los tutores de su vista de gestor
@@ -219,6 +225,12 @@ public class DocumentoService {
         nuevaPauta.setPractica(practica);
         nuevaPauta.setEstudiante(practica.getEstudiante());
         nuevaPauta.setTipoDocumento(TipoDocumento.PAUTA); 
+        nuevaPauta.setTipoEvaluador(TipoEvaluador.TUTOR_UNIVERSIDAD);
+
+        Usuario usuarioLogueado = usuarioRepository.findById(rutTutorLogueado).orElse(null);
+        if (usuarioLogueado instanceof Profesor) {
+            nuevaPauta.setProfesorEvaluador((Profesor) usuarioLogueado);
+        }
 
         return documentoRepository.save(nuevaPauta);
     }
@@ -294,6 +306,21 @@ public class DocumentoService {
         return documentoRepository.findAll().stream()
                 .filter(doc -> doc.getTipoDocumento() == null || !doc.getTipoDocumento().name().equals("PAUTA"))
                 .collect(Collectors.toList());
+    }
+
+    public List<Documento> obtenerPautasDeEstudiante() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String rut = auth.getName();
+        
+        Optional<Usuario> usuarioOpt = usuarioRepository.findById(rut);
+        if (usuarioOpt.isPresent() && usuarioOpt.get() instanceof Estudiante) {
+            Estudiante estudiante = (Estudiante) usuarioOpt.get();
+            List<Documento> docs = documentoRepository.findByEstudiante(estudiante);
+            return docs.stream()
+                    .filter(doc -> doc instanceof Pauta || (doc.getTipoDocumento() != null && doc.getTipoDocumento().name().equals("PAUTA")))
+                    .collect(Collectors.toList());
+        }
+        return List.of();
     }
 
 }
