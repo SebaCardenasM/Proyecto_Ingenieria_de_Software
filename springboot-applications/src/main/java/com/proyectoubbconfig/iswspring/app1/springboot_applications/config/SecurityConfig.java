@@ -30,13 +30,13 @@ public class SecurityConfig {
                 // Cualquier usuario autenticado (el acceso fino a /uploads lo valida el interceptor)
                 .requestMatchers("/seleccionar-rol", "/uploads/**").authenticated()
 
-                // API de documentos: cada endpoint con su rol
+               // API de documentos: cada endpoint con su rol
                 .requestMatchers(HttpMethod.POST, "/api/documentos/subir", "/api/documentos/subir-tutor").hasAnyRole("ESTUDIANTE", "TUTOR", "PROFESOR_ASIGNATURA")
 
                 // PERMITE ELIMINAR
                 .requestMatchers(HttpMethod.POST, "/api/documentos/eliminar/**").hasAnyRole("ESTUDIANTE", "TUTOR", "PROFESOR_ASIGNATURA", "COORDINADOR")
 
-                .requestMatchers("/api/documentos/mis-documentos")
+                .requestMatchers("/api/documentos/mis-documentos", "/api/documentos/pautas-estudiante")
                     .hasAnyRole("ESTUDIANTE", "PROFESOR_ASIGNATURA", "TUTOR", "COORDINADOR")
                 .requestMatchers("/api/documentos/mis-estudiantes-documentos")
                     .hasAnyRole("PROFESOR_ASIGNATURA", "TUTOR", "COORDINADOR")
