@@ -14,8 +14,6 @@
     <style>
         .ubb-bg { background-color: #004b85; }
         body { background-color: #f4f6f9; }
-        
-        /* Estilo para los botones circulares de selección múltiple */
         .btn-practica {
             width: 45px;
             height: 45px;
@@ -45,8 +43,8 @@
         
         <div class="row mb-4 align-items-center">
             <div class="col-md-8">
-                <h2 class="fw-bold text-dark mb-0"><i class="bi bi-file-earmark-check text-danger me-2"></i>Mis Evidencias de Práctica</h2>
-                <p class="text-muted mt-1 mb-0">Sube y gestiona los documentos correspondientes al centro de práctica asignado.</p>
+                <h2 class="fw-bold text-dark mb-0"><i class="bi bi-file-earmark-check text-danger me-2"></i>Gestión de Documentos y Pautas</h2>
+                <p class="text-muted mt-1 mb-0">Sube tus evidencias y revisa las pautas de evaluación asignadas por tu tutor y profesor colaborador.</p>
             </div>
             <div class="col-md-4 text-md-end mt-3 mt-md-0">
                 <button type="button" class="btn btn-danger shadow-sm" data-bs-toggle="modal" data-bs-target="#modalSubirArchivo">
@@ -55,74 +53,139 @@
             </div>
         </div>
 
-        <div class="row g-4">
-            <!-- Tabla Central -->
-            <div class="col-lg-9">
-                <div class="card shadow-sm border-0 h-100">
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-hover table-striped mb-0">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th class="ps-4">Nombre del Archivo</th>
-                                        <th>Tipo Documento</th>
-                                        <th>Fecha de Subida</th>
-                                        <th class="text-center">N° Práctica</th>
-                                        <th class="text-center">Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tablaArchivos">
-                                    <tr>
-                                        <td colspan="5" class="text-center text-muted py-5">
-                                            <div class="spinner-border text-danger spinner-border-sm me-2" role="status"></div>
-                                            Cargando tus documentos...
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <!-- Pestañas de navegación interna -->
+        <ul class="nav nav-tabs mb-4" id="documentTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active fw-bold text-danger" id="evidencias-tab" data-bs-toggle="tab" data-bs-target="#evidencias" type="button" role="tab">
+                    <i class="bi bi-folder2-open me-2"></i>Mis Evidencias (Planificaciones e Informes)
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-bold text-primary" id="pautas-tab" data-bs-toggle="tab" data-bs-target="#pautas" type="button" role="tab">
+                    <i class="bi bi-award me-2"></i>Pautas de Evaluación (Tutor / Colaborador)
+                </button>
+            </li>
+        </ul>
 
-            <!-- Filtros Laterales -->
-            <div class="col-lg-3">
-                <div class="card shadow-sm border-0 h-100">
-                    <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
-                        <h5 class="fw-bold text-dark"><i class="bi bi-funnel text-warning me-2"></i>Filtros</h5>
-                    </div>
-                    <div class="card-body">
-                        
-                        <!-- Filtro por Círculos de Práctica -->
-                        <h6 class="fw-bold text-secondary mb-3 mt-2">Por N° de Práctica</h6>
-                        <div class="d-flex flex-wrap gap-2 mb-4">
-                            <div th:each="i : ${#numbers.sequence(1, 6)}">
-                                <input type="checkbox" class="btn-check filtro-practica" th:id="'practica' + ${i}" th:value="${i}" autocomplete="off">
-                                <label class="btn btn-outline-danger btn-practica" th:for="'practica' + ${i}" th:text="${i}"></label>
+        <div class="tab-content" id="documentTabsContent">
+            
+            <!-- PESTAÑA 1: MIS EVIDENCIAS -->
+            <div class="tab-pane fade show active" id="evidencias" role="tabpanel">
+                <div class="row g-4">
+                    <div class="col-lg-9">
+                        <div class="card shadow-sm border-0 h-100">
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover table-striped mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th class="ps-4">Nombre del Archivo</th>
+                                                <th>Tipo Documento</th>
+                                                <th>Fecha de Subida</th>
+                                                <th class="text-center">N° Práctica</th>
+                                                <th class="text-center">Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tablaArchivos">
+                                            <tr>
+                                                <td colspan="5" class="text-center text-muted py-5">
+                                                    <div class="spinner-border text-danger spinner-border-sm me-2" role="status"></div>
+                                                    Cargando tus evidencias...
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
-
-                        <h6 class="fw-bold text-secondary mb-3">Por Tipo de Evidencia</h6>
-                        <div class="form-check mb-2">
-                            <input class="form-check-input filtro-tipo" type="checkbox" value="PLANIFICACION" id="tipoPlanificacion">
-                            <label class="form-check-label" for="tipoPlanificacion">Planificación</label>
+                    </div>
+                    <div class="col-lg-3">
+                        <div class="card shadow-sm border-0 h-100">
+                            <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+                                <h5 class="fw-bold text-dark"><i class="bi bi-funnel text-warning me-2"></i>Filtros</h5>
+                            </div>
+                            <div class="card-body">
+                                <h6 class="fw-bold text-secondary mb-3 mt-2">Por N° de Práctica</h6>
+                                <div class="d-flex flex-wrap gap-2 mb-4">
+                                    <div th:each="i : ${#numbers.sequence(1, 6)}">
+                                        <input type="checkbox" class="btn-check filtro-practica" th:id="'practica' + ${i}" th:value="${i}" autocomplete="off">
+                                        <label class="btn btn-outline-danger btn-practica" th:for="'practica' + ${i}" th:text="${i}"></label>
+                                    </div>
+                                </div>
+                                <h6 class="fw-bold text-secondary mb-3">Por Tipo de Evidencia</h6>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input filtro-tipo" type="checkbox" value="PLANIFICACION" id="tipoPlanificacion">
+                                    <label class="form-check-label" for="tipoPlanificacion">Planificación</label>
+                                </div>
+                                <div class="form-check mb-4">
+                                    <input class="form-check-input filtro-tipo" type="checkbox" value="INFORME_FINAL" id="tipoInforme">
+                                    <label class="form-check-label" for="tipoInforme">Informe Final</label>
+                                </div>
+                            </div>
                         </div>
-                        <div class="form-check mb-2">
-                            <input class="form-check-input filtro-tipo" type="checkbox" value="INFORME_FINAL" id="tipoInforme">
-                            <label class="form-check-label" for="tipoInforme">Informe Final</label>
-                        </div>
-                        <div class="form-check mb-4">
-                            <input class="form-check-input filtro-tipo" type="checkbox" value="PAUTA" id="tipoPauta">
-                            <label class="form-check-label" for="tipoPauta">Evaluación / Pauta</label>
-                        </div>
-
-                        <button id="btnLimpiarFiltros" class="btn btn-sm btn-outline-secondary w-100 d-none">
-                            <i class="bi bi-x-circle me-1"></i>Limpiar Filtros
-                        </button>
-
                     </div>
                 </div>
             </div>
+
+            <!-- PESTAÑA 2: PAUTAS DEL TUTOR Y COLABORADOR CON FILTROS -->
+            <div class="tab-pane fade" id="pautas" role="tabpanel">
+                <div class="row g-4">
+                    <div class="col-lg-9">
+                        <div class="card shadow-sm border-0 h-100">
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover table-striped mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th class="ps-4">Nombre de la Pauta</th>
+                                                <th>Evaluador</th>
+                                                <th>Fecha de Subida</th>
+                                                <th class="text-center">N° Práctica</th>
+                                                <th class="text-center">Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tablaPautas">
+                                            <tr>
+                                                <td colspan="5" class="text-center text-muted py-5">
+                                                    <div class="spinner-border text-primary spinner-border-sm me-2" role="status"></div>
+                                                    Cargando pautas...
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Filtros Laterales para Pautas -->
+                    <div class="col-lg-3">
+                        <div class="card shadow-sm border-0 h-100">
+                            <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+                                <h5 class="fw-bold text-dark"><i class="bi bi-funnel text-warning me-2"></i>Filtros de Pautas</h5>
+                            </div>
+                            <div class="card-body">
+                                <h6 class="fw-bold text-secondary mb-3 mt-2">Por N° de Práctica</h6>
+                                <div class="d-flex flex-wrap gap-2 mb-4">
+                                    <div th:each="i : ${#numbers.sequence(1, 6)}">
+                                        <input type="checkbox" class="btn-check filtro-practica-pauta" th:id="'practicaPauta' + ${i}" th:value="${i}" autocomplete="off">
+                                        <label class="btn btn-outline-primary btn-practica" th:for="'practicaPauta' + ${i}" th:text="${i}"></label>
+                                    </div>
+                                </div>
+                                <h6 class="fw-bold text-secondary mb-3">Por Evaluador</h6>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input filtro-evaluador" type="checkbox" value="TUTOR" id="evaluadorTutor">
+                                    <label class="form-check-label" for="evaluadorTutor">Tutor</label>
+                                </div>
+                                <div class="form-check mb-4">
+                                    <input class="form-check-input filtro-evaluador" type="checkbox" value="COLABORADOR" id="evaluadorColaborador">
+                                    <label class="form-check-label" for="evaluadorColaborador">Profesor Colaborador</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -136,7 +199,6 @@
                 </div>
                 <div class="modal-body p-4">
                     <form id="formularioSubida" enctype="multipart/form-data">
-                        
                         <div class="mb-3">
                             <label for="practicaActualId" class="form-label fw-semibold text-secondary">¿A qué práctica corresponde?</label>
                             <select class="form-select" id="practicaActualId" required>
@@ -154,24 +216,18 @@
                                 <option value="" selected disabled>Seleccione el tipo...</option>
                                 <option value="PLANIFICACION">Planificación</option>
                                 <option value="INFORME_FINAL">Informe Final</option>
-                                <option value="PAUTA">Evaluación / Pauta</option>
                             </select>
                         </div>
 
                         <div class="mb-4">
                             <label for="archivoInput" class="form-label fw-semibold text-secondary">Seleccione el archivo</label>
                             <input type="file" class="form-control" id="archivoInput" name="archivo" required>
-                            <div class="form-text mt-2 text-muted">
-                                <i class="bi bi-info-circle me-1"></i>El archivo quedará enlazado a tu práctica seleccionada.
-                            </div>
                         </div>
 
                         <div id="mensajeAlerta" class="alert d-none" role="alert"></div>
 
                         <div class="d-grid">
-                            <button class="btn btn-danger btn-lg" type="submit">
-                                Subir Documento
-                            </button>
+                            <button class="btn btn-danger btn-lg" type="submit">Subir Documento</button>
                         </div>
                     </form>
                 </div>
@@ -183,14 +239,15 @@
 
     <script th:inline="javascript">
         let archivosGlobales = [];
+        let pautasGlobales = [];
 
         document.addEventListener("DOMContentLoaded", () => {
             cargarArchivos();
+            cargarPautas();
 
             const formulario = document.getElementById('formularioSubida');
             formulario.addEventListener('submit', async (e) => {
                 e.preventDefault(); 
-                
                 const inputArchivo = document.getElementById('archivoInput');
                 const tipoDoc = document.getElementById('tipoDocumentoSelect').value;
                 const numPractica = document.getElementById('practicaActualId').value;
@@ -202,26 +259,18 @@
 
                 const csrfHeader = document.querySelector("meta[name='_csrf_header']")?.getAttribute("content");
                 const csrfToken = document.querySelector("meta[name='_csrf']")?.getAttribute("content");
-
                 const headers = {};
                 if (csrfHeader && csrfToken) headers[csrfHeader] = csrfToken;
 
                 try {
                     const respuesta = await fetch('/api/documentos/subir', {
-                        method: 'POST',
-                        headers: headers,
-                        body: formData
+                        method: 'POST', headers: headers, body: formData
                     });
-
                     if (respuesta.ok) {
-                        mostrarAlerta('¡Archivo subido con éxito!', 'alert-success');
+                        mostrarAlerta('¡Evidencia subida con éxito!', 'alert-success');
                         formulario.reset();
                         cargarArchivos();
-                        
-                        setTimeout(() => {
-                            var modal = bootstrap.Modal.getInstance(document.getElementById('modalSubirArchivo'));
-                            if(modal) modal.hide();
-                        }, 1200);
+                        setTimeout(() => bootstrap.Modal.getInstance(document.getElementById('modalSubirArchivo'))?.hide(), 1200);
                     } else {
                         const error = await respuesta.text();
                         mostrarAlerta('Error: ' + error, 'alert-danger');
@@ -231,141 +280,135 @@
                 }
             });
 
-            // Listeners para ambos tipos de filtros (prácticas y tipos)
-            document.querySelectorAll('.filtro-practica, .filtro-tipo').forEach(checkbox => {
-                checkbox.addEventListener('change', renderizarTabla);
-            });
-
-            document.getElementById('btnLimpiarFiltros').addEventListener('click', () => {
-                document.querySelectorAll('.filtro-practica, .filtro-tipo').forEach(cb => cb.checked = false);
-                renderizarTabla();
-            });
+            // Listeners de filtros
+            document.querySelectorAll('.filtro-practica, .filtro-tipo').forEach(cb => cb.addEventListener('change', renderizarTabla));
+            document.querySelectorAll('.filtro-practica-pauta, .filtro-evaluador').forEach(cb => cb.addEventListener('change', renderizarPautas));
         });
 
         async function cargarArchivos() {
             const tabla = document.getElementById('tablaArchivos');
             try {
-                const respuesta = await fetch('/api/documentos/mis-documentos', {
-                    headers: { 'Accept': 'application/json' }
-                });
-                if (respuesta.status === 204 || respuesta.status === 404) {
-                    archivosGlobales = [];
-                    renderizarTabla();
-                    return;
-                }
-                if (!respuesta.ok) throw new Error('El servidor respondió ' + respuesta.status);
-                if (!(respuesta.headers.get('content-type') || '').includes('application/json')) {
-                    throw new Error('La respuesta no es JSON (¿sesión expirada?)');
-                }
+                const respuesta = await fetch('/api/documentos/mis-documentos', { headers: { 'Accept': 'application/json' } });
+                if (respuesta.status === 204 || respuesta.status === 404) { archivosGlobales = []; renderizarTabla(); return; }
                 archivosGlobales = await respuesta.json();
                 renderizarTabla();
             } catch (error) {
-                console.error('Error cargando documentos:', error);
-                tabla.innerHTML = '<tr><td colspan="5" class="text-center text-danger py-4">' +
-                    '<i class="bi bi-exclamation-triangle-fill me-2"></i>Error al cargar los documentos (' +
-                    escapeHtml(error.message) + ').</td></tr>';
+                tabla.innerHTML = '<tr><td colspan="5" class="text-center text-danger py-4">Error al cargar evidencias.</td></tr>';
+            }
+        }
+
+        async function cargarPautas() {
+            const tabla = document.getElementById('tablaPautas');
+            try {
+                const respuesta = await fetch('/api/documentos/pautas-estudiante', { headers: { 'Accept': 'application/json' } });
+                if (respuesta.status === 204 || respuesta.status === 404) {
+                    tabla.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4"><i class="bi bi-inbox fs-4 d-block mb-2"></i>No hay pautas de evaluación disponibles aún.</td></tr>';
+                    return;
+                }
+                pautasGlobales = await respuesta.json();
+                renderizarPautas();
+            } catch (error) {
+                tabla.innerHTML = '<tr><td colspan="5" class="text-center text-danger py-4">Error al cargar pautas.</td></tr>';
             }
         }
 
         function renderizarTabla() {
             const tabla = document.getElementById('tablaArchivos');
-            
             if (!archivosGlobales || archivosGlobales.length === 0) {
-                tabla.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4"><i class="bi bi-inbox fs-4 d-block mb-2"></i>Aún no has subido ninguna evidencia.</td></tr>';
+                tabla.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">Aún no has subido ninguna evidencia.</td></tr>';
                 return;
             }
+            const practicasSel = Array.from(document.querySelectorAll('.filtro-practica:checked')).map(cb => cb.value);
+            const tiposSel = Array.from(document.querySelectorAll('.filtro-tipo:checked')).map(cb => cb.value);
 
-            const practicasSeleccionadas = Array.from(document.querySelectorAll('.filtro-practica:checked')).map(cb => cb.value);
-            const tiposSeleccionados = Array.from(document.querySelectorAll('.filtro-tipo:checked')).map(cb => cb.value);
-            const btnLimpiar = document.getElementById('btnLimpiarFiltros');
-            
-            if (practicasSeleccionadas.length > 0 || tiposSeleccionados.length > 0) {
-                btnLimpiar.classList.remove('d-none');
-            } else {
-                btnLimpiar.classList.add('d-none');
-            }
-
-            const archivosFiltrados = archivosGlobales.filter(archivo => {
-                const numPrac = archivo.numeroPractica || (archivo.practica ? archivo.practica.numeroPractica : null);
-                const tipoDoc = archivo.tipoDocumento;
-
-                const coincidePractica = practicasSeleccionadas.length === 0 || (numPrac && practicasSeleccionadas.includes(numPrac.toString()));
-                const coincideTipo = tiposSeleccionados.length === 0 || (tipoDoc && tiposSeleccionados.includes(tipoDoc));
-
-                return coincidePractica && coincideTipo;
+            const filtrados = archivosGlobales.filter(a => {
+                const p = a.numeroPractica || (a.practica ? a.practica.numeroPractica : null);
+                return (practicasSel.length === 0 || (p && practicasSel.includes(p.toString()))) &&
+                       (tiposSel.length === 0 || (a.tipoDocumento && tiposSel.includes(a.tipoDocumento)));
             });
 
-            if (archivosFiltrados.length === 0) {
-                tabla.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4"><i class="bi bi-search me-2"></i>No hay documentos que coincidan con los filtros.</td></tr>';
+            if (filtrados.length === 0) {
+                tabla.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">No hay documentos con los filtros aplicados.</td></tr>';
                 return;
             }
 
-            tabla.innerHTML = ''; 
+            tabla.innerHTML = '';
+            filtrados.forEach(a => {
+                const fecha = a.fechaSubida ? new Date(a.fechaSubida).toLocaleDateString('es-CL', {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'}) : 'Recién subido';
+                let ruta = a.rutaServidor || '#';
+                if (!ruta.startsWith('/')) ruta = '/' + ruta;
 
-            archivosFiltrados.forEach((archivo) => {
-                const fecha = archivo.fechaSubida 
-                    ? new Date(archivo.fechaSubida).toLocaleDateString('es-CL', {
-                        day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
-                      })
-                    : 'Recién subido';
-
-                const numPrac = archivo.numeroPractica || (archivo.practica ? archivo.practica.numeroPractica : 'N/A');
-                const tipoDocText = formatoTipoDocumento(archivo.tipoDocumento);
-                let ruta = archivo.rutaServidor || '#';
-                if (!ruta.startsWith('/')) {
-                    ruta = '/' + ruta;
-                }
-
-                const fila = `
+                tabla.insertAdjacentHTML('beforeend', `
                     <tr>
-                        <td class="ps-4 fw-semibold text-dark">
-                            <i class="bi bi-file-earmark-pdf text-danger me-2"></i>${escapeHtml(archivo.nombreArchivo || 'Documento')}
-                        </td>
-                        <td><span class="badge bg-secondary">${escapeHtml(tipoDocText)}</span></td>
-                        <td>${escapeHtml(fecha)}</td>
-                        <td class="text-center"><span class="badge bg-danger bg-opacity-75">Práctica ${escapeHtml(numPrac)}</span></td>
+                        <td class="ps-4 fw-semibold text-dark"><i class="bi bi-file-earmark-pdf text-danger me-2"></i>${escapeHtml(a.nombreArchivo)}</td>
+                        <td><span class="badge bg-secondary">${formatoTipo(a.tipoDocumento)}</span></td>
+                        <td>${fecha}</td>
+                        <td class="text-center"><span class="badge bg-danger bg-opacity-75">Práctica ${a.numeroPractica || 'N/A'}</span></td>
                         <td class="text-center">
-                            <a href="${escapeHtml(rutaSegura(archivo.rutaServidor))}" target="_blank" rel="noopener noreferrer"
-                            class="btn btn-sm btn-outline-danger" title="Ver Documento">
-                                <i class="bi bi-eye"></i>
-                            </a>
+                            <a href="${rutaSegura(a.rutaServidor)}" target="_blank" class="btn btn-sm btn-outline-danger"><i class="bi bi-eye"></i></a>
                         </td>
                     </tr>
-                `;
-                tabla.insertAdjacentHTML('beforeend', fila);
+                `);
             });
         }
 
-        function escapeHtml(valor) {
-            return String(valor ?? '')
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#39;');
-        }
-
-        function rutaSegura(ruta) {
-            if (!ruta) return '#';
-            const r = ruta.startsWith('/') ? ruta : '/' + ruta;
-            return r.startsWith('/uploads/') ? r : '#';
-        }
-
-        function formatoTipoDocumento(tipo) {
-            switch (tipo) {
-                case 'PLANIFICACION': return 'Planificación';
-                case 'INFORME_FINAL': return 'Informe Final';
-                case 'PAUTA': return 'Evaluación / Pauta';
-                default: return tipo || 'Documento';
+       function renderizarPautas() {
+            const tabla = document.getElementById('tablaPautas');
+            if (!pautasGlobales || pautasGlobales.length === 0) {
+                tabla.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">No hay pautas de evaluación disponibles aún.</td></tr>';
+                return;
             }
+
+            const practicasSel = Array.from(document.querySelectorAll('.filtro-practica-pauta:checked')).map(cb => cb.value);
+            const evaluadoresSel = Array.from(document.querySelectorAll('.filtro-evaluador:checked')).map(cb => cb.value);
+
+            const filtradas = pautasGlobales.filter(p => {
+                const numPrac = p.numeroPractica || (p.practica ? p.practica.numeroPractica : null);
+                // Mapeamos el enum de Java al valor del filtro del front ('TUTOR' o 'COLABORADOR')
+                const tipoEval = p.tipoEvaluador === 'TUTOR_UNIVERSIDAD' ? 'TUTOR' : 'COLABORADOR';
+
+                const coincidePractica = practicasSel.length === 0 || (numPrac && practicasSel.includes(numPrac.toString()));
+                const coincideEvaluador = evaluadoresSel.length === 0 || evaluadoresSel.includes(tipoEval);
+
+                return coincidePractica && coincideEvaluador;
+            });
+
+            if (filtradas.length === 0) {
+                tabla.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">No hay pautas que coincidan con los filtros aplicados.</td></tr>';
+                return;
+            }
+
+            tabla.innerHTML = '';
+            filtradas.forEach(p => {
+                const fecha = p.fechaSubida ? new Date(p.fechaSubida).toLocaleDateString('es-CL', {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'}) : 'Recién subido';
+                let ruta = p.rutaServidor || '#';
+                if (!ruta.startsWith('/')) ruta = '/' + ruta;
+
+                const badgeEvaluador = p.tipoEvaluador === 'TUTOR_UNIVERSIDAD' 
+                    ? '<span class="badge bg-primary">Tutor</span>' 
+                    : '<span class="badge bg-success">Profesor Colaborador</span>';
+
+                tabla.insertAdjacentHTML('beforeend', `
+                    <tr>
+                        <td class="ps-4 fw-semibold text-dark"><i class="bi bi-file-earmark-text text-primary me-2"></i>${escapeHtml(p.nombreArchivo)}</td>
+                        <td>${badgeEvaluador}</td>
+                        <td>${fecha}</td>
+                        <td class="text-center"><span class="badge bg-primary">Práctica ${p.numeroPractica || 'N/A'}</span></td>
+                        <td class="text-center">
+                            <a href="${rutaSegura(p.rutaServidor)}" target="_blank" class="btn btn-sm btn-outline-primary" title="Ver Pauta"><i class="bi bi-eye"></i></a>
+                        </td>
+                    </tr>
+                `);
+            });
         }
 
-        function mostrarAlerta(mensaje, clase) {
-            const alerta = document.getElementById('mensajeAlerta');
-            alerta.className = `alert ${clase} mt-3 mb-0`;
-            alerta.innerHTML = '<i class="bi bi-info-circle-fill me-2"></i>';
-            alerta.append(document.createTextNode(mensaje)); // texto plano, no HTML
-            setTimeout(() => alerta.className = 'alert d-none', 4000);
+        function escapeHtml(v) { return String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+        function rutaSegura(r) { return !r ? '#' : (r.startsWith('/') ? r : '/' + r); }
+        function formatoTipo(t) { return t === 'PLANIFICACION' ? 'Planificación' : (t === 'INFORME_FINAL' ? 'Informe Final' : t); }
+        function mostrarAlerta(m, c) {
+            const a = document.getElementById('mensajeAlerta');
+            a.className = `alert ${c} mt-3 mb-0`; a.textContent = m;
+            setTimeout(() => a.className = 'alert d-none', 4000);
         }
     </script>
 </body>

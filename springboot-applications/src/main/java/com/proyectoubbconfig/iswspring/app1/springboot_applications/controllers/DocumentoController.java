@@ -97,4 +97,11 @@ public class DocumentoController {
         }
         return ResponseEntity.ok(documentos.stream().map(DocumentoDTO::desde).toList());
     }
+
+   
+    @GetMapping("/pautas-estudiante")
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<DocumentoDTO>> obtenerPautasEstudiante() {
+        return responder(documentoService.obtenerPautasDeEstudiante());
+    }
 }
