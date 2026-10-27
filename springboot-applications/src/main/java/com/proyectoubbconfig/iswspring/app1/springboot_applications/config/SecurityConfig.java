@@ -21,6 +21,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
+            .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
             .authorizeHttpRequests(auth -> auth
                 // Públicas: estáticos, login y acceso por token del colaborador
                 .requestMatchers("/css/**", "/js/**", "/images/**",
@@ -30,7 +31,11 @@ public class SecurityConfig {
                 .requestMatchers("/seleccionar-rol", "/uploads/**").authenticated()
 
                 // API de documentos: cada endpoint con su rol
-                .requestMatchers(HttpMethod.POST, "/api/documentos/subir").hasRole("ESTUDIANTE")
+                .requestMatchers(HttpMethod.POST, "/api/documentos/subir", "/api/documentos/subir-tutor").hasAnyRole("ESTUDIANTE", "TUTOR", "PROFESOR_ASIGNATURA")
+
+                // PERMITE ELIMINAR
+                .requestMatchers(HttpMethod.POST, "/api/documentos/eliminar/**").hasAnyRole("ESTUDIANTE", "TUTOR", "PROFESOR_ASIGNATURA", "COORDINADOR")
+
                 .requestMatchers("/api/documentos/mis-documentos")
                     .hasAnyRole("ESTUDIANTE", "PROFESOR_ASIGNATURA", "TUTOR", "COORDINADOR")
                 .requestMatchers("/api/documentos/mis-estudiantes-documentos")

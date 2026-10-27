@@ -58,11 +58,23 @@
                             </div>
 
                             <div class="row">
-                                <!-- Selección de Tutor Supervisor (Universidad) -->
-                                <div class="col-md-6 mb-3">
-                                    <label for="profesor" class="form-label fw-semibold">Tutor Supervisor (UBB)</label>
+                                <!-- Selección de Profesor de Asignatura (UBB) -->
+                                <div class="col-md-4 mb-3">
+                                    <label for="profesor" class="form-label fw-semibold">Prof. Asignatura (UBB)</label>
                                     <select id="profesor" class="form-select" th:field="*{profesor.rut}">
-                                        <option value="" selected>Sin asignación (Opcional)</option>
+                                        <option value="" selected>Sin asignación</option>
+                                        <option th:each="p : ${profesores}" 
+                                                th:value="${p.rut}" 
+                                                th:text="${p.nombre + ' ' + p.apellido}">
+                                        </option>
+                                    </select>
+                                </div>
+
+                                <!-- Selección de Tutor Supervisor (UBB) -->
+                                <div class="col-md-4 mb-3">
+                                    <label for="tutor" class="form-label fw-semibold">Tutor Supervisor (UBB)</label>
+                                    <select id="tutor" class="form-select" th:field="*{tutor.rut}">
+                                        <option value="" selected>Sin asignación</option>
                                         <option th:each="p : ${profesores}" 
                                                 th:value="${p.rut}" 
                                                 th:text="${p.nombre + ' ' + p.apellido}">
@@ -71,10 +83,10 @@
                                 </div>
 
                                 <!-- Selección de Profesor Colaborador (Colegio) -->
-                                <div class="col-md-6 mb-3">
-                                    <label for="colaborador" class="form-label fw-semibold">Profesor Colaborador (Colegio)</label>
+                                <div class="col-md-4 mb-3">
+                                    <label for="colaborador" class="form-label fw-semibold">Prof. Colaborador</label>
                                     <select id="colaborador" class="form-select" th:field="*{colaborador.rut}">
-                                        <option value="" selected>Sin asignación (Opcional)</option>
+                                        <option value="" selected>Sin asignación</option>
                                         <option th:each="col : ${colaboradores}" 
                                                 th:value="${col.rut}" 
                                                 th:text="${col.nombre + ' ' + col.apellido}">
