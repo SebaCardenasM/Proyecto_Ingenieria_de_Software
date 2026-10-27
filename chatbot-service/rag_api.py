@@ -56,7 +56,7 @@ def inicializar_rag_chain(vectorstore):
     if vectorstore is None:
         return None
 
-    llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.3)
+    llm = ChatGoogleGenerativeAI(model="gemini-3.8-flash", temperature=0.3)
     retriever = vectorstore.as_retriever(search_kwargs={"k": 5})
 
     contextualize_q_system_prompt = (

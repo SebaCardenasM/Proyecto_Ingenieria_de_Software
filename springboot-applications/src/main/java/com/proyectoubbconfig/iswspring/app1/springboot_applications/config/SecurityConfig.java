@@ -39,13 +39,14 @@ public class SecurityConfig {
                 
                 // Chatbot
                 .requestMatchers(HttpMethod.POST, "/api/chat/preguntar").authenticated()
-
+                .requestMatchers(HttpMethod.POST, "/api/chat/preguntar").authenticated()
                 // Cualquier otro endpoint de la API queda bloqueado (debe ir DESPUÉS de definir las rutas de /api/ permitidas)
                 .requestMatchers("/api/**").denyAll() 
 
                 // Paneles por rol (lo específico va antes que lo general)
                 .requestMatchers("/estudiante/**").hasRole("ESTUDIANTE")
                 .requestMatchers("/profesor/archivos").hasAnyRole("PROFESOR_ASIGNATURA", "TUTOR")
+                .requestMatchers("/profesor/analiticas-ia").hasAnyRole("PROFESOR_ASIGNATURA", "TUTOR", "COORDINADOR")
                 .requestMatchers("/profesor/**").hasRole("PROFESOR_ASIGNATURA")
                 .requestMatchers("/tutor/**").hasRole("TUTOR")
 

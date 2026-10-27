@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Analíticas de Dudas IA</title>
+    <style>
+        body { font-family: sans-serif; margin: 30px; background: #f4f6f9; }
+        .card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border-bottom: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background: #003366; color: white; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>📊 Informe de Preguntas Frecuentes al Asistente IA (HU 2)</h2>
+        <p>Resumen agrupado por categoría para detectar falencias en el programa de estudios.</p>
+        <table>
+            <thead>
+                <tr><th>Categoría de Duda</th><th>Cantidad de Consultas</th></tr>
+            </thead>
+            <tbody>
+                <tr th:each="item : ${frecuentes}">
+                    <td th:text="${item.categoria}"></td>
+                    <td><b th:text="${item.total}"></b></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <h3>Últimas consultas registradas en <code>Interaccion_IA</code></h3>
+        <table>
+            <thead>
+                <tr><th>Fecha</th><th>RUT Alumno</th><th>Nivel Práctica</th><th>Categoría</th><th>Pregunta realizada</th></tr>
+            </thead>
+            <tbody>
+                <tr th:each="duda : ${ultimasDudas}">
+                    <td th:text="${#temporals.format(duda.fecha, 'dd-MM-yyyy HH:mm')}"></td>
+                    <td th:text="${duda.rutEstudiante}"></td>
+                    <td th:text="${duda.nivelPractica != null ? 'Práctica ' + duda.nivelPractica : 'N/A'}"></td>
+                    <td th:text="${duda.categoriaDuda}"></td>
+                    <td th:text="${duda.promptUsuario}"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
