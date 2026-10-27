@@ -125,24 +125,16 @@
                             </div>
                         </div>
 
-                        <!-- Filtro: Tipo de Documento -->
+                      <!-- Filtro: Tipo de Documento -->
                         <h6 class="fw-bold text-secondary mb-3">Por Tipo de Documento</h6>
                         <div class="form-check mb-2">
                             <input class="form-check-input filtro-tipo" type="checkbox" value="PLANIFICACION" id="tipoPlanificacion">
                             <label class="form-check-label" for="tipoPlanificacion">Planificación</label>
                         </div>
-                        <div class="form-check mb-2">
+                        <div class="form-check mb-4">
                             <input class="form-check-input filtro-tipo" type="checkbox" value="INFORME_FINAL" id="tipoInforme">
                             <label class="form-check-label" for="tipoInforme">Informe Final</label>
                         </div>
-                        <div class="form-check mb-4">
-                            <input class="form-check-input filtro-tipo" type="checkbox" value="PAUTA" id="tipoEvaluacion">
-                            <label class="form-check-label" for="tipoEvaluacion">Evaluación / Pauta</label>
-                        </div>
-
-                        <button id="btnLimpiarFiltros" class="btn btn-sm btn-outline-secondary w-100 d-none">
-                            <i class="bi bi-x-circle me-1"></i>Limpiar Filtros
-                        </button>
 
                     </div>
                 </div>
@@ -200,7 +192,7 @@
             }
         }
         // 2. Filtrado y renderizado dinámico
-        function renderizarTabla() {
+          function renderizarTabla() {
             const tabla = document.getElementById('tablaArchivos');
             
             if (!archivosGlobales || archivosGlobales.length === 0) {
@@ -212,14 +204,18 @@
             const tiposSeleccionados = Array.from(document.querySelectorAll('.filtro-tipo:checked')).map(cb => cb.value);
             const textoBusqueda = document.getElementById('inputBuscarEstudiante').value.toLowerCase().trim();
 
+            // >>> PROTECCIÓN CONTRA NULOS AQUÍ <<<
             const btnLimpiar = document.getElementById('btnLimpiarFiltros');
-            if (practicasSeleccionadas.length > 0 || tiposSeleccionados.length > 0 || textoBusqueda !== '') {
-                btnLimpiar.classList.remove('d-none');
-            } else {
-                btnLimpiar.classList.add('d-none');
+            if (btnLimpiar) {
+                if (practicasSeleccionadas.length > 0 || tiposSeleccionados.length > 0 || textoBusqueda !== '') {
+                    btnLimpiar.classList.remove('d-none');
+                } else {
+                    btnLimpiar.classList.add('d-none');
+                }
             }
+            // ===================================
 
-            const archivosFiltrados = archivosGlobales.filter(archivo => {
+                 const archivosFiltrados = archivosGlobales.filter(archivo => {
                 const numPrac = archivo.numeroPractica || (archivo.practica ? archivo.practica.numeroPractica : null);
                 const tipoDoc = archivo.tipoDocumento;
 
