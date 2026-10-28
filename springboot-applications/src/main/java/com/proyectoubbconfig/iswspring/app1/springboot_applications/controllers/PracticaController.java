@@ -136,9 +136,8 @@ public class PracticaController {
         // 8. Guardar en Base de Datos
         practicaRepository.save(practica);
         redirectAttributes.addFlashAttribute("mensajeExito", "Práctica asignada y guardada correctamente.");
-        return "redirect:/practicas";
+        return "redirect:/index"; // Redirección actualizada al Dashboard
     }
-
     @Transactional(readOnly = true)
     @GetMapping("/practicas/editar/{id}")
     public String mostrarFormularioEditarPractica(@PathVariable Long id, Model model) {
