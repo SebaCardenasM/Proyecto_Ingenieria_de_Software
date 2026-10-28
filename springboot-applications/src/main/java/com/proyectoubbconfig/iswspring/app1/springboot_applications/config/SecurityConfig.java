@@ -25,7 +25,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // Públicas: estáticos, login y acceso por token del colaborador
                 .requestMatchers("/css/**", "/js/**", "/images/**",
-                                 "/login", "/evaluacion-colaborador/**").permitAll()
+                                "/login", "/evaluacion-colaborador/**").permitAll()
 
                 // Cualquier usuario autenticado (el acceso fino a /uploads lo valida el interceptor)
                 .requestMatchers("/seleccionar-rol", "/uploads/**").authenticated()
@@ -41,19 +41,26 @@ public class SecurityConfig {
                 .requestMatchers("/api/documentos/mis-estudiantes-documentos")
                     .hasAnyRole("PROFESOR_ASIGNATURA", "TUTOR", "COORDINADOR")
                 .requestMatchers("/api/documentos/todos").hasRole("COORDINADOR")
-                .requestMatchers("/api/**").denyAll() // cualquier endpoint de API nuevo queda bloqueado hasta que lo autorices
+                
+                // Chatbot
+                .requestMatchers(HttpMethod.POST, "/api/chat/preguntar").authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/chat/preguntar").authenticated()
+                // Cualquier otro endpoint de la API queda bloqueado (debe ir DESPUÉS de definir las rutas de /api/ permitidas)
+                .requestMatchers("/api/**").denyAll() 
 
                 // Paneles por rol (lo específico va antes que lo general)
                 .requestMatchers("/estudiante/**").hasRole("ESTUDIANTE")
                 .requestMatchers("/profesor/archivos").hasAnyRole("PROFESOR_ASIGNATURA", "TUTOR")
+                .requestMatchers("/profesor/analiticas-ia").hasAnyRole("PROFESOR_ASIGNATURA", "TUTOR", "COORDINADOR")
                 .requestMatchers("/profesor/**").hasRole("PROFESOR_ASIGNATURA")
                 .requestMatchers("/tutor/**").hasRole("TUTOR")
 
                 // Coordinación
                 .requestMatchers("/estudiantes/**", "/profesores/**", "/practicas/**",
-                                 "/gestor-archivos/**", "/portafolios/**", "/usuarios/**",
-                                 "/index").hasRole("COORDINADOR")
+                                "/gestor-archivos/**", "/portafolios/**", "/usuarios/**",
+                                "/index").hasRole("COORDINADOR")
 
+                // Esta línea SIEMPRE debe ser la última
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
