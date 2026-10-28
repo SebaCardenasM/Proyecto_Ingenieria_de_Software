@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Centros de Práctica - Plataforma de Prácticas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .ubb-bg { background-color: #004b85; }
+        body { background-color: #f4f6f9; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-dark ubb-bg mb-4 shadow-sm">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand fw-bold" th:href="@{/index}">
+                <i class="bi bi-arrow-left-circle me-2"></i>Volver al Panel
+            </a>
+            <div class="d-flex text-white align-items-center">
+                <i class="bi bi-person-badge fs-5 me-2"></i> Coordinación
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid px-4 px-md-5 mb-5">
+        
+        <!-- Alerta de éxito opcional -->
+        <div th:if="${mensajeExito}" class="alert alert-success alert-dismissible fade show shadow-sm mb-4" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i><span th:text="${mensajeExito}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div class="row mb-4 align-items-center">
+            <div class="col-md-8">
+                <h2 class="fw-bold text-dark mb-0"><i class="bi bi-buildings text-primary me-2"></i>Centros de Práctica Registrados</h2>
+                <p class="text-muted mt-1 mb-0">Listado general de los colegios e instituciones asociados a las prácticas pedagógicas.</p>
+            </div>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                <a th:href="@{/centros-practica/nuevo}" class="btn btn-outline-primary shadow-sm">
+                    <i class="bi bi-building-add me-1"></i> Añadir Nuevo Centro
+                </a>
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">Nombre del Centro</th>
+                                <th>Región</th>
+                                <th>Comuna</th>
+                                <th>Dirección</th>
+                                <th class="text-center">Estudiantes Asignados</th>
+                                <th class="text-center pe-4">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:if="${centros == null or centros.empty}">
+                                <td colspan="6" class="text-center text-muted py-5">
+                                    <i class="bi bi-inbox fs-3 d-block mb-2"></i>No hay centros de práctica registrados aún.
+                                </td>
+                            </tr>
+                            <tr th:each="centro : ${centros}">
+                                <td class="ps-4 fw-semibold text-dark">
+                                    <i class="bi bi-building text-primary me-2"></i><span th:text="${centro.nombre}"></span>
+                                </td>
+                                <td th:text="${centro.region != null ? centro.region : 'No especificada'}"></td>
+                                <td th:text="${centro.comuna != null ? centro.comuna : 'No especificada'}"></td>
+                                <td th:text="${(centro.calle != null ? centro.calle : '') + ' ' + (centro.numero != null ? centro.numero : '')}"></td>
+                                <td class="text-center">
+                                    <span class="badge bg-primary bg-opacity-75" th:text="${centro.practicas != null ? centro.practicas.size() : 0} + ' prácticas'"></span>
+                                </td>
+                                <td class="text-center pe-4">
+                                    <!-- Botón Editar (Lápiz) -->
+                                    <a th:href="@{/centros-practica/editar/{id}(id=${centro.id})}" class="btn btn-sm btn-outline-primary me-1" title="Editar Centro (Typo)">
+                                        <i class="bi bi-pencil-fill"></i>
+                                    </a>
+                                    <!-- Botón Ver Estudiantes Asignados -->
+                                    <a th:href="@{/centros-practica/{id}/estudiantes(id=${centro.id})}" class="btn btn-sm btn-outline-success" title="Ver Estudiantes Asignados">
+                                        <i class="bi bi-people-fill me-1"></i> Ver Estudiantes
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Editar Práctica - Plataforma de Prácticas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .ubb-bg { background-color: #004b85; }
+        body { background-color: #f4f6f9; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-dark ubb-bg mb-4 shadow-sm">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand fw-bold" th:href="@{/practicas}">
+                <i class="bi bi-arrow-left-circle me-2"></i>Volver a Prácticas
+            </a>
+            <div class="d-flex text-white align-items-center">
+                <i class="bi bi-person-badge fs-5 me-2"></i> Coordinación
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-4 mb-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-7">
+                
+                <!-- Alerta de Error -->
+                <div th:if="${error}" class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${error}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header ubb-bg text-white py-3">
+                        <h4 class="mb-0 fw-bold"><i class="bi bi-pencil-square me-2"></i>Editar Asignación de Práctica</h4>
+                    </div>
+                    <div class="card-body p-4">
+                        <form th:action="@{/practicas/actualizar/{id}(id=${practica.id})}" th:object="${practica}" method="post">
+                            
+                            <!-- Estudiante -->
+                            <div class="mb-3">
+                                <label for="estudiante" class="form-label fw-semibold">Estudiante *</label>
+                                <select class="form-select" id="estudiante" th:field="*{estudiante.rut}" required>
+                                    <option value="">Seleccione un estudiante</option>
+                                    <option th:each="est : ${estudiantes}" th:value="${est.rut}" th:text="${est.nombre + ' ' + est.apellido + ' (' + est.rut + ')'}"></option>
+                                </select>
+                            </div>
+
+                            <!-- Centro de Práctica -->
+                            <div class="mb-3">
+                                <label for="centroPractica" class="form-label fw-semibold">Centro de Práctica (Colegio)</label>
+                                <select class="form-select" id="centroPractica" th:field="*{centroPractica.id}">
+                                    <option value="">Sin asignar aún (Opcional)</option>
+                                    <option th:each="centro : ${centros}" th:value="${centro.id}" th:text="${centro.nombre}"></option>
+                                </select>
+                            </div>
+
+                            <div class="row">
+                                <!-- Profesor Asignatura (Mapeado estrictamente a profesor.rut) -->
+                                <div class="col-md-6 mb-3">
+                                    <label for="profesor" class="form-label fw-semibold">Prof. Asignatura (UBB)</label>
+                                    <select class="form-select" id="profesor" th:field="*{profesor.rut}">
+                                        <option value="">Sin asignación</option>
+                                        <option th:each="prof : ${profesores}" th:value="${prof.rut}" th:text="${prof.nombre + ' ' + prof.apellido}"></option>
+                                    </select>
+                                </div>
+                                <!-- Tutor Supervisor (Mapeado estrictamente a tutor.rut) -->
+                                <div class="col-md-6 mb-3">
+                                    <label for="tutor" class="form-label fw-semibold">Tutor Supervisor (UBB)</label>
+                                    <select class="form-select" id="tutor" th:field="*{tutor.rut}">
+                                        <option value="">Sin asignación</option>
+                                        <option th:each="prof : ${profesores}" th:value="${prof.rut}" th:text="${prof.nombre + ' ' + prof.apellido}"></option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Profesor Colaborador -->
+                            <div class="mb-3">
+                                <label for="colaborador" class="form-label fw-semibold">Profesor Colaborador (Colegio)</label>
+                                <select class="form-select" id="colaborador" th:field="*{colaborador.rut}">
+                                    <option value="">Sin colaboración</option>
+                                    <option th:each="col : ${colaboradores}" th:value="${col.rut}" th:text="${col.nombre + ' ' + col.apellido}"></option>
+                                </select>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="numeroPractica" class="form-label fw-semibold">N° Práctica *</label>
+                                    <input type="number" class="form-control" id="numeroPractica" th:field="*{numeroPractica}" required min="1" max="6">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="ano" class="form-label fw-semibold">Año *</label>
+                                    <input type="number" class="form-control" id="ano" th:field="*{ano}" required placeholder="Ej: 2026">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="semestre" class="form-label fw-semibold">Semestre *</label>
+                                    <select class="form-select" id="semestre" th:field="*{semestre}">
+                                        <option value="1">Semestre 1</option>
+                                        <option value="2">Semestre 2</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-4">
+                                    <label for="fechaInicio" class="form-label fw-semibold">Fecha Inicio</label>
+                                    <input type="date" class="form-control" id="fechaInicio" th:field="*{fechaInicio}">
+                                </div>
+                                <div class="col-md-6 mb-4">
+                                    <label for="fechaFin" class="form-label fw-semibold">Fecha Fin</label>
+                                    <input type="date" class="form-control" id="fechaFin" th:field="*{fechaFin}">
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between">
+                                <a th:href="@{/practicas}" class="btn btn-secondary">Cancelar</a>
+                                <button type="submit" class="btn btn-success px-4">Guardar Cambios</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
