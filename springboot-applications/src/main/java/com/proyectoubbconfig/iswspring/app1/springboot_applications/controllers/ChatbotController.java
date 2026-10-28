@@ -32,8 +32,14 @@ public class ChatbotController {
         if (request.mensaje() == null || request.mensaje().isBlank()) {
             return ResponseEntity.badRequest().body(new ChatResponse("Escribe una consulta."));
         }
-        String respuesta = chatbotService.procesarConsulta(authentication.getName(), request.mensaje().trim());
-        return ResponseEntity.ok(new ChatResponse(respuesta));
+        try {
+            String respuesta = chatbotService.procesarConsulta(authentication.getName(), request.mensaje().trim());
+            return ResponseEntity.ok(new ChatResponse(respuesta));
+        } catch (RuntimeException e) {
+            // Cualquier error inesperado (BD, embeddings, etc.): el JS siempre recibe "respuesta"
+            return ResponseEntity.status(500)
+                    .body(new ChatResponse("Ocurrió un error al procesar tu consulta. Intenta de nuevo."));
+        }
     }
 
     // Vista de Analíticas para el Profesor / Coordinador (HU 2)
@@ -43,4 +49,4 @@ public class ChatbotController {
         model.addAttribute("ultimasDudas", interaccionIARepository.findTop20ByOrderByFechaDesc());
         return "Profesor/analiticas-ia";
     }
-}
+}
