@@ -247,7 +247,19 @@ public class DocumentoService {
 
         String rutUsuario = auth.getName();
 
-        // Verificamos si el documento pertenece a una práctica supervisada por este tutor
+        // 1. Si es Estudiante, permitimos ver si el documento está asociado a su perfil
+        if (tieneRol(auth, "ROLE_ESTUDIANTE")) {
+            Optional<Usuario> usuarioOpt = usuarioRepository.findById(rutUsuario);
+            if (usuarioOpt.isPresent() && usuarioOpt.get() instanceof Estudiante) {
+                Estudiante estudiante = (Estudiante) usuarioOpt.get();
+                List<Documento> docsEstudiante = documentoRepository.findByEstudiante(estudiante);
+                boolean esSuyo = docsEstudiante.stream()
+                        .anyMatch(d -> d.getRutaServidor() != null && (rutaRelativa.contains(d.getRutaServidor()) || d.getRutaServidor().contains(rutaRelativa)));
+                if (esSuyo) return true;
+            }
+        }
+
+        // 2. Verificamos si el documento pertenece a una práctica supervisada por este tutor
         Optional<Documento> docEncontrado = documentoRepository.findAll().stream()
                 .filter(d -> d.getRutaServidor() != null && (rutaRelativa.contains(d.getRutaServidor()) || d.getRutaServidor().contains(rutaRelativa)))
                 .findFirst();
