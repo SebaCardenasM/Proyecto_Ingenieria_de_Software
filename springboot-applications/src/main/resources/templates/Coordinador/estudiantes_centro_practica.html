@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Estudiantes en el Centro - Plataforma de Prácticas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .ubb-bg { background-color: #004b85; }
+        body { background-color: #f4f6f9; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-dark ubb-bg mb-4 shadow-sm">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand fw-bold" th:href="@{/centros-practica}">
+                <i class="bi bi-arrow-left-circle me-2"></i>Volver a Centros
+            </a>
+            <div class="d-flex text-white align-items-center">
+                <i class="bi bi-person-badge fs-5 me-2"></i> Coordinación
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid px-4 px-md-5 mb-5">
+        <div class="row mb-4 align-items-center">
+            <div class="col-12">
+                <h2 class="fw-bold text-dark mb-1">
+                    <i class="bi bi-building text-primary me-2"></i>Estudiantes en: <span th:text="${centro.nombre}"></span>
+                </h2>
+                <p class="text-muted mb-0">
+                    <i class="bi bi-geo-alt me-1"></i>Ubicación: <span th:text="${(centro.calle != null ? centro.calle : '') + ' ' + (centro.numero != null ? centro.numero : '') + ', ' + (centro.comuna != null ? centro.comuna : '')}"></span>
+                </p>
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">RUT Estudiante</th>
+                                <th>Nombre Completo</th>
+                                <th class="text-center">N° Práctica</th>
+                                <th class="text-center">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:if="${centro.practicas == null or centro.practicas.empty}">
+                                <td colspan="4" class="text-center text-muted py-5">
+                                    <i class="bi bi-inbox fs-3 d-block mb-2"></i>No hay estudiantes asignados a este centro de práctica actualmente.
+                                </td>
+                            </tr>
+                            <tr th:each="practica : ${centro.practicas}">
+                                <td class="ps-4 fw-semibold text-dark" th:text="${practica.estudiante != null ? practica.estudiante.rut : 'N/A'}"></td>
+                                <td th:text="${practica.estudiante != null ? practica.estudiante.nombre + ' ' + practica.estudiante.apellido : 'N/A'}"></td>
+                                <td class="text-center">
+                                    <span class="badge bg-secondary" th:text="'Práctica ' + ${practica.numeroPractica != null ? practica.numeroPractica : '1'}"></span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-warning text-dark" th:text="${practica.estado != null ? practica.estado : 'Pendiente'}"></span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
