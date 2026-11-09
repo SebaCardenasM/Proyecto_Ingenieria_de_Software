@@ -53,6 +53,9 @@ public class ChatbotService {
     private final EmbeddingModel embeddingModel = new AllMiniLmL6V2EmbeddingModel();
     private final EmbeddingStore<TextSegment> embeddingStore = new InMemoryEmbeddingStore<>();
 
+    // Se crea una sola vez al iniciar (antes se construía en cada pregunta)
+    private ChatLanguageModel chatModel;
+
     public ChatbotService(EstudianteRepository estudianteRepository,
                           InteraccionIARepository interaccionIARepository) {
         this.estudianteRepository = estudianteRepository;
@@ -61,6 +64,15 @@ public class ChatbotService {
 
     @PostConstruct
     public void inicializarRag() {
+        if (apiKey != null && !apiKey.isBlank()) {
+            // maxRetries(1): cada reintento cuenta contra la cuota diaria del plan gratuito
+            chatModel = GoogleAiGeminiChatModel.builder()
+                    .apiKey(apiKey)
+                    .modelName(modelName)
+                    .temperature(0.3)
+                    .maxRetries(1)
+                    .build();
+        }
         try {
             ClassPathResource resource = new ClassPathResource("rag-docs");
             if (!resource.exists()) {
@@ -134,18 +146,33 @@ public class ChatbotService {
                 pregunta
         );
 
-        ChatLanguageModel chatModel = GoogleAiGeminiChatModel.builder()
-                .apiKey(apiKey)
-                .modelName(modelName)
-                .temperature(0.3)
-                .build();
-
-        String respuesta = chatModel.generate(promptFinal);
+        String respuesta;
+        try {
+            respuesta = chatModel.generate(promptFinal);
+        } catch (RuntimeException e) {
+            log.error("Error al consultar Gemini", e);
+            // No se guarda en InteraccionIA: no hubo respuesta real
+            return mensajeDeError(e);
+        }
 
         String categoria = clasificarDuda(pregunta);
         interaccionIARepository.save(new InteraccionIA(rutUsuario, nivelPractica, categoria, pregunta, respuesta));
 
         return respuesta;
+    }
+
+    /** Revisa toda la cadena de causas, porque langchain4j envuelve el error de Gemini. */
+    private String mensajeDeError(Throwable e) {
+        for (Throwable t = e; t != null; t = t.getCause()) {
+            String msg = String.valueOf(t.getMessage());
+            if (msg.contains("429") || msg.contains("RESOURCE_EXHAUSTED")) {
+                return "Se alcanzó el límite de consultas del asistente por hoy. Intenta de nuevo más tarde.";
+            }
+            if (msg.contains("503") || msg.contains("UNAVAILABLE")) {
+                return "El asistente está con alta demanda en este momento. Intenta de nuevo en unos minutos.";
+            }
+        }
+        return "El asistente no pudo responder ahora. Intenta de nuevo en un momento.";
     }
 
     private Integer detectarNivelPractica(String rut) {
@@ -188,4 +215,4 @@ public class ChatbotService {
         if (lower.contains("colegio") || lower.contains("centro") || lower.contains("colaborador") || lower.contains("asistencia")) return "CENTRO DE PRÁCTICA";
         return "DUDAS GENERALES DE PRÁCTICA";
     }
-}
+}
