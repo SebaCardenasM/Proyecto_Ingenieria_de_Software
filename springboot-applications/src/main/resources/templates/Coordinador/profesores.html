@@ -63,9 +63,11 @@
                                         <i class="bi bi-shield-check me-1"></i>Coordinador
                                     </span>
                                 </td>
-
                                 <td class="text-center">
-                                    <button class="btn btn-sm btn-outline-secondary" title="Editar"><i class="bi bi-pencil"></i></button>
+                                    <a th:href="@{/profesores/editar/{rut}(rut=${profesor.rut})}"
+                                    class="btn btn-sm btn-outline-secondary" title="Editar">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
                                 </td>
                             </tr>
                             <tr th:if="${#lists.isEmpty(profesores)}">

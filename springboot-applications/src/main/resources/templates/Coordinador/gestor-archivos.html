@@ -6,18 +6,18 @@
     <!-- Meta etiquetas CSRF para Thymeleaf -->
     <meta name="_csrf" th:content="${_csrf?.token}"/>
     <meta name="_csrf_header" th:content="${_csrf?.headerName}"/>
-    
+
     <title>Gestor de Archivos - Prácticas UBB</title>
-    
+
     <!-- Importando Bootstrap 5 e Iconos -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    
+
     <style>
         .ubb-bg { background-color: #004b85; } /* Color institucional */
         body { background-color: #f4f6f9; }
-        
-        /* Estilo para los botones circulares de selección múltiple */
+
+        /* Botones circulares de selección múltiple (práctica y semestre) */
         .btn-practica {
             width: 45px;
             height: 45px;
@@ -28,6 +28,11 @@
             font-weight: bold;
             transition: all 0.2s;
         }
+
+        /* Listas escondibles de años: si hay muchos, la lista hace scroll */
+        .lista-checks { max-height: 150px; overflow-y: auto; }
+        .chevron { transition: transform 0.2s; }
+        [aria-expanded="true"] .chevron { transform: rotate(180deg); }
     </style>
 </head>
 <body>
@@ -45,7 +50,7 @@
     </nav>
 
     <div class="container-fluid px-4 px-md-5 mb-5">
-        
+
         <!-- Encabezado de la página -->
         <div class="row mb-4 align-items-center">
             <div class="col-md-8">
@@ -56,16 +61,20 @@
 
         <div class="row g-4">
             <!-- COLUMNA IZQUIERDA: Tabla de archivos -->
-            <div class="col-lg-9">
+            <div class="col-lg-10">
                 <div class="card shadow-sm border-0 h-100">
                     <div class="card-body p-0">
                         <div class="table-responsive">
-                            <table class="table table-hover table-striped mb-0">
+                            <table class="table table-hover table-striped mb-0 align-middle">
                                 <thead class="table-light">
                                     <tr>
                                         <th class="ps-4">Nombre del Archivo</th>
-                                        <th>Estudiante</th> <!-- Columna agregada -->
+                                        <th>RUT</th> <!-- NUEVA COLUMNA -->
+                                        <th>Estudiante</th>
+                                        <th class="text-center">Año de ingreso</th>
                                         <th>Tipo Documento</th>
+                                        <th class="text-center">Año práctica</th>
+                                        <th class="text-center">Semestre práctica</th>
                                         <th>Fecha de Subida</th>
                                         <th class="text-center">N° Práctica</th>
                                         <th class="text-center">Acciones</th>
@@ -73,7 +82,7 @@
                                 </thead>
                                 <tbody id="tablaArchivos">
                                     <tr>
-                                        <td colspan="5" class="text-center text-muted py-5">
+                                        <td colspan="10" class="text-center text-muted py-5">
                                             <div class="spinner-border text-primary spinner-border-sm me-2" role="status"></div>
                                             Cargando documentos...
                                         </td>
@@ -86,13 +95,57 @@
             </div>
 
             <!-- COLUMNA DERECHA: Barra lateral de filtros -->
-            <div class="col-lg-3">
+            <div class="col-lg-2">
                 <div class="card shadow-sm border-0 h-100">
                     <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
                         <h5 class="fw-bold text-dark"><i class="bi bi-funnel text-warning me-2"></i>Filtros</h5>
                     </div>
-                    <div class="card-body">
-                        
+                    <div class="card-body" id="panelFiltros">
+
+                        <!-- Filtro: Estudiante -->
+                        <h6 class="fw-bold text-secondary mb-3 mt-2">Por Estudiante</h6>
+                        <input type="text" id="filtroRut" class="form-control form-control-sm mb-2" placeholder="RUT (ej: 12345678-9)" autocomplete="off">
+                        <input type="text" id="filtroNombre" class="form-control form-control-sm mb-4" placeholder="Nombre o apellido" autocomplete="off">
+
+                        <!-- Filtro: Año de ingreso (lista escondible, selección múltiple) -->
+                        <div class="mb-3">
+                            <button class="btn btn-sm btn-outline-secondary w-100 d-flex justify-content-between align-items-center"
+                                    type="button" data-bs-toggle="collapse" data-bs-target="#colAnoIngreso"
+                                    aria-expanded="false" aria-controls="colAnoIngreso">
+                                <span class="fw-bold">Año de ingreso
+                                    <span id="badgeAnoIngreso" class="badge bg-primary ms-1 d-none">0</span>
+                                </span>
+                                <i class="bi bi-chevron-down chevron"></i>
+                            </button>
+                            <div class="collapse" id="colAnoIngreso">
+                                <div id="listaAnoIngreso" class="lista-checks d-flex flex-wrap gap-2 border rounded p-2 mt-2"></div>
+                            </div>
+                        </div>
+
+                        <!-- Filtro: Año de la práctica (lista escondible, selección múltiple) -->
+                        <div class="mb-4">
+                            <button class="btn btn-sm btn-outline-secondary w-100 d-flex justify-content-between align-items-center"
+                                    type="button" data-bs-toggle="collapse" data-bs-target="#colAnoPractica"
+                                    aria-expanded="false" aria-controls="colAnoPractica">
+                                <span class="fw-bold">Año de práctica
+                                    <span id="badgeAnoPractica" class="badge bg-primary ms-1 d-none">0</span>
+                                </span>
+                                <i class="bi bi-chevron-down chevron"></i>
+                            </button>
+                            <div class="collapse" id="colAnoPractica">
+                                <div id="listaAnoPractica" class="lista-checks d-flex flex-wrap gap-2 border rounded p-2 mt-2"></div>
+                            </div>
+                        </div>
+
+                        <!-- Filtro: Semestre de la práctica -->
+                        <h6 class="fw-bold text-secondary mb-3">Por Semestre</h6>
+                        <div class="d-flex flex-wrap gap-2 mb-4">
+                            <div th:each="i : ${#numbers.sequence(1, 2)}">
+                                <input type="checkbox" class="btn-check filtro-semestre" th:id="'semestre' + ${i}" th:value="${i}" autocomplete="off">
+                                <label class="btn btn-outline-primary btn-practica" th:for="'semestre' + ${i}" th:text="${i}"></label>
+                            </div>
+                        </div>
+
                         <!-- Filtro: Práctica -->
                         <h6 class="fw-bold text-secondary mb-3 mt-2">Por N° de Práctica</h6>
                         <div class="d-flex flex-wrap gap-2 mb-4">
@@ -130,183 +183,179 @@
     <!-- Scripts de Bootstrap -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Script de conexión y filtrado interactivo -->
-    <!-- Script de conexión y filtrado interactivo (CORREGIDO) -->
-    <script th:inline="javascript">
+    <script>
         let archivosGlobales = [];
 
-        document.addEventListener("DOMContentLoaded", () => {
-            cargarArchivos();
+        // ---------- Utilidades ----------
+        const normalizar = s => String(s ?? '').normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();            // ignora tildes y mayúsculas
+        const normalizarRut = s => String(s ?? '').replace(/[.\-\s]/g, '').toLowerCase(); // ignora puntos y guión
 
-            // Formulario de subida
-            const formulario = document.getElementById('formularioSubida');
-            formulario.addEventListener('submit', async (e) => {
-                e.preventDefault(); 
-                
-                const inputArchivo = document.getElementById('archivoInput');
-                const numPractica = document.getElementById('numeroPracticaSelect').value;
-                const tipoDoc = document.getElementById('tipoDocumentoSelect').value;
+        function escapeHtml(valor) {
+            return String(valor ?? '')
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
 
-                const formData = new FormData();
-                formData.append("archivo", inputArchivo.files[0]);
-                formData.append("numeroPractica", numPractica);
-                formData.append("tipoDocumento", tipoDoc);
+        function rutaSegura(ruta) {
+            if (!ruta) return '#';
+            const r = ruta.startsWith('/') ? ruta : '/' + ruta;
+            return r.startsWith('/uploads/') ? r : '#';
+        }
 
-                // Obtener Tokens CSRF si Spring Security está activo
-                const csrfHeader = document.querySelector("meta[name='_csrf_header']")?.getAttribute("content");
-                const csrfToken = document.querySelector("meta[name='_csrf']")?.getAttribute("content");
+        const comoTexto = v => (v != null ? String(v) : null);
+        const anoIngresoDe  = a => comoTexto(a.estudiante?.anoIngreso);
+        const anoPracticaDe = a => comoTexto(a.anoPractica);
+        const semestreDe    = a => comoTexto(a.semestrePractica);
 
-                const headers = {};
-                if (csrfHeader && csrfToken) {
-                    headers[csrfHeader] = csrfToken;
-                }
+        const valoresMarcados = selector =>
+            Array.from(document.querySelectorAll(selector + ':checked')).map(cb => cb.value);
 
-                try {
-                    // RUTA CORREGIDA: /api/documentos/subir
-                    const respuesta = await fetch('/api/documentos/subir', {
-                        method: 'POST',
-                        headers: headers,
-                        body: formData
-                    });
+        // ---------- Listas de años (se generan con los datos reales) ----------
+        function construirLista(idContenedor, claseCheck, prefijoId, valores) {
+            const contenedor = document.getElementById(idContenedor);
+            const marcados = new Set(valoresMarcados('.' + claseCheck));
+            const anos = [...new Set(valores.filter(Boolean))].sort((a, b) => b - a);
 
-                    if (respuesta.ok) {
-                        mostrarAlerta('¡Archivo subido con éxito!', 'alert-success');
-                        formulario.reset();
-                        cargarArchivos();
-                        
-                        setTimeout(() => {
-                            var modal = bootstrap.Modal.getInstance(document.getElementById('modalSubirArchivo'));
-                            if(modal) modal.hide();
-                        }, 1200);
-                    } else {
-                        const error = await respuesta.text();
-                        mostrarAlerta('Error: ' + error, 'alert-danger');
-                    }
-                } catch (error) {
-                    mostrarAlerta('Error de conexión con el servidor.', 'alert-danger');
-                }
+            contenedor.innerHTML = anos.length ? '' : '<small class="text-muted">Sin datos</small>';
+            anos.forEach(ano => {
+                contenedor.insertAdjacentHTML('beforeend', `
+                    <div>
+                        <input type="checkbox" class="btn-check ${claseCheck}" id="${prefijoId}${ano}" value="${ano}"
+                               autocomplete="off" ${marcados.has(ano) ? 'checked' : ''}>
+                        <label class="btn btn-outline-primary btn-sm" for="${prefijoId}${ano}">${ano}</label>
+                    </div>`);
             });
+        }
 
-            // Listeners para filtros
-            document.querySelectorAll('.filtro-practica, .filtro-tipo').forEach(checkbox => {
-                checkbox.addEventListener('change', renderizarTabla);
-            });
+        function construirFiltrosAnos() {
+            construirLista('listaAnoIngreso',  'filtro-ano-ingreso',  'ai', archivosGlobales.map(anoIngresoDe));
+            construirLista('listaAnoPractica', 'filtro-ano-practica', 'ap', archivosGlobales.map(anoPracticaDe));
+        }
+
+        function actualizarContador(idBadge, cantidad) {
+            const badge = document.getElementById(idBadge);
+            badge.textContent = cantidad;
+            badge.classList.toggle('d-none', cantidad === 0);
+        }
+
+        // ---------- Inicio ----------
+        document.addEventListener('DOMContentLoaded', () => {
+            const panel = document.getElementById('panelFiltros');
+
+            // Un solo listener por delegación: cubre los filtros fijos y los años que se crean dinámicamente
+            panel.addEventListener('change', e => { if (e.target.type === 'checkbox') renderizarTabla(); });
+            panel.addEventListener('input',  e => { if (e.target.type === 'text') renderizarTabla(); });
 
             document.getElementById('btnLimpiarFiltros').addEventListener('click', () => {
-                document.querySelectorAll('.filtro-practica, .filtro-tipo').forEach(cb => cb.checked = false);
+                panel.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+                panel.querySelectorAll('input[type="text"]').forEach(inp => inp.value = '');
                 renderizarTabla();
             });
+
+            cargarArchivos();
         });
 
-        // 1. Obtener archivos
+        // ---------- 1. Obtener archivos ----------
         async function cargarArchivos() {
             const tabla = document.getElementById('tablaArchivos');
             try {
                 const respuesta = await fetch('/api/documentos/mis-documentos', {
                     headers: { 'Accept': 'application/json' }
                 });
+                // 204 = sin documentos (no trae cuerpo, por eso no se llama a json())
                 if (respuesta.status === 204 || respuesta.status === 404) {
                     archivosGlobales = [];
-                    renderizarTabla();
-                    return;
+                } else {
+                    if (!respuesta.ok) throw new Error('El servidor respondió ' + respuesta.status);
+                    if (!(respuesta.headers.get('content-type') || '').includes('application/json')) {
+                        throw new Error('La respuesta no es JSON (¿sesión expirada?)');
+                    }
+                    archivosGlobales = await respuesta.json();
                 }
-                if (!respuesta.ok) throw new Error('El servidor respondió ' + respuesta.status);
-                if (!(respuesta.headers.get('content-type') || '').includes('application/json')) {
-                    throw new Error('La respuesta no es JSON (¿sesión expirada?)');
-                }
-                archivosGlobales = await respuesta.json();
+                construirFiltrosAnos();
                 renderizarTabla();
             } catch (error) {
                 console.error('Error cargando documentos:', error);
-                tabla.innerHTML = '<tr><td colspan="5" class="text-center text-danger py-4">' +
+                tabla.innerHTML = '<tr><td colspan="10" class="text-center text-danger py-4">' +
                     '<i class="bi bi-exclamation-triangle-fill me-2"></i>Error al cargar los documentos (' +
                     escapeHtml(error.message) + ').</td></tr>';
             }
         }
 
-        // 2. Filtrado y renderizado dinámico
+        // ---------- 2. Filtrado y renderizado ----------
         function renderizarTabla() {
             const tabla = document.getElementById('tablaArchivos');
-            
+
             if (!archivosGlobales || archivosGlobales.length === 0) {
-                tabla.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4"><i class="bi bi-inbox fs-4 d-block mb-2"></i>No hay documentos subidos aún.</td></tr>';
+                tabla.innerHTML = '<tr><td colspan="10" class="text-center text-muted py-4"><i class="bi bi-inbox fs-4 d-block mb-2"></i>No hay documentos subidos aún.</td></tr>';
                 return;
             }
 
-            const practicasSeleccionadas = Array.from(document.querySelectorAll('.filtro-practica:checked')).map(cb => cb.value);
-            const tiposSeleccionados = Array.from(document.querySelectorAll('.filtro-tipo:checked')).map(cb => cb.value);
+            const practicas     = valoresMarcados('.filtro-practica');
+            const semestres     = valoresMarcados('.filtro-semestre');
+            const tipos         = valoresMarcados('.filtro-tipo');
+            const anosIngreso   = valoresMarcados('.filtro-ano-ingreso');
+            const anosPractica  = valoresMarcados('.filtro-ano-practica');
+            const textoRut      = normalizarRut(document.getElementById('filtroRut').value);
+            const textoNombre   = normalizar(document.getElementById('filtroNombre').value);
 
-            const btnLimpiar = document.getElementById('btnLimpiarFiltros');
-            if (practicasSeleccionadas.length > 0 || tiposSeleccionados.length > 0) {
-                btnLimpiar.classList.remove('d-none');
-            } else {
-                btnLimpiar.classList.add('d-none');
-            }
+            actualizarContador('badgeAnoIngreso', anosIngreso.length);
+            actualizarContador('badgeAnoPractica', anosPractica.length);
+
+            const hayFiltros = practicas.length || semestres.length || tipos.length
+                            || anosIngreso.length || anosPractica.length || textoRut || textoNombre;
+            document.getElementById('btnLimpiarFiltros').classList.toggle('d-none', !hayFiltros);
 
             const archivosFiltrados = archivosGlobales.filter(archivo => {
-                const numPrac = archivo.numeroPractica || (archivo.practica ? archivo.practica.numeroPractica : null);
-                const tipoDoc = archivo.tipoDocumento;
+                const est = archivo.estudiante;
+                const numPrac = comoTexto(archivo.numeroPractica);
 
-                const coincidePractica = practicasSeleccionadas.length === 0 || (numPrac && practicasSeleccionadas.includes(numPrac.toString()));
-                const coincideTipo = tiposSeleccionados.length === 0 || (tipoDoc && tiposSeleccionados.includes(tipoDoc));
+                const coincidePractica    = practicas.length === 0    || (numPrac && practicas.includes(numPrac));
+                const coincideSemestre    = semestres.length === 0    || semestres.includes(semestreDe(archivo));
+                const coincideTipo        = tipos.length === 0        || (archivo.tipoDocumento && tipos.includes(archivo.tipoDocumento));
+                const coincideAnoIngreso  = anosIngreso.length === 0  || anosIngreso.includes(anoIngresoDe(archivo));
+                const coincideAnoPractica = anosPractica.length === 0 || anosPractica.includes(anoPracticaDe(archivo));
+                const coincideRut         = !textoRut    || normalizarRut(est?.rut).includes(textoRut);
+                const coincideNombre      = !textoNombre || normalizar(`${est?.nombre ?? ''} ${est?.apellido ?? ''}`).includes(textoNombre);
 
-                return coincidePractica && coincideTipo;
+                return coincidePractica && coincideSemestre && coincideTipo
+                    && coincideAnoIngreso && coincideAnoPractica && coincideRut && coincideNombre;
             });
 
             if (archivosFiltrados.length === 0) {
-                tabla.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4"><i class="bi bi-search me-2"></i>No se encontraron archivos con los filtros aplicados.</td></tr>';
+                tabla.innerHTML = '<tr><td colspan="10" class="text-center text-muted py-4"><i class="bi bi-search me-2"></i>No se encontraron archivos con los filtros aplicados.</td></tr>';
                 return;
             }
 
-            tabla.innerHTML = ''; 
+            tabla.innerHTML = '';
 
-            archivosFiltrados.forEach((archivo) => {
-                const fecha = archivo.fechaSubida 
+            archivosFiltrados.forEach(archivo => {
+                const est = archivo.estudiante;
+                const nombreEstudiante = est ? `${est.nombre ?? ''} ${est.apellido ?? ''}`.trim() : 'Desconocido';
+                const rutEstudiante = est ? (est.rut ?? 'Sin RUT') : 'Desconocido'; // EXTRAER EL RUT
+                const fecha = archivo.fechaSubida
                     ? new Date(archivo.fechaSubida).toLocaleDateString('es-CL', {
                         day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
                     })
                     : 'Sin fecha';
-
-                const numPrac = archivo.numeroPractica || (archivo.practica ? archivo.practica.numeroPractica : 'N/A');
-                const tipoDocText = formatoTipoDocumento(archivo.tipoDocumento);
-                
-                // Convierte texto en algo inofensivo para insertarlo en HTML
-                function escapeHtml(valor) {
-                    return String(valor ?? '')
-                        .replace(/&/g, '&amp;')
-                        .replace(/</g, '&lt;')
-                        .replace(/>/g, '&gt;')
-                        .replace(/"/g, '&quot;')
-                        .replace(/'/g, '&#39;');
-                }
-
-                // Solo permite enlaces a /uploads/... (bloquea javascript: y otras URLs)
-                function rutaSegura(ruta) {
-                    if (!ruta) return '#';
-                    const r = ruta.startsWith('/') ? ruta : '/' + ruta;
-                    return r.startsWith('/uploads/') ? r : '#';
-                }
-
-                // Extraer el nombre del estudiante asignado
-                let nombreEstudiante = "Desconocido";
-                if (archivo.estudiante) {
-                    nombreEstudiante = `${archivo.estudiante.nombre} ${archivo.estudiante.apellido}`;
-                } else if (archivo.practica && archivo.practica.estudiante) {
-                    nombreEstudiante = `${archivo.practica.estudiante.nombre} ${archivo.practica.estudiante.apellido}`;
-                }
 
                 const fila = `
                     <tr>
                         <td class="ps-4 fw-semibold text-primary">
                             <i class="bi bi-file-earmark-text me-2 text-secondary"></i>${escapeHtml(archivo.nombreArchivo)}
                         </td>
+                        <td><span class="text-dark">${escapeHtml(rutEstudiante)}</span></td> 
                         <td><span class="fw-semibold text-dark">${escapeHtml(nombreEstudiante)}</span></td>
-                        <td><span class="badge bg-secondary">${escapeHtml(tipoDocText)}</span></td>
+                        <td class="text-center">${escapeHtml(anoIngresoDe(archivo) ?? '—')}</td>
+                        <td><span class="badge bg-secondary">${escapeHtml(formatoTipoDocumento(archivo.tipoDocumento))}</span></td>
+                        <td class="text-center">${escapeHtml(anoPracticaDe(archivo) ?? '—')}</td>
+                        <td class="text-center">${escapeHtml(semestreDe(archivo) ?? '—')}</td>
                         <td>${escapeHtml(fecha)}</td>
-                        <td class="text-center"><span class="badge bg-info text-dark">Práctica ${escapeHtml(numPrac)}</span></td>
+                        <td class="text-center"><span class="badge bg-info text-dark">Práctica ${escapeHtml(archivo.numeroPractica ?? 'N/A')}</span></td>
                         <td class="text-center">
                             <a href="${escapeHtml(rutaSegura(archivo.rutaServidor))}" target="_blank" rel="noopener noreferrer"
-                            class="btn btn-sm btn-outline-primary" title="Descargar/Ver">
+                               class="btn btn-sm btn-outline-primary" title="Descargar/Ver">
                                 <i class="bi bi-download"></i>
                             </a>
                         </td>
@@ -323,14 +372,6 @@
                 case 'PAUTA': return 'Evaluación / Pauta';
                 default: return tipo || 'Sin Especificar';
             }
-        }
-
-       function mostrarAlerta(mensaje, clase) {
-            const alerta = document.getElementById('mensajeAlerta');
-            alerta.className = `alert ${clase} mt-3 mb-0`;
-            alerta.innerHTML = '<i class="bi bi-info-circle-fill me-2"></i>';
-            alerta.append(document.createTextNode(mensaje)); // texto plano, no HTML
-            setTimeout(() => alerta.className = 'alert d-none', 4000);
         }
     </script>
 </body>
