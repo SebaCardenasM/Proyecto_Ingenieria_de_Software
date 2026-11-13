@@ -70,7 +70,7 @@
                 </div>
             </div>
 
-            <!-- Columna Derecha: Carga de Pautas (Máximo 4) -->
+            <!-- Columna Derecha: Pautas Online y Carga de Pautas (Máximo 4) -->
             <div class="col-md-7">
                 <div class="card shadow-sm border-0 h-100">
                     <div class="card-header bg-white border-bottom fw-bold pt-3 pb-2 d-flex justify-content-between align-items-center">
@@ -82,6 +82,64 @@
                             <i class="bi bi-exclamation-triangle-fill me-2"></i>
                             Como Tutor Supervisor de Práctica Profesional, puedes cargar un máximo de <strong>4 pautas de evaluación</strong> a lo largo del semestre.
                         </div>
+
+                        <!-- Acceso a Pauta Interactiva Tipo Formulario Web -->
+                        <div class="p-3 mb-4 rounded border border-primary bg-primary bg-opacity-10 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
+                            <div>
+                                <h6 class="fw-bold text-primary mb-1">
+                                    <i class="bi bi-ui-radios me-1"></i> Pauta de Observación Digital
+                                </h6>
+                                <p class="small text-muted mb-0">
+                                    Rellena en línea, guarda como borrador o envía la pauta definitiva al estudiante.
+                                </p>
+                            </div>
+                            <a th:href="@{/tutor/estudiante/{id}/pauta-interactiva(id=${practica.id})}" class="btn btn-primary fw-semibold text-nowrap">
+                                <i class="bi bi-pencil-square me-1"></i> Rellenar Pauta Web
+                            </a>
+                        </div>
+
+                        <!-- Galería de Pautas Online (Borradores y Enviadas) -->
+                        <h6 class="fw-bold mb-3 text-primary"><i class="bi bi-globe me-1"></i> Pautas Online:</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-sm-6 col-md-6" th:each="pauta : ${pautasOnline}">
+                                <div class="card h-100 shadow-sm doc-card"
+                                     th:classappend="${pauta.rutaServidor == 'ONLINE_BORRADOR' ? 'border-warning' : 'border-success'}">
+                                    <div class="card-body p-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span th:if="${pauta.rutaServidor == 'ONLINE_BORRADOR'}" class="badge bg-warning text-dark">
+                                                <i class="bi bi-pencil-fill me-1"></i> Borrador
+                                            </span>
+                                            <span th:if="${pauta.rutaServidor == 'ONLINE_ENVIADA'}" class="badge bg-success">
+                                                <i class="bi bi-check-circle-fill me-1"></i> Enviada
+                                            </span>
+                                            <span class="badge bg-light text-dark border" th:text="${#numbers.formatInteger(pauta.puntajeObtenido, 1) + ' / 140 pts'}">Puntaje</span>
+                                        </div>
+                                        <h6 class="card-title fw-bold text-truncate mb-1" th:text="${pauta.nombreArchivo}" th:title="${pauta.nombreArchivo}">Pauta Online</h6>
+                                        <p class="text-muted small mb-3">
+                                            <i class="bi bi-clock me-1"></i> <span th:text="${#temporals.format(pauta.fechaSubida, 'dd/MM/yyyy HH:mm')}">Fecha</span>
+                                        </p>
+                                        <div class="d-flex gap-2">
+                                            <a th:href="@{/tutor/pauta-online/{id}(id=${pauta.id})}" 
+                                               class="btn btn-sm w-50"
+                                               th:classappend="${pauta.rutaServidor == 'ONLINE_BORRADOR' ? 'btn-warning text-dark fw-semibold' : 'btn-outline-primary'}">
+                                                <i class="bi" th:classappend="${pauta.rutaServidor == 'ONLINE_BORRADOR' ? 'bi-pencil-square me-1' : 'bi-eye me-1'}"></i>
+                                                <span th:text="${pauta.rutaServidor == 'ONLINE_BORRADOR' ? 'Editar' : 'Ver'}">Acción</span>
+                                            </a>
+                                            <button type="button" class="btn btn-outline-danger btn-sm w-50" th:onclick="'eliminarDocumento(' + ${pauta.id} + ')'">
+                                                <i class="bi bi-trash me-1"></i> Eliminar
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12" th:if="${pautasOnline == null or pautasOnline.isEmpty()}">
+                                <div class="text-center text-muted p-3 bg-light rounded border small">
+                                    Aún no hay pautas online en borrador ni enviadas.
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
 
                         <!-- Formulario de Subida con action de Thymeleaf -->
                         <form id="formSubirPauta" th:action="@{/api/documentos/subir-tutor}" method="post" class="mb-4 bg-light p-3 rounded border">
@@ -97,13 +155,11 @@
                             </button>
                         </form>
 
-                        <hr class="my-4">
-
-                        <!-- Galería de Pautas Cargadas en Cuadros -->
-                        <h6 class="fw-bold mb-3">Documentos Cargados:</h6>
+                        <!-- Galería de Pautas Físicas Cargadas en Cuadros -->
+                        <h6 class="fw-bold mb-3">Documentos Físicos Cargados:</h6>
                         
                         <div class="row g-3">
-                            <div class="col-sm-6 col-md-6" th:each="doc : ${practica.archivos}" th:if="${doc.tipoDocumento != null and doc.tipoDocumento.name() == 'PAUTA'}">
+                            <div class="col-sm-6 col-md-6" th:each="doc : ${practica.archivos}" th:if="${doc.tipoDocumento != null and doc.tipoDocumento.name() == 'PAUTA' and !#strings.startsWith(doc.rutaServidor, 'ONLINE_')}">
                                 <div class="card h-100 border shadow-sm doc-card">
                                     <div class="card-body text-center p-3">
                                         <i class="bi bi-file-earmark-pdf fs-1 text-danger mb-2"></i>
@@ -112,7 +168,6 @@
                                             <i class="bi bi-clock me-1"></i> <span th:text="${#temporals.format(doc.fechaSubida, 'dd/MM/yyyy HH:mm')}">Fecha</span>
                                         </p>
                                         
-                                        <!-- Botones en línea: Ver y Eliminar -->
                                         <div class="d-flex gap-2">
                                             <a th:href="@{'/' + ${doc.rutaServidor}}" target="_blank" class="btn btn-outline-primary btn-sm w-50">
                                                 <i class="bi bi-eye me-1"></i> Ver
@@ -125,10 +180,10 @@
                                 </div>
                             </div>
                             
-                          <div class="col-12" th:if="${practica.archivos == null or practica.archivos.?[tipoDocumento != null and tipoDocumento.name() == 'PAUTA'].size() == 0}">
+                            <div class="col-12" th:if="${practica.archivos == null or practica.archivos.?[tipoDocumento != null and tipoDocumento.name() == 'PAUTA' and !#strings.startsWith(rutaServidor, 'ONLINE_')].size() == 0}">
                                 <div class="text-center text-muted p-4 bg-light rounded border border-dashed">
                                     <i class="bi bi-folder-x fs-2 mb-2 d-block"></i>
-                                    Aún no has cargado pautas para este estudiante.
+                                    Aún no has cargado archivos PDF/Word para este estudiante.
                                 </div>
                             </div>
                         </div>
@@ -139,12 +194,8 @@
         </div>
     </div>
     
-<!-- Scripts de Bootstrap y lógica de la vista -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- Script para enviar el formulario por AJAX, capturar errores y eliminar documentos -->
     <script>
-        // 1. Manejo de la subida por AJAX
         document.getElementById('formSubirPauta').addEventListener('submit', function(e) {
             e.preventDefault();
             
@@ -169,14 +220,13 @@
                     btn.innerHTML = '<i class="bi bi-cloud-upload me-1"></i> Cargar Nueva Pauta';
                 }
             })
-            .catch(error => {
+            .catch(() => {
                 alert('Error crítico de red o de conexión.');
                 btn.disabled = false;
                 btn.innerHTML = '<i class="bi bi-cloud-upload me-1"></i> Cargar Nueva Pauta';
             });
         });
 
-        // 2. Función para eliminar documentos
         function eliminarDocumento(idDocumento) {
             if (confirm('¿Estás seguro de que deseas eliminar esta pauta? Esta acción no se puede deshacer.')) {
                 fetch('/api/documentos/eliminar/' + idDocumento, {
@@ -191,7 +241,7 @@
                         alert('Error al eliminar: ' + errorText);
                     }
                 })
-                .catch(error => {
+                .catch(() => {
                     alert('Error de red o conexión al intentar eliminar.');
                 });
             }
