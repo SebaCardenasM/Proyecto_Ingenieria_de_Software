@@ -56,7 +56,10 @@
                                     </span>
                                 </td>
                                 <td class="text-center">
-                                    <button class="btn btn-sm btn-outline-secondary" title="Editar"><i class="bi bi-pencil"></i></button>
+                                    <a th:href="@{/estudiantes/editar/{rut}(rut=${estudiante.rut})}"
+                                    class="btn btn-sm btn-outline-secondary" title="Editar">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
                                 </td>
                             </tr>
                             <tr th:if="${#lists.isEmpty(estudiantes)}">
