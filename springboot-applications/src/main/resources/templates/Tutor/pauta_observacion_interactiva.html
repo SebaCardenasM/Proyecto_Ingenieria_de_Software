@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pauta de Evaluación - Investigación en el aula 2026</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --ubb-blue: #004b85;
+            --pem-wine: #9e0b41;
+            --line: #ced4da;
+            --soft: #e9f0f8;
+        }
+        body { background-color: #f4f6f9; color: #202735; }
+        .ubb-bg { background-color: var(--ubb-blue); }
+        
+        .page-card {
+            max-width: 1100px;
+            margin: 0 auto 3rem;
+            background: #ffffff;
+            border-radius: 10px;
+        }
+        
+        .section-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--ubb-blue);
+            border-bottom: 2px solid var(--ubb-blue);
+            padding-bottom: 6px;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .input-recognized {
+            background-color: #eef4fb !important;
+            border-color: #b8daff !important;
+            color: #003366 !important;
+            font-weight: 600;
+        }
+
+        .antecedentes-table th {
+            background-color: #f8f9fa;
+            font-size: 0.85rem;
+            font-weight: 700;
+            width: 24%;
+            vertical-align: middle;
+            color: #344054;
+        }
+        .antecedentes-table td {
+            vertical-align: middle;
+        }
+
+        .rubric-table th, .rubric-table td {
+            border: 1px solid var(--line);
+            vertical-align: middle;
+        }
+        .rubric-table thead th {
+            background-color: #f1f4f8;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+        .category-row th {
+            background-color: var(--soft) !important;
+            color: var(--ubb-blue);
+            text-align: left !important;
+            font-size: 0.92rem;
+            padding: 10px 14px;
+            letter-spacing: 0.3px;
+        }
+        .score-cell {
+            text-align: center;
+            width: 50px;
+            cursor: pointer;
+            transition: background-color 0.15s;
+        }
+        .score-cell:hover {
+            background-color: #eef4fb;
+        }
+        .radio-circle {
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            border: 2px solid #6c757d;
+            border-radius: 50%;
+            display: inline-grid;
+            place-content: center;
+            cursor: pointer;
+            margin: 0;
+            transition: all 0.15s ease-in-out;
+        }
+        .radio-circle::before {
+            content: "";
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            transform: scale(0);
+            transition: transform 0.15s ease-in-out;
+            background-color: var(--ubb-blue);
+        }
+        .radio-circle:checked {
+            border-color: var(--ubb-blue);
+        }
+        .radio-circle:checked::before {
+            transform: scale(1);
+        }
+
+        .score-banner {
+            position: sticky;
+            top: 10px;
+            z-index: 100;
+            background: #ffffff;
+            border-left: 5px solid var(--ubb-blue);
+        }
+
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.6); }
+            70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+        }
+        .recording-active {
+            animation: pulse-red 1.5s infinite;
+        }
+
+        .signature-line {
+            border-top: 1px solid #202735;
+            padding-top: 8px;
+            text-align: center;
+            font-size: 0.9rem;
+            margin-top: 4rem;
+        }
+
+        @media print {
+            body { background: white !important; }
+            .no-print { display: none !important; }
+            .page-card { box-shadow: none !important; margin: 0 !important; max-width: 100% !important; padding: 0 !important; }
+            .score-banner { position: static !important; border: 1px solid #ccc !important; margin-bottom: 15px !important; }
+            .input-recognized { background-color: transparent !important; border: none !important; padding-left: 0 !important; }
+            .radio-circle { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+            tr { break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark ubb-bg mb-4 shadow-sm no-print">
+        <div class="container">
+            <a class="navbar-brand fw-bold" th:href="@{/tutor/index}">
+                <i class="bi bi-mortarboard-fill me-2"></i>Plataforma de Prácticas
+            </a>
+            <div class="d-flex text-white align-items-center ms-auto">
+                <div class="d-flex flex-column text-end me-3">
+                    <span class="fw-bold lh-1" th:text="${usuarioActivo != null ? usuarioActivo.nombre + ' ' + usuarioActivo.apellido : (practica != null and practica.tutor != null ? practica.tutor.nombre + ' ' + practica.tutor.apellido : 'Tutor')}">Tutor</span>
+                    <small class="text-white-50 mt-1" style="font-size: 0.75rem;">TUTOR SUPERVISOR (ACADÉMICO UBB)</small>
+                </div>
+                <a th:if="${practica != null}" th:href="@{/tutor/estudiante/{id}(id=${practica.id})}" class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-arrow-left me-1"></i> Volver al Perfil
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <main class="page-card shadow-sm p-4 p-md-5">
+            
+            <form id="formPautaOnline" th:action="@{/tutor/estudiante/{id}/pauta-interactiva/guardar(id=${practica.id})}" method="post">
+                <input type="hidden" name="idPauta" th:value="${pauta != null ? pauta.id : ''}">
+
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
+                    <div>
+                        <span class="fw-bold d-block" style="color: var(--pem-wine); font-size: 1.15rem;">Escuela de Pedagogía en Educación Matemática</span>
+                        <small class="text-muted">Facultad de Educación y Humanidades • Universidad del Bío-Bío</small>
+                    </div>
+                    <div class="text-end">
+                        <span th:if="${pauta == null}" class="badge ubb-bg px-3 py-2">
+                            <i class="bi bi-person-check-fill me-1"></i> Perfil Reconocido: ACADÉMICA(O) / TUTOR UBB
+                        </span>
+                        <span th:if="${pauta != null and pauta.rutaServidor == 'ONLINE_BORRADOR'}" class="badge bg-warning text-dark px-3 py-2">
+                            <i class="bi bi-pencil-square me-1"></i> Estado: BORRADOR EN EDICIÓN
+                        </span>
+                        <span th:if="${pauta != null and pauta.rutaServidor == 'ONLINE_ENVIADA'}" class="badge bg-success px-3 py-2">
+                            <i class="bi bi-check-circle-fill me-1"></i> Estado: PAUTA ENVIADA AL ESTUDIANTE
+                        </span>
+                    </div>
+                </div>
+
+                <div class="text-center my-4">
+                    <p class="fw-bold text-secondary mb-1">Investigación en el aula 2026</p>
+                    <h4 class="fw-bold mb-1">PAUTA DE EVALUACIÓN PARA LA OBSERVACIÓN DE CLASE DE MATEMÁTICA</h4>
+                    <h5 class="fw-bold text-primary mb-0">ACADÉMICA(O) UBB</h5>
+                </div>
+
+                <section class="p-3 mb-4 bg-light border rounded small">
+                    <strong class="d-block mb-1">Indicaciones:</strong>
+                    <strong class="d-block mb-2">
+                        Estimado/a Académico(a) 
+                        <span class="text-primary" th:text="${usuarioActivo != null ? usuarioActivo.nombre + ' ' + usuarioActivo.apellido : (practica != null and practica.tutor != null ? practica.tutor.nombre + ' ' + practica.tutor.apellido : '')}"></span>:
+                    </strong>
+                    <ol class="mb-0 ps-3">
+                        <li class="mb-1">La Pauta de Evaluación del desempeño docente que se presenta a continuación, ha sido creada con el propósito de contar con un instrumento que permita evaluar de manera formativa la realización de una clase de las/os estudiantes de Pedagogía de Educación Matemática de la Universidad del Bío-Bío de VI semestre, siendo esta su segunda experiencia en la docencia directa realizando una clase.</li>
+                        <li class="mb-1">La evaluación se realiza considerando la dupla de docentes en formación, según corresponda.</li>
+                        <li class="mb-1">En cada uno de los siguientes criterios marque con una X (o seleccione el círculo) su apreciación de la observación realizada (<strong>1: Muy bajo; 7: Muy Alto</strong>).</li>
+                        <li class="mb-1">Se solicita al finalizar indicar observaciones generales respecto de fortalezas y aspectos a mejorar que considere pertinente para complementar la evaluación realizada, refiriéndose en particular sobre las estrategias de trabajo colaborativo para las/os estudiantes implementadas en las actividades de la clase.</li>
+                        <li>Al finalizar la clase, puede guardar su avance como borrador o enviar la pauta definitiva a las/os estudiantes.</li>
+                    </ol>
+                </section>
+
+                <h2 class="section-title">1.) ANTECEDENTES:</h2>
+                <div class="table-responsive mb-4">
+                    <table class="table table-bordered antecedentes-table mb-0">
+                        <tbody>
+                            <tr>
+                                <th>PROFESORAS/ES EN FORMACIÓN</th>
+                                <td colspan="3">
+                                    <input id="teachers" type="text" class="form-control input-recognized" readonly
+                                           th:value="${estudiante != null ? estudiante.nombre + ' ' + estudiante.apellido + ' (RUT: ' + estudiante.rut + ')' : 'Estudiante no asignado'}">
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>ESTABLECIMIENTO</th>
+                                <td colspan="3">
+                                    <input id="school" type="text" class="form-control input-recognized" readonly
+                                           th:value="${practica != null and practica.centroPractica != null ? practica.centroPractica.nombre : 'Sin Centro de Práctica asignado'}">
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>CURSO</th>
+                                <td style="width: 26%;">
+                                    <input id="course" name="curso" type="text" class="form-control editable-field" placeholder="Ej: 1° Medio A" required th:readonly="${modoLectura}">
+                                </td>
+                                <th style="width: 18%;">FECHA</th>
+                                <td style="width: 32%;">
+                                    <input id="date" name="fechaObservacion" type="date" class="form-control editable-field" required th:readonly="${modoLectura}">
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>HORA INICIO</th>
+                                <td>
+                                    <input id="start" name="horaInicio" type="time" class="form-control editable-field" aria-label="Hora inicio" required th:readonly="${modoLectura}">
+                                </td>
+                                <th>HORA TÉRMINO</th>
+                                <td>
+                                    <input id="end" name="horaTermino" type="time" class="form-control editable-field" aria-label="Hora término" required th:readonly="${modoLectura}">
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>OBSERVADOR</th>
+                                <td colspan="3">
+                                    <input id="observer" type="text" class="form-control input-recognized" readonly
+                                           th:value="${usuarioActivo != null ? usuarioActivo.nombre + ' ' + usuarioActivo.apellido + ' (Tutor Supervisor UBB)' : (practica != null and practica.tutor != null ? practica.tutor.nombre + ' ' + practica.tutor.apellido + ' (Tutor Supervisor UBB)' : 'Tutor Supervisor UBB')}">
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h2 class="section-title">2.) EVALUACIÓN DE LA OBSERVACIÓN:</h2>
+
+                <div class="mb-3">
+                    <label for="objective" class="form-label fw-bold small mb-1">Objetivo de la clase:</label>
+                    <textarea id="objective" name="objetivoClase" class="form-control editable-field" rows="2" placeholder="Ingrese el objetivo de la clase observada..." required th:readonly="${modoLectura}"></textarea>
+                </div>
+                
+                <div class="score-banner shadow-sm rounded p-3 mb-3 border d-flex flex-wrap justify-content-between align-items-center gap-3">
+                    <div>
+                        <span class="text-muted small d-block">Criterios Evaluados</span>
+                        <span class="fs-5 fw-bold text-dark"><span id="answeredCount">0</span> / 20</span>
+                    </div>
+                    <div>
+                        <span class="text-muted small d-block">Puntaje Total</span>
+                        <span class="fs-5 fw-bold text-primary"><span id="totalScore">0</span> / 140 pts</span>
+                    </div>
+                    <div>
+                        <span class="text-muted small d-block">Porcentaje de Logro</span>
+                        <span class="fs-5 fw-bold text-secondary" id="percentageScore">0%</span>
+                    </div>
+                    <div class="bg-light px-3 py-2 rounded border text-center">
+                        <span class="text-muted small d-block">Promedio Escala (1-7)</span>
+                        <span class="fs-4 fw-bold text-success" id="averageScore">-</span>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table rubric-table mb-0" id="rubric">
+                        <thead>
+                            <tr>
+                                <th class="text-start ps-3">Criterios</th>
+                                <th style="width: 50px;">1</th>
+                                <th style="width: 50px;">2</th>
+                                <th style="width: 50px;">3</th>
+                                <th style="width: 50px;">4</th>
+                                <th style="width: 50px;">5</th>
+                                <th style="width: 50px;">6</th>
+                                <th style="width: 50px;">7</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <div class="d-flex flex-wrap justify-content-between align-items-end mt-4 mb-2 border-bottom border-2 border-primary pb-2">
+                    <h2 class="h6 fw-bold text-primary mb-0">OBSERVACIONES GENERALES:</h2>
+                    
+                    <div class="d-flex align-items-center gap-2 no-print" th:if="${!modoLectura}">
+                        <span id="voiceStatus" class="badge bg-danger d-none">
+                            <i class="bi bi-record-circle me-1"></i>Grabando voz...
+                        </span>
+                        <button type="button" id="btnVoice" class="btn btn-outline-primary btn-sm fw-semibold" onclick="toggleVoiceDictation()">
+                            <i class="bi bi-mic-fill me-1"></i> Dictar por Voz
+                        </button>
+                    </div>
+                </div>
+
+                <p class="small text-muted mb-2">
+                    Por favor indicar fortalezas y aspectos a mejorar que considere pertinente para complementar la evaluación realizada, refiriéndose dentro de ellos, en particular sobre las estrategias de trabajo colaborativo para las/os estudiantes implementadas en las actividades de la clase.
+                </p>
+                <textarea id="observations" name="comentarioObservaciones" class="form-control editable-field" rows="6"
+                          placeholder="Escriba aquí sus observaciones o pulse el botón 'Dictar por Voz' para transcribir automáticamente lo que hable..."
+                          required th:readonly="${modoLectura}"></textarea>
+
+                <div class="row justify-content-around mt-4">
+                    <div class="col-md-5">
+                        <div class="signature-line">
+                            <span class="fw-bold d-block">Firma Profesor/a Académico/a</span>
+                            <small class="text-muted" th:text="${usuarioActivo != null ? usuarioActivo.nombre + ' ' + usuarioActivo.apellido : (practica != null and practica.tutor != null ? practica.tutor.nombre + ' ' + practica.tutor.apellido : '')}"></small>
+                        </div>
+                    </div>
+                    <div class="col-md-5">
+                        <div class="signature-line">
+                            <span class="fw-bold d-block">Firma Estudiante en Práctica</span>
+                            <small class="text-muted" th:text="${estudiante != null ? estudiante.nombre + ' ' + estudiante.apellido : ''}"></small>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="text-center fw-bold mt-4 mb-0">Muchas gracias por su colaboración.</p>
+
+                <!-- BARRA DE ACCIONES CON GUARDAR BORRADOR Y ENVIAR PAUTA -->
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-4 pt-3 border-top no-print">
+                    <div class="d-flex flex-wrap gap-2" th:if="${!modoLectura}">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearScores()">
+                            <i class="bi bi-eraser me-1"></i> Limpiar calificaciones
+                        </button>
+                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="clearEditableFields()">
+                            <i class="bi bi-trash me-1"></i> Limpiar campos rellenables
+                        </button>
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-2 ms-auto">
+                        <button type="button" class="btn btn-outline-dark fw-semibold" onclick="window.print()">
+                            <i class="bi bi-printer-fill me-1"></i> Imprimir / PDF
+                        </button>
+
+                        <!-- Botón 1: Guardar como Borrador (No exige tener todo lleno) -->
+                        <button th:if="${!modoLectura}" type="submit" name="accion" value="BORRADOR" formnovalidate class="btn btn-warning text-dark fw-semibold">
+                            <i class="bi bi-floppy-fill me-1"></i> Guardar como Borrador
+                        </button>
+
+                        <!-- Botón 2: Enviar Pauta Definitiva -->
+                        <button th:if="${!modoLectura}" type="submit" name="accion" value="ENVIAR" class="btn btn-success px-4 fw-semibold" onclick="return confirmarEnvioDefinitivo()">
+                            <i class="bi bi-send-check-fill me-1"></i> Enviar Pauta
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </main>
+    </div>
+
+    <script th:inline="javascript">
+        const modoLectura = /*[[${modoLectura != null ? modoLectura : false}]]*/ false;
+        const rawJsonObservaciones = /*[[${pauta != null ? pauta.observaciones : ''}]]*/ '';
+
+        let datosGuardados = {};
+        if (rawJsonObservaciones) {
+            try {
+                datosGuardados = JSON.parse(rawJsonObservaciones);
+            } catch (e) {
+                datosGuardados = { comentario: rawJsonObservaciones };
+            }
+        }
+
+        const sections = [
+            {title: "ASPECTOS DE LA ESTRUCTURA DE LA CLASE", items: [
+                "El objetivo de la clase se presenta a los estudiantes. Es claro y pertinente al nivel.",
+                "El profesor/a desarrolla un inicio de la clase generando retroalimentación y/o activación de conocimientos previos.",
+                "El profesor/a realiza un desarrollo de la clase de manera pertinente al objetivo planteado.",
+                "El profesor/a realiza un desarrollo de la clase con tareas matemáticas pertinentes y coherentes con el objetivo planteado.",
+                "El profesor/a realiza un cierre de la clase con actividad(es) clave(s) para la verificación del cumplimiento del objetivo planteado.",
+                "El profesor/a realiza un cierre de la clase integrando y/o sintetizando los aprendizajes de la clase."
+            ]},
+            {title: "TAREAS MATEMÁTICAS PROPUESTAS", items: [
+                "El profesor/a hace uso de los errores y dificultades de los estudiantes como una instancia de devolución.",
+                "El profesor/a propone tareas matemáticas que se relacionen con alguna de las habilidades de: resolución de problemas, representación, modelación y/o argumentación y comunicación.",
+                "Las tareas matemáticas están contextualizadas al entorno de los estudiantes.",
+                "El profesor/a propone variadas estrategias de resolución de las tareas matemáticas presentadas.",
+                "El profesor/a explica, comprueba y/o demuestra las definiciones, teoremas, proposiciones o procedimientos de manera clara y adecuadas al nivel educativo.",
+                "El profesor/a utiliza estrategias de trabajo colaborativo para las/os estudiantes en las actividades de la clase."
+            ]},
+            {title: "AMBIENTE DE AULA Y RECURSOS DE APRENDIZAJE", items: [
+                "El profesor/a hace uso de un lenguaje acorde al nivel de enseñanza.",
+                "El profesor/a genera oportunidades de participación de los estudiantes durante toda la clase.",
+                "El profesor/a propicia un ambiente para el desarrollo de toda la clase.",
+                "El profesor/a brinda atención a todos los estudiantes del aula.",
+                "El profesor/a hace uso de materiales y/o recursos para el desarrollo de los aprendizajes en la clase.",
+                "El profesor/a promueve la autoestima, evitando el rechazo, fobia o miedo a la matemática.",
+                "El profesor/a promueve el diálogo y comunicación entre estudiantes favoreciendo la inclusión en la clase.",
+                "El profesor/a realiza observación sistemática del proceso cognitivo de los estudiantes durante toda la clase."
+            ]}
+        ];
+
+        const respuestasArray = Array.isArray(datosGuardados.respuestas) ? datosGuardados.respuestas : [];
+        const tbody = document.querySelector("#rubric tbody");
+        let criterionIndex = 0;
+
+        sections.forEach(section => {
+            const headingRow = document.createElement("tr");
+            headingRow.className = "category-row";
+            headingRow.innerHTML = `<th colspan="8">${section.title}</th>`;
+            tbody.appendChild(headingRow);
+
+            section.items.forEach(item => {
+                criterionIndex++;
+                const currentIdx = criterionIndex;
+                const valorGuardado = respuestasArray[currentIdx - 1] ? parseInt(respuestasArray[currentIdx - 1], 10) : 0;
+
+                const tr = document.createElement("tr");
+                const labelTd = document.createElement("td");
+                labelTd.className = "ps-3";
+                labelTd.innerHTML = `<div class="d-flex gap-2"><span class="fw-bold">${currentIdx}.</span><span>${item}</span></div>`;
+                tr.appendChild(labelTd);
+
+                for (let score = 1; score <= 7; score++) {
+                    const td = document.createElement("td");
+                    td.className = "score-cell";
+                    
+                    const radio = document.createElement("input");
+                    radio.type = "radio";
+                    radio.className = "radio-circle";
+                    radio.name = `criterion${currentIdx}`;
+                    radio.value = score;
+                    radio.setAttribute("aria-label", `Criterio ${currentIdx}, puntaje ${score}`);
+
+                    if (!modoLectura && score === 1) {
+                        radio.required = true;
+                    }
+                    if (valorGuardado === score) {
+                        radio.checked = true;
+                    }
+                    if (modoLectura) {
+                        radio.disabled = true;
+                    }
+
+                    radio.addEventListener("change", updateScoreSummary);
+
+                    if (!modoLectura) {
+                        td.addEventListener("click", (e) => {
+                            if (e.target !== radio) {
+                                radio.checked = true;
+                                updateScoreSummary();
+                            }
+                        });
+                    }
+
+                    td.appendChild(radio);
+                    tr.appendChild(td);
+                }
+                tbody.appendChild(tr);
+            });
+        });
+
+        document.addEventListener("DOMContentLoaded", () => {
+            if (datosGuardados.curso) document.getElementById("course").value = datosGuardados.curso;
+            if (datosGuardados.fecha) {
+                document.getElementById("date").value = datosGuardados.fecha;
+            } else if (!modoLectura) {
+                document.getElementById("date").value = new Date().toISOString().split('T')[0];
+            }
+            if (datosGuardados.horaInicio) document.getElementById("start").value = datosGuardados.horaInicio;
+            if (datosGuardados.horaTermino) document.getElementById("end").value = datosGuardados.horaTermino;
+            if (datosGuardados.objetivo) document.getElementById("objective").value = datosGuardados.objetivo;
+            if (datosGuardados.comentario) document.getElementById("observations").value = datosGuardados.comentario;
+
+            updateScoreSummary();
+        });
+
+        function updateScoreSummary() {
+            const checkedRadios = document.querySelectorAll('#rubric input[type="radio"]:checked');
+            let sum = 0;
+            checkedRadios.forEach(r => sum += parseInt(r.value, 10));
+
+            const count = checkedRadios.length;
+            const maxPossible = 140;
+            const percentage = Math.round((sum / maxPossible) * 100);
+            const avg = count > 0 ? (sum / count).toFixed(1) : "-";
+
+            document.getElementById("answeredCount").textContent = count;
+            document.getElementById("totalScore").textContent = sum;
+            document.getElementById("percentageScore").textContent = `${percentage}%`;
+            document.getElementById("averageScore").textContent = avg;
+        }
+
+        function confirmarEnvioDefinitivo() {
+            const respondidos = document.querySelectorAll('#rubric input[type="radio"]:checked').length;
+            if (respondidos < 20) {
+                alert(`Faltan criterios por evaluar (${respondidos}/20 respondidos). Si aún no terminas, usa el botón "Guardar como Borrador".`);
+                return false;
+            }
+            return confirm("¿Estás seguro de ENVIAR la pauta definitiva? Una vez enviada quedará disponible para el estudiante y no podrá editarse.");
+        }
+
+        function clearScores() {
+            document.querySelectorAll('#rubric input[type="radio"]').forEach(r => r.checked = false);
+            updateScoreSummary();
+        }
+
+        function clearEditableFields() {
+            if (!confirm("¿Seguro que deseas borrar las calificaciones y los campos editables?")) return;
+            document.querySelectorAll('.editable-field').forEach(el => el.value = "");
+            clearScores();
+        }
+
+        let recognition = null;
+        let isRecording = false;
+
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.lang = 'es-CL';
+            recognition.continuous = true;
+            recognition.interimResults = false;
+
+            recognition.onresult = function(event) {
+                const textarea = document.getElementById("observations");
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    if (event.results[i].isFinal) {
+                        const transcript = event.results[i][0].transcript.trim();
+                        const capitalized = transcript.charAt(0).toUpperCase() + transcript.slice(1);
+                        const spacer = textarea.value.length > 0 && !textarea.value.endsWith(' ') && !textarea.value.endsWith('\n') ? ' ' : '';
+                        textarea.value += spacer + capitalized + '.';
+                    }
+                }
+            };
+
+            recognition.onerror = function() { stopVoiceUI(); };
+            recognition.onend = function() { if (isRecording) stopVoiceUI(); };
+        }
+
+        function toggleVoiceDictation() {
+            if (!recognition) {
+                alert("Tu navegador no soporta reconocimiento de voz nativo. Te recomendamos utilizar Google Chrome, Brave o Microsoft Edge.");
+                return;
+            }
+
+            const btn = document.getElementById("btnVoice");
+            const status = document.getElementById("voiceStatus");
+
+            if (!isRecording) {
+                recognition.start();
+                isRecording = true;
+                btn.classList.replace("btn-outline-primary", "btn-danger");
+                btn.classList.add("recording-active");
+                btn.innerHTML = '<i class="bi bi-stop-circle-fill me-1"></i> Detener Dictado';
+                status.classList.remove("d-none");
+            } else {
+                recognition.stop();
+                stopVoiceUI();
+            }
+        }
+
+        function stopVoiceUI() {
+            isRecording = false;
+            const btn = document.getElementById("btnVoice");
+            const status = document.getElementById("voiceStatus");
+            if (btn && status) {
+                btn.classList.replace("btn-danger", "btn-outline-primary");
+                btn.classList.remove("recording-active");
+                btn.innerHTML = '<i class="bi bi-mic-fill me-1"></i> Dictar por Voz';
+                status.classList.add("d-none");
+            }
+        }
+    </script>
+</body>
+</html>
