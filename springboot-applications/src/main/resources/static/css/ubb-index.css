@@ -158,3 +158,166 @@ body.ubb-page main { flex: 1 0 auto; }
     .hero, .ubb-card { animation: none; }
     .ubb-card, .icon-bubble, .ubb-card .btn, .nav-logo { transition: none; }
 }
+
+
+/* =========================================================
+   PÁGINAS INTERNAS (listas, gestores, formularios, perfiles)
+   Se activan con <body class="ubb-page ubb-inner">
+   ========================================================= */
+
+/* ---------- Navbar con logo ---------- */
+body.ubb-inner .navbar.ubb-bg {
+    background-image: linear-gradient(90deg, var(--ubb-deep), var(--ubb-blue));
+    box-shadow: 0 4px 16px rgba(0, 38, 77, 0.25);
+    animation: fadeDown 0.5s ease backwards;
+}
+
+/* ---------- Títulos ---------- */
+body.ubb-inner h2.fw-bold,
+body.ubb-inner h3.fw-bold,
+body.ubb-inner h4.fw-bold.mb-1 {
+    animation: fadeDown 0.55s ease backwards;
+    animation-delay: 0.1s;
+}
+
+/* ---------- Tarjetas ---------- */
+body.ubb-inner .card {
+    border: 0;
+    border-radius: 1rem;
+    box-shadow: 0 6px 18px rgba(0, 43, 92, 0.12) !important;
+    animation: fadeUp 0.6s ease backwards;
+    animation-delay: 0.15s;
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+body.ubb-inner .card:hover { box-shadow: 0 16px 36px -10px rgba(0, 43, 92, 0.28) !important; }
+
+/* Tarjetas en columnas: entran una tras otra */
+body.ubb-inner .row > *:nth-child(2) > .card { animation-delay: 0.30s; }
+body.ubb-inner .row > *:nth-child(3) > .card { animation-delay: 0.45s; }
+body.ubb-inner .row > *:nth-child(4) > .card { animation-delay: 0.60s; }
+
+/* Encabezado azul de los formularios */
+body.ubb-inner .card-header.ubb-bg {
+    background-image: linear-gradient(120deg, var(--ubb-blue), #0a6cc2);
+    border-radius: 1rem 1rem 0 0;
+}
+body.ubb-inner .card > .table-responsive,
+body.ubb-inner .card-body.p-0 { border-radius: 1rem; overflow: hidden; }
+
+/* Tarjetas pequeñas (documentos, pautas) con levitación */
+body.ubb-inner .doc-card:hover { transform: translateY(-6px); }
+
+/* ---------- Tablas ---------- */
+body.ubb-inner .table > thead.table-light {
+    --bs-table-bg: #e4edf8;
+    --bs-table-color: #16385c;
+    --bs-table-border-color: #cddcee;
+}
+body.ubb-inner .table > tbody > tr {
+    animation: rowIn 0.4s ease backwards;
+    transition: background-color 0.2s ease;
+}
+body.ubb-inner .table > tbody > tr > td:first-child { transition: box-shadow 0.2s ease; }
+body.ubb-inner .table > tbody > tr:hover > td:first-child { box-shadow: inset 4px 0 0 var(--ubb-blue); }
+body.ubb-inner .table > tbody > tr:nth-child(1)  { animation-delay: 0.10s; }
+body.ubb-inner .table > tbody > tr:nth-child(2)  { animation-delay: 0.14s; }
+body.ubb-inner .table > tbody > tr:nth-child(3)  { animation-delay: 0.18s; }
+body.ubb-inner .table > tbody > tr:nth-child(4)  { animation-delay: 0.22s; }
+body.ubb-inner .table > tbody > tr:nth-child(5)  { animation-delay: 0.26s; }
+body.ubb-inner .table > tbody > tr:nth-child(6)  { animation-delay: 0.30s; }
+body.ubb-inner .table > tbody > tr:nth-child(7)  { animation-delay: 0.34s; }
+body.ubb-inner .table > tbody > tr:nth-child(8)  { animation-delay: 0.38s; }
+body.ubb-inner .table > tbody > tr:nth-child(9)  { animation-delay: 0.42s; }
+body.ubb-inner .table > tbody > tr:nth-child(10) { animation-delay: 0.46s; }
+body.ubb-inner .table > tbody > tr:nth-child(n+11) { animation-delay: 0.50s; }
+
+/* ---------- Botones, badges, filtros ---------- */
+body.ubb-inner .btn { transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, color 0.2s ease; }
+body.ubb-inner .btn:hover:not(:disabled):not(.btn-close) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px -6px rgba(0, 0, 0, 0.25);
+}
+body.ubb-inner .btn-practica:hover { transform: scale(1.14); }
+body.ubb-inner .badge { transition: transform 0.2s ease; }
+body.ubb-inner tr:hover .badge { transform: scale(1.08); }
+
+/* ---------- Formularios ---------- */
+body.ubb-inner .form-control,
+body.ubb-inner .form-select { transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+body.ubb-inner .form-control:focus,
+body.ubb-inner .form-select:focus {
+    border-color: var(--ubb-blue);
+    box-shadow: 0 0 0 0.25rem rgba(0, 75, 133, 0.20);
+}
+
+/* ---------- Alertas ---------- */
+body.ubb-inner .alert { animation: slideIn 0.5s ease backwards; border-radius: 0.8rem; }
+
+/* ---------- Documento de la pauta ---------- */
+body.ubb-inner .page-card { animation: fadeUp 0.6s ease backwards; }
+
+/* ---------- Espaciado y footer en páginas internas ---------- */
+body.ubb-inner > .container,
+body.ubb-inner > .container-fluid { margin-bottom: 2.5rem; }
+body.ubb-inner > .ubb-footer { margin-top: auto; }
+.ubb-footer.compact .footer-logo { height: 44px; }
+
+/* ---------- Login y selección de perfil ---------- */
+body.ubb-auth {
+    background:
+        radial-gradient(circle at 10% 0%, rgba(0, 75, 133, 0.20), transparent 45%),
+        radial-gradient(circle at 95% 25%, rgba(13, 202, 240, 0.18), transparent 40%),
+        linear-gradient(180deg, #eef3f9 0%, #dfe8f3 100%) !important;
+    background-attachment: fixed !important;
+}
+body.ubb-auth .login-card { animation: fadeUp 0.7s ease backwards; }
+body.ubb-auth .login-logo { animation: floaty 3.5s ease-in-out infinite; }
+body.ubb-auth .btn { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+body.ubb-auth .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 16px -6px rgba(0, 0, 0, 0.3); }
+body.ubb-auth .role-card { animation: fadeUp 0.65s ease backwards; box-shadow: 0 6px 18px rgba(0, 43, 92, 0.12) !important; }
+body.ubb-auth .row.g-4 > *:nth-child(1) .role-card { animation-delay: 0.15s; }
+body.ubb-auth .row.g-4 > *:nth-child(2) .role-card { animation-delay: 0.30s; }
+body.ubb-auth .row.g-4 > *:nth-child(3) .role-card { animation-delay: 0.45s; }
+body.ubb-auth .row.g-4 > *:nth-child(4) .role-card { animation-delay: 0.60s; }
+body.ubb-auth .role-card:hover .display-4 { animation: wiggle 0.6s ease; }
+.logo-pill {
+    display: inline-flex;
+    padding: 0.7rem 1.3rem;
+    margin-bottom: 1rem;
+    border-radius: 1rem;
+    background: linear-gradient(120deg, var(--ubb-deep), var(--ubb-blue));
+    box-shadow: 0 10px 22px -8px rgba(0, 75, 133, 0.6);
+    animation: fadeDown 0.6s ease backwards;
+}
+.logo-pill img { height: 56px; width: auto; }
+
+/* ---------- Animaciones extra ---------- */
+@keyframes rowIn {
+    from { opacity: 0; transform: translateX(-14px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(-12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes floaty {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-6px); }
+}
+@keyframes wiggle {
+    0%, 100% { transform: rotate(0); }
+    25%      { transform: rotate(-10deg) scale(1.1); }
+    75%      { transform: rotate(10deg) scale(1.1); }
+}
+
+@media print {
+    .ubb-footer { display: none !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.ubb-inner .card, body.ubb-inner .table > tbody > tr, body.ubb-inner .alert,
+    body.ubb-inner h2, body.ubb-inner h3, body.ubb-inner h4, body.ubb-inner .navbar,
+    body.ubb-inner .page-card, body.ubb-auth .login-card, body.ubb-auth .login-logo,
+    body.ubb-auth .role-card, .logo-pill { animation: none !important; }
+    body.ubb-inner .btn, body.ubb-inner .card { transition: none; }
+}

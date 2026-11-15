@@ -10,14 +10,15 @@
         .ubb-bg { background-color: #004b85; }
         body { background-color: #f4f6f9; }
     </style>
+    <link th:href="@{/css/ubb-index.css}" rel="stylesheet">
 </head>
-<body>
+<body class="ubb-page ubb-inner">
 
     <nav class="navbar navbar-dark ubb-bg mb-4 shadow-sm">
         <div class="container-fluid px-4">
-            <a class="navbar-brand fw-bold" th:href="@{/estudiantes}">
+            <div class="d-flex align-items-center"><img th:src="@{/images/escudo-monocromatico-oscuro.png}" alt="Escudo Universidad del Bío-Bío" class="nav-logo"><a class="navbar-brand fw-bold" th:href="@{/estudiantes}">
                 <i class="bi bi-arrow-left-circle me-2"></i>Volver a Estudiantes
-            </a>
+            </a></div>
             <div class="d-flex text-white align-items-center">
                 <i class="bi bi-person-badge fs-5 me-2"></i> Coordinación
             </div>
@@ -102,5 +103,20 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Footer -->
+    <footer class="ubb-footer compact">
+        <div class="container py-3 d-flex flex-column flex-md-row align-items-center justify-content-between gap-3 text-center text-md-start">
+            <div class="d-flex align-items-center gap-3">
+                <img th:src="@{/images/escudo-monocromatico-oscuro.png}" alt="Escudo Universidad del Bío-Bío" class="footer-logo">
+                <div>
+                    <div class="fw-bold">Universidad del Bío-Bío</div>
+                    <small>Escuela de Pedagogía en Educación Matemática</small>
+                </div>
+            </div>
+            <small>Plataforma de Prácticas · &copy; <span class="anio"></span></small>
+        </div>
+    </footer>
+    <script>document.querySelectorAll('.anio').forEach(e => e.textContent = new Date().getFullYear());</script>
 </body>
 </html>
