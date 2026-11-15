@@ -6,20 +6,18 @@
     <title>Panel Tutor Supervisor - Prácticas UBB</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    <style>
-        .ubb-bg { background-color: #004b85; }
-        .card:hover { transform: translateY(-3px); transition: 0.3s; box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
-    </style>
+    <link th:href="@{/css/ubb-index.css}" rel="stylesheet">
 </head>
-<body class="bg-light">
+<body class="ubb-page">
 
     <!-- Barra de Navegación -->
-    <nav class="navbar navbar-expand-lg navbar-dark ubb-bg mb-4 shadow-sm">
+    <nav class="navbar navbar-expand-lg navbar-dark ubb-nav mb-4">
         <div class="container">
-            <a class="navbar-brand fw-bold" th:href="@{/tutor/index}">
-                <i class="bi bi-mortarboard-fill me-2"></i>Plataforma de Prácticas
+            <a class="navbar-brand fw-bold d-flex align-items-center" th:href="@{/tutor/index}">
+                <img th:src="@{/images/escudo-monocromatico-oscuro.png}" alt="Escudo Universidad del Bío-Bío" class="nav-logo">
+                Plataforma de Prácticas
             </a>
-            
+
             <div class="d-flex text-white align-items-center ms-auto">
                 <i class="bi bi-person-circle fs-3 me-2"></i>
                 <div class="d-flex flex-column text-end me-3">
@@ -44,22 +42,23 @@
     </nav>
 
     <!-- Contenedor Principal -->
-    <div class="container">
-        <div class="row mb-4">
-            <div class="col-12">
-                <h2 class="fw-bold text-dark">Portal del Tutor Supervisor</h2>
-                <p class="text-muted">Supervisión en terreno, visitas a centros de práctica y aplicación de evaluaciones por voz.</p>
-            </div>
-        </div>
+    <main class="container">
+
+        <!-- Bienvenida -->
+        <section class="hero mb-4">
+            <div class="hero-hello" th:text="${'Bienvenido/a, ' + (usuarioActivo != null ? usuarioActivo.nombre : '')}">Bienvenido/a</div>
+            <h2>Portal del Tutor Supervisor</h2>
+            <p>Supervisión en terreno, visitas a centros de práctica y aplicación de evaluaciones por voz.</p>
+        </section>
 
         <div class="row g-4">
             <!-- Alumnos a Supervisar -->
             <div class="col-md-6">
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="card-body pt-4">
+                <div class="card ubb-card accent-blue" style="--i:0">
+                    <div class="card-body">
                         <div class="d-flex align-items-center mb-3">
-                            <div class="display-5 text-primary me-3"><i class="bi bi-geo-alt-fill"></i></div>
-                            <h4 class="card-title fw-bold mb-0">Visitas a Terreno</h4>
+                            <div class="icon-bubble"><i class="bi bi-geo-alt-fill"></i></div>
+                            <h4 class="card-title mb-0">Visitas a Terreno</h4>
                         </div>
                         <p class="card-text text-muted mb-4">Consulta la lista de estudiantes asignados y sus colegios de práctica para programar observaciones.</p>
                         <div class="d-grid gap-2">
@@ -73,11 +72,11 @@
 
             <!-- Evaluaciones y Grabado por Voz -->
             <div class="col-md-6">
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="card-body pt-4">
+                <div class="card ubb-card accent-green" style="--i:1">
+                    <div class="card-body">
                         <div class="d-flex align-items-center mb-3">
-                            <div class="display-5 text-success me-3"><i class="bi bi-mic-fill"></i></div>
-                            <h4 class="card-title fw-bold mb-0">Evaluación y Dictado por Voz</h4>
+                            <div class="icon-bubble"><i class="bi bi-mic-fill"></i></div>
+                            <h4 class="card-title mb-0">Evaluación y Dictado por Voz</h4>
                         </div>
                         <p class="card-text text-muted mb-4">Aplica rúbricas de desempeño y graba notas de voz con transcripción automática a texto.</p>
                         <div class="d-grid gap-2">
@@ -89,8 +88,23 @@
                 </div>
             </div>
         </div>
-    </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="ubb-footer">
+        <div class="container py-4 d-flex flex-column flex-md-row align-items-center justify-content-between gap-3 text-center text-md-start">
+            <div class="d-flex align-items-center gap-3">
+                <img th:src="@{/images/escudo-monocromatico-oscuro.png}" alt="Escudo Universidad del Bío-Bío" class="footer-logo">
+                <div>
+                    <div class="fw-bold">Universidad del Bío-Bío</div>
+                    <small>Escuela de Pedagogía en Educación Matemática</small>
+                </div>
+            </div>
+            <small>Plataforma de Prácticas · &copy; <span class="anio"></span></small>
+        </div>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>document.querySelectorAll('.anio').forEach(e => e.textContent = new Date().getFullYear());</script>
 </body>
 </html>
