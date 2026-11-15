@@ -6,13 +6,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Documento;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Estudiante;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Pauta;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Practica;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.DocumentoRepository;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.EstudianteRepository;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.PracticaRepository;
-import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Documento;
-import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Pauta;
-import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.DocumentoRepository;
 
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,8 +28,6 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 
-
-
 @Controller
 public class EstudianteController {
 
@@ -39,12 +37,16 @@ public class EstudianteController {
     @Autowired
     private PracticaRepository practicaRepository;
 
+    @Autowired
+    private DocumentoRepository documentoRepository;
+
     @GetMapping("/estudiantes")
     public String listarEstudiantes(Model model) {
         model.addAttribute("estudiantes", estudianteRepository.findAll());
         return "Coordinador/estudiantes";
     }
 
+    // Gestor de evidencias del estudiante (planificaciones e informes)
     @GetMapping("/estudiante/archivos")
     @Transactional(readOnly = true)
     public String mostrarGestorArchivosEstudiante(Model model, Principal principal) {
@@ -57,14 +59,51 @@ public class EstudianteController {
         return "Estudiante/gestor-archivos-estudiante";
     }
 
-        @Autowired
+    // Página "Mis Pautas": las pautas del tutor / colaborador (la tabla se carga con
+    // /api/documentos/pautas-estudiante, que ya filtra por el estudiante logueado)
+    @GetMapping("/estudiante/pautas")
+    public String mostrarPautasEstudiante() {
+        return "Estudiante/pautas-estudiante";
+    }
+
+    // El estudiante ve la pauta web que le envió su tutor, siempre bloqueada
+    @GetMapping("/estudiante/pauta-online/{idPauta}")
+    @Transactional(readOnly = true)
+    public String verPautaOnline(@PathVariable Long idPauta, Model model, Principal principal) {
+        Optional<Documento> docOpt = documentoRepository.findById(idPauta);
+
+        if (docOpt.isPresent() && docOpt.get() instanceof Pauta pauta) {
+            Practica practica = pauta.getPractica();
+
+            // Dueño de la pauta: el estudiante ligado al documento (o a su práctica)
+            Estudiante dueno = pauta.getEstudiante() != null
+                    ? pauta.getEstudiante()
+                    : (practica != null ? practica.getEstudiante() : null);
+
+            boolean esSuya = dueno != null && dueno.getRut().equals(principal.getName());
+            boolean enviada = "ONLINE_ENVIADA".equals(pauta.getRutaServidor());
+
+            if (esSuya && enviada && practica != null) {
+                if (practica.getCentroPractica() != null) practica.getCentroPractica().getNombre();
+                if (practica.getTutor() != null) practica.getTutor().getNombre();
+
+                model.addAttribute("pauta", pauta);
+                model.addAttribute("practica", practica);
+                model.addAttribute("estudiante", dueno);
+                model.addAttribute("usuarioActivo", dueno);
+                model.addAttribute("modoLectura", true);
+                model.addAttribute("vistaEstudiante", true);
+                return "Tutor/pauta_observacion_interactiva";
+            }
+        }
+        return "redirect:/estudiante/pautas";
+    }
+
+    @Autowired
     private ProfesorRepository profesorRepository;
 
     @Autowired
     private UsuarioEdicionService usuarioEdicionService;
-    
-    @Autowired
-    private DocumentoRepository documentoRepository;
 
     @Transactional(readOnly = true)
     @GetMapping("/estudiantes/editar/{rut}")
@@ -85,39 +124,6 @@ public class EstudianteController {
         cargarAtributosEdicionEstudiante(model, rut);
         return "Coordinador/editar_estudiante";
     }
-
-    // El estudiante ve la pauta web que le envió su tutor, siempre bloqueada
-    @GetMapping("/estudiante/pauta-online/{idPauta}")
-    @Transactional(readOnly = true)
-    public String verPautaOnline(@PathVariable Long idPauta, Model model, Principal principal) {
-    Optional<Documento> docOpt = documentoRepository.findById(idPauta);
-
-    if (docOpt.isPresent() && docOpt.get() instanceof Pauta pauta) {
-        Practica practica = pauta.getPractica();
-
-        // Dueño de la pauta: el estudiante ligado al documento (o a su práctica)
-        Estudiante dueno = pauta.getEstudiante() != null
-                ? pauta.getEstudiante()
-                : (practica != null ? practica.getEstudiante() : null);
-
-        boolean esSuya = dueno != null && dueno.getRut().equals(principal.getName());
-        boolean enviada = "ONLINE_ENVIADA".equals(pauta.getRutaServidor());
-
-        if (esSuya && enviada && practica != null) {
-            if (practica.getCentroPractica() != null) practica.getCentroPractica().getNombre();
-            if (practica.getTutor() != null) practica.getTutor().getNombre();
-
-            model.addAttribute("pauta", pauta);
-            model.addAttribute("practica", practica);
-            model.addAttribute("estudiante", dueno);
-            model.addAttribute("usuarioActivo", dueno);
-            model.addAttribute("modoLectura", true);
-            model.addAttribute("vistaEstudiante", true);
-            return "Tutor/pauta_observacion_interactiva";
-        }
-    }
-    return "redirect:/estudiante/archivos";
-}
 
     @Transactional
     @PostMapping("/estudiantes/actualizar/{rut}")

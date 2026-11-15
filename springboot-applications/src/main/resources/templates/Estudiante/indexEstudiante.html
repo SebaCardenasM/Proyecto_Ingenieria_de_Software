@@ -56,7 +56,7 @@
 
         <div class="row g-4">
             <!-- Mis Prácticas -->
-            <div class="col-md-6 col-lg-4">
+            <div class="col-md-6 col-xl-3">
                 <div class="card ubb-card accent-green" style="--i:0">
                     <div class="card-body">
                         <div class="d-flex align-items-center mb-3">
@@ -74,14 +74,14 @@
             </div>
 
             <!-- Subir Evidencias / Archivos -->
-            <div class="col-md-6 col-lg-4">
+            <div class="col-md-6 col-xl-3">
                 <div class="card ubb-card accent-red" style="--i:1">
                     <div class="card-body">
                         <div class="d-flex align-items-center mb-3">
                             <div class="icon-bubble"><i class="bi bi-cloud-upload-fill"></i></div>
                             <h4 class="card-title mb-0">Gestor de Documentos</h4>
                         </div>
-                        <p class="card-text text-muted mb-4">Sube tus planificaciones de clases, informes y evidencias requeridas para evaluación. Revisa también tus pautas.</p>
+                        <p class="card-text text-muted mb-4">Sube tus planificaciones de clases, informes y evidencias requeridas para evaluación.</p>
                         <div class="d-grid gap-2">
                             <a th:href="@{/estudiante/archivos}" class="btn btn-outline-danger">
                                 <i class="bi bi-upload me-1"></i> Subir / Ver Documentos
@@ -91,9 +91,27 @@
                 </div>
             </div>
 
+            <!-- Mis Pautas de Evaluación -->
+            <div class="col-md-6 col-xl-3">
+                <div class="card ubb-card accent-blue" style="--i:2">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="icon-bubble"><i class="bi bi-award-fill"></i></div>
+                            <h4 class="card-title mb-0">Mis Pautas</h4>
+                        </div>
+                        <p class="card-text text-muted mb-4">Revisa las pautas de evaluación que tu tutor y tu profesor colaborador han subido para ti.</p>
+                        <div class="d-grid gap-2">
+                            <a th:href="@{/estudiante/pautas}" class="btn btn-outline-primary">
+                                <i class="bi bi-clipboard-check me-1"></i> Revisar mis Pautas
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Portafolio Personal -->
-            <div class="col-md-6 col-lg-4">
-                <div class="card ubb-card accent-amber" style="--i:2">
+            <div class="col-md-6 col-xl-3">
+                <div class="card ubb-card accent-amber" style="--i:3">
                     <div class="card-body">
                         <div class="d-flex align-items-center mb-3">
                             <div class="icon-bubble"><i class="bi bi-person-vcard"></i></div>
