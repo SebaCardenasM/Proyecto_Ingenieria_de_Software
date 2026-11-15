@@ -95,7 +95,8 @@ public class ProfesorController {
         profesorRepository.save(p);
 
         redirectAttributes.addFlashAttribute("mensajeExito",
-                "Los datos de " + p.getNombre() + " " + p.getApellido() + " fueron actualizados correctamente.");
+                "Los datos de " + p.getNombre() + " " + p.getApellido() + " fueron actualizados exitosamente.");
+        redirectAttributes.addFlashAttribute("tituloExito", "¡Datos actualizados!");
         return "redirect:/profesores";
     }
 }

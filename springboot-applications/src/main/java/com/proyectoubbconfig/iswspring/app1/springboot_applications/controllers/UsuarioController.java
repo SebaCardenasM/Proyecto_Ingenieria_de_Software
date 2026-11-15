@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/usuarios")
@@ -46,17 +47,21 @@ public class UsuarioController {
     }
 
     @PostMapping("/guardar")
-    public String guardarUsuario(@ModelAttribute("usuario") UsuarioRegistroDTO dto) {
+    public String guardarUsuario(@ModelAttribute("usuario") UsuarioRegistroDTO dto,
+                                 RedirectAttributes redirectAttributes) {
         if (usuarioRepository.existsById(dto.getRut())) {
             return "redirect:/usuarios/registro?duplicado";
         }
         String passwordEncriptada = passwordEncoder.encode(dto.getPassword());
+        String nombreCompleto = dto.getNombre() + " " + dto.getApellido();
         
         if (dto.getRol() == Rol.ESTUDIANTE) {
             Estudiante estudiante = new Estudiante();
             copiarDatosBase(dto, estudiante, passwordEncriptada);
             estudiante.addRol(Rol.ESTUDIANTE);
             estudianteRepository.save(estudiante);
+            avisarExito(redirectAttributes, "¡Estudiante registrado!",
+                    "El estudiante " + nombreCompleto + " fue registrado exitosamente.");
             return "redirect:/estudiantes";
 
         } else if (dto.getRol() == Rol.PROFESOR_ASIGNATURA) {
@@ -64,6 +69,8 @@ public class UsuarioController {
             copiarDatosBase(dto, profesor, passwordEncriptada);
             profesor.addRol(Rol.PROFESOR_ASIGNATURA);
             profesorRepository.save(profesor);
+            avisarExito(redirectAttributes, "¡Profesor registrado!",
+                    "El profesor " + nombreCompleto + " fue registrado exitosamente.");
             return "redirect:/profesores";
 
         } else if (dto.getRol() == Rol.TUTOR) {
@@ -73,6 +80,8 @@ public class UsuarioController {
             tutor.getRoles().clear();
             tutor.addRol(Rol.TUTOR);
             profesorRepository.save(tutor);
+            avisarExito(redirectAttributes, "¡Tutor registrado!",
+                    "El tutor " + nombreCompleto + " fue registrado exitosamente.");
             return "redirect:/profesores";
 
         } else if (dto.getRol() == Rol.COORDINADOR && coordinadorRepository != null) {
@@ -80,10 +89,18 @@ public class UsuarioController {
             copiarDatosBase(dto, coordinador, passwordEncriptada);
             coordinador.addRol(Rol.COORDINADOR);
             coordinadorRepository.save(coordinador);
-            return "redirect:/";
+            avisarExito(redirectAttributes, "¡Coordinador registrado!",
+                    "El coordinador " + nombreCompleto + " fue registrado exitosamente.");
+            return "redirect:/index";
         }
 
         return "redirect:/login?registrado";
+    }
+
+    // Mensaje que se muestra como popup en la página de destino
+    private void avisarExito(RedirectAttributes ra, String titulo, String mensaje) {
+        ra.addFlashAttribute("tituloExito", titulo);
+        ra.addFlashAttribute("mensajeExito", mensaje);
     }
 
     private void copiarDatosBase(UsuarioRegistroDTO origen, Usuario destino, String passwordEncriptada) {

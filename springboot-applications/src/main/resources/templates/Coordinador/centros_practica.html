@@ -10,14 +10,15 @@
         .ubb-bg { background-color: #004b85; }
         body { background-color: #f4f6f9; }
     </style>
+    <link th:href="@{/css/ubb-index.css}" rel="stylesheet">
 </head>
-<body>
+<body class="ubb-page ubb-inner">
 
     <nav class="navbar navbar-dark ubb-bg mb-4 shadow-sm">
         <div class="container-fluid px-4">
-            <a class="navbar-brand fw-bold" th:href="@{/index}">
+            <div class="d-flex align-items-center"><img th:src="@{/images/escudo-monocromatico-oscuro.png}" alt="Escudo Universidad del Bío-Bío" class="nav-logo"><a class="navbar-brand fw-bold" th:href="@{/index}">
                 <i class="bi bi-arrow-left-circle me-2"></i>Volver al Panel
-            </a>
+            </a></div>
             <div class="d-flex text-white align-items-center">
                 <i class="bi bi-person-badge fs-5 me-2"></i> Coordinación
             </div>
@@ -26,12 +27,6 @@
 
     <div class="container-fluid px-4 px-md-5 mb-5">
         
-        <!-- Alerta de éxito opcional -->
-        <div th:if="${mensajeExito}" class="alert alert-success alert-dismissible fade show shadow-sm mb-4" role="alert">
-            <i class="bi bi-check-circle-fill me-2"></i><span th:text="${mensajeExito}"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-
         <div class="row mb-4 align-items-center">
             <div class="col-md-8">
                 <h2 class="fw-bold text-dark mb-0"><i class="bi bi-buildings text-primary me-2"></i>Centros de Práctica Registrados</h2>
@@ -93,5 +88,25 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+        <!-- Popup de confirmación (mensaje enviado por el controlador) -->
+    <div th:if="${mensajeExito}" data-ubb-flash hidden
+         th:attr="data-mensaje=${mensajeExito},data-titulo=${tituloExito}"></div>
+    <script th:src="@{/js/ubb-popup.js}"></script>
+
+    <!-- Footer -->
+    <footer class="ubb-footer compact">
+        <div class="container py-3 d-flex flex-column flex-md-row align-items-center justify-content-between gap-3 text-center text-md-start">
+            <div class="d-flex align-items-center gap-3">
+                <img th:src="@{/images/escudo-monocromatico-oscuro.png}" alt="Escudo Universidad del Bío-Bío" class="footer-logo">
+                <div>
+                    <div class="fw-bold">Universidad del Bío-Bío</div>
+                    <small>Escuela de Pedagogía en Educación Matemática</small>
+                </div>
+            </div>
+            <small>Plataforma de Prácticas · &copy; <span class="anio"></span></small>
+        </div>
+    </footer>
+    <script>document.querySelectorAll('.anio').forEach(e => e.textContent = new Date().getFullYear());</script>
 </body>
 </html>
