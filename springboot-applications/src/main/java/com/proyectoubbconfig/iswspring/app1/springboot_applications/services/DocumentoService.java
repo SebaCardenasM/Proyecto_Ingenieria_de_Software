@@ -320,19 +320,21 @@ public class DocumentoService {
                 .collect(Collectors.toList());
     }
 
-    public List<Documento> obtenerPautasDeEstudiante() {
+   public List<Documento> obtenerPautasDeEstudiante() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String rut = auth.getName();
-        
+
         Optional<Usuario> usuarioOpt = usuarioRepository.findById(rut);
         if (usuarioOpt.isPresent() && usuarioOpt.get() instanceof Estudiante) {
             Estudiante estudiante = (Estudiante) usuarioOpt.get();
             List<Documento> docs = documentoRepository.findByEstudiante(estudiante);
             return docs.stream()
                     .filter(doc -> doc instanceof Pauta || (doc.getTipoDocumento() != null && doc.getTipoDocumento().name().equals("PAUTA")))
+                    // El estudiante solo ve pautas web ya enviadas; los borradores son privados del tutor
+                    .filter(doc -> !"ONLINE_BORRADOR".equals(doc.getRutaServidor()))
                     .collect(Collectors.toList());
         }
         return List.of();
-    }
+}
 
 }
