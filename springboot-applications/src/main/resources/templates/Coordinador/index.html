@@ -53,12 +53,6 @@
     <!-- Contenedor Principal -->
     <main class="container">
 
-        <!-- Alerta de éxito -->
-        <div th:if="${mensajeExito}" class="alert alert-success alert-dismissible fade show shadow-sm mb-4" role="alert">
-            <i class="bi bi-check-circle-fill me-2"></i><span th:text="${mensajeExito}"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-
         <!-- Bienvenida -->
         <section class="hero mb-4">
             <div class="hero-hello" th:text="${'Bienvenido/a, ' + (usuarioActivo != null ? usuarioActivo.nombre : '')}">Bienvenido/a</div>
@@ -171,6 +165,11 @@
             </div>
         </div>
     </main>
+
+        <!-- Popup de confirmación (mensaje enviado por el controlador) -->
+    <div th:if="${mensajeExito}" data-ubb-flash hidden
+         th:attr="data-mensaje=${mensajeExito},data-titulo=${tituloExito}"></div>
+    <script th:src="@{/js/ubb-popup.js}"></script>
 
     <!-- Footer -->
     <footer class="ubb-footer">

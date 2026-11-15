@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -150,7 +151,8 @@ public class TutorController {
             @RequestParam(required = false) String comentarioObservaciones,
             @RequestParam(defaultValue = "BORRADOR") String accion,
             HttpServletRequest request,
-            Authentication authentication) {
+            Authentication authentication,
+            RedirectAttributes redirectAttributes) {
 
         String rutTutor = authentication.getName();
         Optional<Practica> practicaOpt = practicaRepository.findById(idPractica);
@@ -218,6 +220,14 @@ public class TutorController {
                 pauta.setProfesorEvaluador(practica.getTutor());
 
                 documentoRepository.save(pauta);
+
+                if ("ENVIAR".equalsIgnoreCase(accion)) {
+                    redirectAttributes.addFlashAttribute("tituloExito", "¡Pauta enviada!");
+                    redirectAttributes.addFlashAttribute("mensajeExito", "La pauta fue enviada exitosamente al estudiante.");
+                } else {
+                    redirectAttributes.addFlashAttribute("tituloExito", "¡Borrador guardado!");
+                    redirectAttributes.addFlashAttribute("mensajeExito", "La pauta se guardó exitosamente como borrador.");
+                }
                 return "redirect:/tutor/estudiante/" + idPractica;
             }
         }

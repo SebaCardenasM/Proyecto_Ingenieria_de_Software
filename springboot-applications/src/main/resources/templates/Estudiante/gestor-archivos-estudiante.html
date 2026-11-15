@@ -197,10 +197,10 @@
                         method: 'POST', headers: headers, body: formData
                     });
                     if (respuesta.ok) {
-                        mostrarAlerta('¡Evidencia subida con éxito!', 'alert-success');
                         formulario.reset();
                         cargarArchivos();
-                        setTimeout(() => bootstrap.Modal.getInstance(document.getElementById('modalSubirArchivo'))?.hide(), 1200);
+                        bootstrap.Modal.getInstance(document.getElementById('modalSubirArchivo'))?.hide();
+                        ubbPopup.exito('Tu evidencia fue subida exitosamente.', { titulo: '¡Documento subido!' });
                     } else {
                         const error = await respuesta.text();
                         mostrarAlerta('Error: ' + error, 'alert-danger');
@@ -275,6 +275,8 @@
             setTimeout(() => a.className = 'alert d-none', 4000);
         }
     </script>
+
+        <script th:src="@{/js/ubb-popup.js}"></script>
 
     <!-- Footer -->
     <footer class="ubb-footer compact">

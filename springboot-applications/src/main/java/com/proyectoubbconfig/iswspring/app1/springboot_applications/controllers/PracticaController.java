@@ -135,7 +135,8 @@ public class PracticaController {
 
         // 8. Guardar en Base de Datos
         practicaRepository.save(practica);
-        redirectAttributes.addFlashAttribute("mensajeExito", "Práctica asignada y guardada correctamente.");
+        redirectAttributes.addFlashAttribute("tituloExito", "¡Práctica asignada!");
+        redirectAttributes.addFlashAttribute("mensajeExito", "La práctica fue asignada exitosamente.");
         return "redirect:/index"; // Redirección actualizada al Dashboard
     }
     @Transactional(readOnly = true)
@@ -215,7 +216,8 @@ public class PracticaController {
         }
 
         practicaRepository.save(practica);
-        redirectAttributes.addFlashAttribute("mensajeExito", "Los datos de la práctica han sido actualizados correctamente.");
+        redirectAttributes.addFlashAttribute("tituloExito", "¡Práctica actualizada!");
+        redirectAttributes.addFlashAttribute("mensajeExito", "Los datos de la práctica fueron actualizados exitosamente.");
         return "redirect:/practicas";
     }
 
@@ -246,7 +248,8 @@ public class PracticaController {
     @PostMapping("/centros-practica/guardar")
     public String guardarCentroPractica(@ModelAttribute("centroPractica") CentroPractica centroPractica, RedirectAttributes redirectAttributes) {
         CentroPractica guardado = centroPracticaRepository.save(centroPractica);
-        redirectAttributes.addFlashAttribute("mensajeExito", "Centro de práctica '" + guardado.getNombre() + "' añadido correctamente.");
+        redirectAttributes.addFlashAttribute("tituloExito", "¡Centro registrado!");
+        redirectAttributes.addFlashAttribute("mensajeExito", "El centro de práctica '" + guardado.getNombre() + "' fue registrado exitosamente.");
         return "redirect:/index";
     }
 
@@ -263,7 +266,8 @@ public class PracticaController {
     public String actualizarCentroPractica(@PathVariable Long id, @ModelAttribute("centroPractica") CentroPractica centroPractica, RedirectAttributes redirectAttributes) {
         centroPractica.setId(id);
         CentroPractica guardado = centroPracticaRepository.save(centroPractica);
-        redirectAttributes.addFlashAttribute("mensajeExito", "Centro de práctica '" + guardado.getNombre() + "' actualizado correctamente.");
+        redirectAttributes.addFlashAttribute("tituloExito", "¡Centro actualizado!");
+        redirectAttributes.addFlashAttribute("mensajeExito", "El centro de práctica '" + guardado.getNombre() + "' fue actualizado exitosamente.");
         return "redirect:/centros-practica";
     }
 

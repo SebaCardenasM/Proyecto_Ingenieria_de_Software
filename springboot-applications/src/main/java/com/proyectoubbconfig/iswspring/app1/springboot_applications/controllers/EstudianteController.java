@@ -167,7 +167,8 @@ public class EstudianteController {
         estudianteRepository.save(e);
 
         redirectAttributes.addFlashAttribute("mensajeExito",
-                "Los datos de " + e.getNombre() + " " + e.getApellido() + " fueron actualizados correctamente.");
+                "Los datos de " + e.getNombre() + " " + e.getApellido() + " fueron actualizados exitosamente.");
+        redirectAttributes.addFlashAttribute("tituloExito", "¡Estudiante actualizado!");
         return "redirect:/estudiantes";
     }
 

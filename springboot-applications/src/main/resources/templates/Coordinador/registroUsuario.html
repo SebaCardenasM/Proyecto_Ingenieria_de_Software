@@ -168,6 +168,11 @@
     });
 </script>
 
+        <div th:if="${param.duplicado}" data-ubb-flash hidden data-tipo="error"
+         data-titulo="Usuario ya registrado"
+         data-mensaje="Ya existe un usuario con ese RUT. Revisa los datos e inténtalo de nuevo."></div>
+    <script th:src="@{/js/ubb-popup.js}"></script>
+
     <!-- Footer -->
     <footer class="ubb-footer compact">
         <div class="container py-3 d-flex flex-column flex-md-row align-items-center justify-content-between gap-3 text-center text-md-start">
