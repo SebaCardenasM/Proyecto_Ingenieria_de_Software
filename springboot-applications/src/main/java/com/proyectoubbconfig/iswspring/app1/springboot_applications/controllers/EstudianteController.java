@@ -6,10 +6,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.dto.DatosPautaColaborador;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Documento;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Estudiante;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Pauta;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Practica;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.TipoEvaluador;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.DocumentoRepository;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.EstudianteRepository;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.PracticaRepository;
@@ -24,6 +26,7 @@ import com.proyectoubbconfig.iswspring.app1.springboot_applications.dto.UsuarioE
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Profesor;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.ProfesorRepository;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.services.UsuarioEdicionService;
+
 import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
@@ -39,6 +42,12 @@ public class EstudianteController {
 
     @Autowired
     private DocumentoRepository documentoRepository;
+
+    @Autowired
+    private ProfesorRepository profesorRepository;
+
+    @Autowired
+    private UsuarioEdicionService usuarioEdicionService;
 
     @GetMapping("/estudiantes")
     public String listarEstudiantes(Model model) {
@@ -84,6 +93,25 @@ public class EstudianteController {
             boolean enviada = "ONLINE_ENVIADA".equals(pauta.getRutaServidor());
 
             if (esSuya && enviada && practica != null) {
+                // Pauta enviada por el profesor colaborador (formulario por enlace): vista propia, solo lectura
+                if (pauta.getTipoEvaluador() == TipoEvaluador.PROFESOR_COLABORADOR) {
+                    String centro = practica.getCentroPractica() != null
+                            ? practica.getCentroPractica().getNombre()
+                            : "Sin Centro de Práctica asignado";
+                    model.addAttribute("datos", new DatosPautaColaborador(
+                            (dueno.getNombre() + " " + dueno.getApellido()).trim(),
+                            dueno.getRut(),
+                            centro,
+                            practica.getNumeroPractica(),
+                            pauta.getNombreEvaluador(),
+                            true,
+                            null));
+                    model.addAttribute("pautaJson", pauta.getObservaciones());
+                    model.addAttribute("modoLectura", true);
+                    model.addAttribute("vistaEstudiante", true);
+                    return "Colaborador/evaluacion-colaborador";
+                }
+
                 if (practica.getCentroPractica() != null) practica.getCentroPractica().getNombre();
                 if (practica.getTutor() != null) practica.getTutor().getNombre();
 
@@ -98,12 +126,6 @@ public class EstudianteController {
         }
         return "redirect:/estudiante/pautas";
     }
-
-    @Autowired
-    private ProfesorRepository profesorRepository;
-
-    @Autowired
-    private UsuarioEdicionService usuarioEdicionService;
 
     @Transactional(readOnly = true)
     @GetMapping("/estudiantes/editar/{rut}")
