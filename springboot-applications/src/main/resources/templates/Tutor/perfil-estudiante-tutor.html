@@ -11,15 +11,16 @@
         .doc-card { transition: transform 0.2s; }
         .doc-card:hover { transform: translateY(-3px); }
     </style>
+    <link th:href="@{/css/ubb-index.css}" rel="stylesheet">
 </head>
-<body class="bg-light">
+<body class="ubb-page ubb-inner">
 
     <!-- BARRA DE NAVEGACIÓN -->
     <nav class="navbar navbar-expand-lg navbar-dark ubb-bg mb-4 shadow-sm">
         <div class="container">
-            <a class="navbar-brand fw-bold" th:href="@{/tutor/index}">
+            <div class="d-flex align-items-center"><img th:src="@{/images/escudo-monocromatico-oscuro.png}" alt="Escudo Universidad del Bío-Bío" class="nav-logo"><a class="navbar-brand fw-bold" th:href="@{/tutor/index}">
                 <i class="bi bi-mortarboard-fill me-2"></i>Plataforma de Prácticas
-            </a>
+            </a></div>
             
             <div class="d-flex text-white align-items-center ms-auto">
                 <span class="fw-bold me-3" th:text="${usuarioActivo != null ? usuarioActivo.nombre + ' ' + usuarioActivo.apellido : 'Tutor'}">Tutor</span>
@@ -211,7 +212,8 @@
             })
             .then(async response => {
                 if (response.ok) {
-                    window.location.reload();
+                    ubbPopup.exito('La pauta fue cargada exitosamente.',
+                        { titulo: '¡Pauta cargada!', onClose: () => window.location.reload() });
                 } else {
                     const errorText = await response.text();
                     alert('Error del servidor:\n\n' + errorText);
@@ -234,8 +236,8 @@
                 })
                 .then(async response => {
                     if (response.ok) {
-                        alert('¡Pauta eliminada con éxito!');
-                        window.location.reload();
+                        ubbPopup.exito('La pauta fue eliminada exitosamente.',
+                            { titulo: '¡Pauta eliminada!', onClose: () => window.location.reload() });
                     } else {
                         const errorText = await response.text();
                         alert('Error al eliminar: ' + errorText);
@@ -247,5 +249,25 @@
             }
         }
     </script>
+
+        <!-- Popup de confirmación (mensaje enviado por el controlador) -->
+    <div th:if="${mensajeExito}" data-ubb-flash hidden
+         th:attr="data-mensaje=${mensajeExito},data-titulo=${tituloExito}"></div>
+    <script th:src="@{/js/ubb-popup.js}"></script>
+
+    <!-- Footer -->
+    <footer class="ubb-footer compact">
+        <div class="container py-3 d-flex flex-column flex-md-row align-items-center justify-content-between gap-3 text-center text-md-start">
+            <div class="d-flex align-items-center gap-3">
+                <img th:src="@{/images/escudo-monocromatico-oscuro.png}" alt="Escudo Universidad del Bío-Bío" class="footer-logo">
+                <div>
+                    <div class="fw-bold">Universidad del Bío-Bío</div>
+                    <small>Escuela de Pedagogía en Educación Matemática</small>
+                </div>
+            </div>
+            <small>Plataforma de Prácticas · &copy; <span class="anio"></span></small>
+        </div>
+    </footer>
+    <script>document.querySelectorAll('.anio').forEach(e => e.textContent = new Date().getFullYear());</script>
 </body>
 </html>

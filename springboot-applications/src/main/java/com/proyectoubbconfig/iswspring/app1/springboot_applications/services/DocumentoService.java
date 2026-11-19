@@ -198,8 +198,10 @@ public class DocumentoService {
         }
 
         // --- Lógica del Límite: Máximo 4 Pautas ---
+        // Solo cuentan las pautas del tutor: las del profesor colaborador llegan por enlace y no consumen este límite
         long cantidadPautas = practica.getArchivos().stream()
                 .filter(d -> d instanceof Pauta || (d.getTipoDocumento() != null && d.getTipoDocumento().name().equals("PAUTA")))
+                .filter(d -> !(d instanceof Pauta pa && pa.getTipoEvaluador() == TipoEvaluador.PROFESOR_COLABORADOR))
                 .count();
                 
         if (cantidadPautas >= 4) {
@@ -330,6 +332,8 @@ public class DocumentoService {
             List<Documento> docs = documentoRepository.findByEstudiante(estudiante);
             return docs.stream()
                     .filter(doc -> doc instanceof Pauta || (doc.getTipoDocumento() != null && doc.getTipoDocumento().name().equals("PAUTA")))
+                    // El estudiante solo ve pautas web ya enviadas; los borradores son privados del tutor
+                    .filter(doc -> !"ONLINE_BORRADOR".equals(doc.getRutaServidor()))
                     .collect(Collectors.toList());
         }
         return List.of();
