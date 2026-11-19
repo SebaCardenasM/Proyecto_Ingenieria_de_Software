@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mis Avisos - Prácticas UBB</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .ubb-bg { background-color: #004b85; }
+        body { background-color: #f4f6f9; }
+        .aviso { border-left: 6px solid #adb5bd; }
+        .aviso.nuevo { border-left-color: #0d6efd; }
+        .aviso.vigente { border-left-color: #198754; }
+        .aviso.expirado { border-left-color: #6c757d; }
+        .caja-enlace { background: #f1f6fc; border: 1px dashed #9bbbe0; border-radius: 0.8rem; }
+    </style>
+    <link th:href="@{/css/ubb-index.css}" rel="stylesheet">
+</head>
+<body class="ubb-page ubb-inner">
+
+    <nav class="navbar navbar-dark ubb-bg mb-4 shadow-sm">
+        <div class="container-fluid px-4">
+            <div class="d-flex align-items-center"><img th:src="@{/images/escudo-monocromatico-oscuro.png}" alt="Escudo Universidad del Bío-Bío" class="nav-logo"><a class="navbar-brand fw-bold" th:href="@{/estudiante/index}">
+                <i class="bi bi-arrow-left-circle me-2"></i>Volver al Panel
+            </a></div>
+            <div class="d-flex text-white align-items-center">
+                <i class="bi bi-bell-fill fs-5 me-2"></i> Mis Avisos
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mb-5" style="max-width: 900px;">
+
+        <div class="mb-4">
+            <h2 class="fw-bold text-dark mb-1"><i class="bi bi-bell-fill text-warning me-2"></i>Mis Avisos</h2>
+            <p class="text-muted mb-0">Cuando tu profesor confirma una planificación, aquí recibes el enlace temporal que debes entregar a tu profesor colaborador.</p>
+        </div>
+
+        <div th:if="${#lists.isEmpty(avisos)}" class="card border-0 shadow-sm">
+            <div class="card-body text-center text-muted py-5">
+                <i class="bi bi-inbox fs-1 d-block mb-2"></i>Aún no tienes avisos.
+            </div>
+        </div>
+
+        <div th:each="a : ${avisos}" class="card border-0 shadow-sm mb-3 aviso"
+             th:classappend="${(a.nuevo ? 'nuevo ' : '') + (a.estadoEnlace == 'VIGENTE' ? 'vigente' : (a.estadoEnlace == 'EXPIRADO' or a.estadoEnlace == 'USADO' ? 'expirado' : ''))}">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
+                    <h5 class="fw-bold mb-0">
+                        <span th:text="${a.titulo}">Título</span>
+                        <span th:if="${a.nuevo}" class="badge bg-primary ms-2">Nuevo</span>
+                    </h5>
+                    <small class="text-muted" th:text="${#temporals.format(a.fecha, 'dd/MM/yyyy HH:mm')}">fecha</small>
+                </div>
+
+                <p class="text-muted mb-3" th:text="${a.mensaje}">Mensaje</p>
+
+                <!-- Enlace temporal -->
+                <div th:if="${a.token != null}" class="caja-enlace p-3">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+                        <strong><i class="bi bi-link-45deg me-1"></i>Enlace para tu profesor colaborador</strong>
+                        <span th:if="${a.estadoEnlace == 'VIGENTE'}" class="badge bg-success">
+                            Vigente hasta <span th:text="${#temporals.format(a.expira, 'dd/MM/yyyy HH:mm')}">fecha</span>
+                        </span>
+                        <span th:if="${a.estadoEnlace == 'EXPIRADO'}" class="badge bg-secondary"><i class="bi bi-hourglass-bottom me-1"></i>Expirado</span>
+                        <span th:if="${a.estadoEnlace == 'USADO'}" class="badge bg-primary"><i class="bi bi-clipboard-check me-1"></i>Pauta enviada</span>
+                    </div>
+
+                    <div th:if="${a.estadoEnlace == 'VIGENTE'}">
+                        <div class="input-group">
+                            <input type="text" class="form-control campo-enlace" readonly
+                                   th:attr="data-ruta=@{/evaluacion-colaborador/{t}(t=${a.token})}">
+                            <button type="button" class="btn btn-primary btn-copiar"><i class="bi bi-clipboard me-1"></i>Copiar enlace</button>
+                            <a class="btn btn-outline-primary btn-abrir" target="_blank" rel="noopener noreferrer"
+                               th:href="@{/evaluacion-colaborador/{t}(t=${a.token})}"><i class="bi bi-box-arrow-up-right"></i></a>
+                        </div>
+                        <small class="text-muted d-block mt-2">Entrégaselo solo a tu profesor colaborador. Funciona una sola vez y no necesita cuenta.</small>
+                    </div>
+
+                    <small th:if="${a.estadoEnlace == 'EXPIRADO'}" class="text-muted">
+                        Este enlace ya no funciona. Pide a tu profesor de la universidad que genere uno nuevo.
+                    </small>
+                    <small th:if="${a.estadoEnlace == 'USADO'}" class="text-muted">
+                        Tu profesor colaborador ya envió su pauta. Puedes verla en «Mis Pautas».
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // El enlace absoluto se arma en el navegador (dominio + ruta)
+        document.querySelectorAll('.campo-enlace').forEach(input => {
+            input.value = window.location.origin + input.dataset.ruta;
+        });
+
+        document.querySelectorAll('.btn-copiar').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const input = btn.closest('.input-group').querySelector('.campo-enlace');
+                try {
+                    await navigator.clipboard.writeText(input.value);
+                } catch (e) {
+                    input.select();
+                    document.execCommand('copy');     // respaldo para navegadores sin clipboard API
+                }
+                const original = btn.innerHTML;
+                btn.innerHTML = '<i class="bi bi-check2 me-1"></i>¡Copiado!';
+                btn.classList.replace('btn-primary', 'btn-success');
+                setTimeout(() => { btn.innerHTML = original; btn.classList.replace('btn-success', 'btn-primary'); }, 2000);
+            });
+        });
+    </script>
+
+    <!-- Footer -->
+    <footer class="ubb-footer compact">
+        <div class="container py-3 d-flex flex-column flex-md-row align-items-center justify-content-between gap-3 text-center text-md-start">
+            <div class="d-flex align-items-center gap-3">
+                <img th:src="@{/images/escudo-monocromatico-oscuro.png}" alt="Escudo Universidad del Bío-Bío" class="footer-logo">
+                <div>
+                    <div class="fw-bold">Universidad del Bío-Bío</div>
+                    <small>Escuela de Pedagogía en Educación Matemática</small>
+                </div>
+            </div>
+            <small>Plataforma de Prácticas · &copy; <span class="anio"></span></small>
+        </div>
+    </footer>
+    <script>document.querySelectorAll('.anio').forEach(e => e.textContent = new Date().getFullYear());</script>
+</body>
+</html>

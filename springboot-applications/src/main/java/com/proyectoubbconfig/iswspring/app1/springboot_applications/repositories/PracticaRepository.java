@@ -25,4 +25,7 @@ public interface PracticaRepository extends JpaRepository<Practica, Long> {
        "LEFT JOIN FETCH p.profesor LEFT JOIN FETCH p.tutor LEFT JOIN FETCH p.centroPractica " +
        "WHERE p.estudiante.rut = :rut")
     List<Practica> findPortafolioByRut(@Param("rut") String rut);
+
+   // buscar las practicas asignadas a un tutor especifico
+    List<Practica> findByTutorRut(String rutTutor);
 }

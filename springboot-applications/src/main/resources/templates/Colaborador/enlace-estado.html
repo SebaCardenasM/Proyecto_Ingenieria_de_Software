@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="referrer" content="no-referrer">
+    <title>Evaluación del Profesor Colaborador - Prácticas UBB</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .ubb-bg { background-color: #004b85; }
+        .estado-icono { width: 90px; height: 90px; border-radius: 50%; display: grid; place-items: center; font-size: 2.8rem; margin: 0 auto 1rem; }
+    </style>
+    <link th:href="@{/css/ubb-index.css}" rel="stylesheet">
+</head>
+<body class="ubb-page ubb-inner">
+
+    <nav class="navbar navbar-dark ubb-bg mb-4 shadow-sm">
+        <div class="container">
+            <div class="d-flex align-items-center">
+                <img th:src="@{/images/escudo-monocromatico-oscuro.png}" alt="Escudo Universidad del Bío-Bío" class="nav-logo">
+                <span class="navbar-brand fw-bold mb-0">Plataforma de Prácticas</span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center p-4 p-md-5" th:switch="${estado}">
+
+                        <th:block th:case="'ENVIADA'">
+                            <div class="estado-icono bg-success bg-opacity-10 text-success"><i class="bi bi-check-circle-fill"></i></div>
+                            <h3 class="fw-bold">¡Pauta enviada!</h3>
+                            <p class="text-muted mb-0">Gracias por su colaboración. Su pauta fue registrada exitosamente y ya está disponible para el estudiante. Puede cerrar esta ventana.</p>
+                        </th:block>
+
+                        <th:block th:case="'USADO'">
+                            <div class="estado-icono bg-primary bg-opacity-10 text-primary"><i class="bi bi-lock-fill"></i></div>
+                            <h3 class="fw-bold">Este enlace ya fue utilizado</h3>
+                            <p class="text-muted mb-0">La pauta de este estudiante ya fue enviada. Si necesita corregir algo, solicite a la/el estudiante que consulte con su profesor de la universidad.</p>
+                        </th:block>
+
+                        <th:block th:case="'EXPIRADO'">
+                            <div class="estado-icono bg-warning bg-opacity-10 text-warning"><i class="bi bi-hourglass-bottom"></i></div>
+                            <h3 class="fw-bold">El enlace ha expirado</h3>
+                            <p class="text-muted mb-0">Este enlace superó su tiempo de vigencia. Solicite a la/el estudiante que pida a su profesor de la universidad generar uno nuevo.</p>
+                        </th:block>
+
+                        <th:block th:case="*">
+                            <div class="estado-icono bg-danger bg-opacity-10 text-danger"><i class="bi bi-x-octagon-fill"></i></div>
+                            <h3 class="fw-bold">Enlace no válido</h3>
+                            <p class="text-muted mb-0">No pudimos encontrar este enlace. Revise que esté completo o solicite uno nuevo a la/el estudiante.</p>
+                        </th:block>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="ubb-footer compact">
+        <div class="container py-3 d-flex flex-column flex-md-row align-items-center justify-content-between gap-3 text-center text-md-start">
+            <div class="d-flex align-items-center gap-3">
+                <img th:src="@{/images/escudo-monocromatico-oscuro.png}" alt="Escudo Universidad del Bío-Bío" class="footer-logo">
+                <div>
+                    <div class="fw-bold">Universidad del Bío-Bío</div>
+                    <small>Escuela de Pedagogía en Educación Matemática</small>
+                </div>
+            </div>
+            <small>Plataforma de Prácticas · &copy; <span class="anio"></span></small>
+        </div>
+    </footer>
+    <script>document.querySelectorAll('.anio').forEach(e => e.textContent = new Date().getFullYear());</script>
+</body>
+</html>

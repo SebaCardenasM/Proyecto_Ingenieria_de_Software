@@ -1,0 +1,101 @@
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-11-16T21:12:08.543-03:00  INFO 764 --- [springboot-applications] [  restartedMain] .i.a.s.SpringbootApplicationsApplication : Starting SpringbootApplicationsApplication using Java 25.0.4.1 with PID 764 (C:\Users\rarlo\Desktop\Proyecto_Ingenieria_de_Software\springboot-applications\target\classes started by rarlo in C:\Users\rarlo\Desktop\Proyecto_Ingenieria_de_Software)
+2026-11-16T21:12:08.547-03:00  INFO 764 --- [springboot-applications] [  restartedMain] .i.a.s.SpringbootApplicationsApplication : No active profile set, falling back to 1 default profile: "default"
+2026-11-16T21:12:08.610-03:00  INFO 764 --- [springboot-applications] [  restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2026-11-16T21:12:08.611-03:00  INFO 764 --- [springboot-applications] [  restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2026-11-16T21:12:09.587-03:00  INFO 764 --- [springboot-applications] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-11-16T21:12:09.733-03:00  INFO 764 --- [springboot-applications] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 131 ms. Found 14 JPA repository interfaces.
+2026-11-16T21:12:10.600-03:00  INFO 764 --- [springboot-applications] [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8080 (http)
+2026-11-16T21:12:10.621-03:00  INFO 764 --- [springboot-applications] [  restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-11-16T21:12:10.621-03:00  INFO 764 --- [springboot-applications] [  restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.24]
+2026-11-16T21:12:10.668-03:00  INFO 764 --- [springboot-applications] [  restartedMain] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 2056 ms
+2026-11-16T21:12:10.996-03:00  INFO 764 --- [springboot-applications] [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-11-16T21:12:12.171-03:00  WARN 764 --- [springboot-applications] [  restartedMain] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'entityManagerFactory' defined in class path resource [org/springframework/boot/hibernate/autoconfigure/HibernateJpaConfiguration.class]: Failed to initialize dependency 'flywayInitializer' of LoadTimeWeaverAware bean 'entityManagerFactory': Error creating bean with name 'flywayInitializer' defined in class path resource [org/springframework/boot/flyway/autoconfigure/FlywayAutoConfiguration$FlywayConfiguration.class]: Unable to obtain connection from database: Access denied for user 'app_practicas'@'localhost' (using password: YES)
+-------------------------------------------------------------------------------------------------------------------
+SQL State  : 28000
+Error Code : 1045
+Message    : Access denied for user 'app_practicas'@'localhost' (using password: YES)
+
+2026-11-16T21:12:12.176-03:00  INFO 764 --- [springboot-applications] [  restartedMain] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-11-16T21:12:12.189-03:00  INFO 764 --- [springboot-applications] [  restartedMain] .s.b.a.l.ConditionEvaluationReportLogger : 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-11-16T21:12:12.210-03:00 ERROR 764 --- [springboot-applications] [  restartedMain] o.s.boot.SpringApplication               : Application run failed
+
+org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'entityManagerFactory' defined in class path resource [org/springframework/boot/hibernate/autoconfigure/HibernateJpaConfiguration.class]: Failed to initialize dependency 'flywayInitializer' of LoadTimeWeaverAware bean 'entityManagerFactory': Error creating bean with name 'flywayInitializer' defined in class path resource [org/springframework/boot/flyway/autoconfigure/FlywayAutoConfiguration$FlywayConfiguration.class]: Unable to obtain connection from database: Access denied for user 'app_practicas'@'localhost' (using password: YES)
+-------------------------------------------------------------------------------------------------------------------
+SQL State  : 28000
+Error Code : 1045
+Message    : Access denied for user 'app_practicas'@'localhost' (using password: YES)
+
+        at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:322) ~[spring-beans-7.0.9.jar:7.0.9]
+        at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:201) ~[spring-beans-7.0.9.jar:7.0.9]
+        at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:977) ~[spring-context-7.0.9.jar:7.0.9]
+        at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:621) ~[spring-context-7.0.9.jar:7.0.9]
+        at org.springframework.boot.web.server.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:143) ~[spring-boot-web-server-4.1.1.jar:4.1.1]
+        at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:756) ~[spring-boot-4.1.1.jar:4.1.1]
+        at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:445) ~[spring-boot-4.1.1.jar:4.1.1]
+        at org.springframework.boot.SpringApplication.run(SpringApplication.java:321) ~[spring-boot-4.1.1.jar:4.1.1]
+        at org.springframework.boot.SpringApplication.run(SpringApplication.java:1365) ~[spring-boot-4.1.1.jar:4.1.1]
+        at org.springframework.boot.SpringApplication.run(SpringApplication.java:1354) ~[spring-boot-4.1.1.jar:4.1.1]
+        at com.proyectoubbconfig.iswspring.app1.springboot_applications.SpringbootApplicationsApplication.main(SpringbootApplicationsApplication.java:22) ~[classes/:na]
+        at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(Unknown Source) ~[na:na]
+        at java.base/java.lang.reflect.Method.invoke(Unknown Source) ~[na:na]
+        at org.springframework.boot.devtools.restart.RestartLauncher.run(RestartLauncher.java:52) ~[spring-boot-devtools-4.1.1.jar:4.1.1]
+Caused by: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'flywayInitializer' defined in class path resource [org/springframework/boot/flyway/autoconfigure/FlywayAutoConfiguration$FlywayConfiguration.class]: Unable to obtain connection from database: Access denied for user 'app_practicas'@'localhost' (using password: YES)
+-------------------------------------------------------------------------------------------------------------------
+SQL State  : 28000
+Error Code : 1045
+Message    : Access denied for user 'app_practicas'@'localhost' (using password: YES)
+
+        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1815) ~[spring-beans-7.0.9.jar:7.0.9]
+        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:603) ~[spring-beans-7.0.9.jar:7.0.9]
+        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:525) ~[spring-beans-7.0.9.jar:7.0.9]
+        at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:333) ~[spring-beans-7.0.9.jar:7.0.9]
+        at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:371) ~[spring-beans-7.0.9.jar:7.0.9]
+        at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:331) ~[spring-beans-7.0.9.jar:7.0.9]
+        at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:196) ~[spring-beans-7.0.9.jar:7.0.9]
+        at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:309) ~[spring-beans-7.0.9.jar:7.0.9]
+        ... 13 common frames omitted
+Caused by: org.flywaydb.core.internal.exception.sqlExceptions.FlywaySqlUnableToConnectToDbException: Unable to obtain connection from database: Access denied for user 'app_practicas'@'localhost' (using password: YES)
+-------------------------------------------------------------------------------------------------------------------
+SQL State  : 28000
+Error Code : 1045
+Message    : Access denied for user 'app_practicas'@'localhost' (using password: YES)
+
+        at org.flywaydb.core.internal.jdbc.JdbcUtils.openConnection(JdbcUtils.java:78) ~[flyway-core-12.4.0.jar:na]
+        at org.flywaydb.core.internal.jdbc.JdbcConnectionFactory.<init>(JdbcConnectionFactory.java:76) ~[flyway-core-12.4.0.jar:na]
+        at org.flywaydb.core.FlywayExecutor.init(FlywayExecutor.java:275) ~[flyway-core-12.4.0.jar:na]
+        at org.flywaydb.core.FlywayExecutor.execute(FlywayExecutor.java:120) ~[flyway-core-12.4.0.jar:na]
+        at org.flywaydb.core.Flyway.migrate(Flyway.java:181) ~[flyway-core-12.4.0.jar:na]
+        at org.springframework.boot.flyway.autoconfigure.FlywayMigrationInitializer.afterPropertiesSet(FlywayMigrationInitializer.java:67) ~[spring-boot-flyway-4.1.1.jar:4.1.1]
+        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.invokeInitMethods(AbstractAutowireCapableBeanFactory.java:1862) ~[spring-beans-7.0.9.jar:7.0.9]
+        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1811) ~[spring-beans-7.0.9.jar:7.0.9]
+        ... 20 common frames omitted
+Caused by: java.sql.SQLException: Access denied for user 'app_practicas'@'localhost' (using password: YES)
+        at com.mysql.cj.jdbc.exceptions.SQLError.createSQLException(SQLError.java:121) ~[mysql-connector-j-9.7.0.jar:9.7.0]
+        at com.mysql.cj.jdbc.exceptions.SQLExceptionsMapping.translateException(SQLExceptionsMapping.java:114) ~[mysql-connector-j-9.7.0.jar:9.7.0]
+        at com.mysql.cj.jdbc.ConnectionImpl.createNewIO(ConnectionImpl.java:840) ~[mysql-connector-j-9.7.0.jar:9.7.0]
+        at com.mysql.cj.jdbc.ConnectionImpl.<init>(ConnectionImpl.java:416) ~[mysql-connector-j-9.7.0.jar:9.7.0]
+        at com.mysql.cj.jdbc.ConnectionImpl.getInstance(ConnectionImpl.java:237) ~[mysql-connector-j-9.7.0.jar:9.7.0]
+        at com.mysql.cj.jdbc.NonRegisteringDriver.connect(NonRegisteringDriver.java:180) ~[mysql-connector-j-9.7.0.jar:9.7.0]
+        at com.zaxxer.hikari.util.DriverDataSource.getConnection(DriverDataSource.java:144) ~[HikariCP-7.0.2.jar:na]
+        at com.zaxxer.hikari.pool.PoolBase.newConnection(PoolBase.java:373) ~[HikariCP-7.0.2.jar:na]
+        at com.zaxxer.hikari.pool.PoolBase.newPoolEntry(PoolBase.java:210) ~[HikariCP-7.0.2.jar:na]
+        at com.zaxxer.hikari.pool.HikariPool.createPoolEntry(HikariPool.java:488) ~[HikariCP-7.0.2.jar:na]
+        at com.zaxxer.hikari.pool.HikariPool.checkFailFast(HikariPool.java:576) ~[HikariCP-7.0.2.jar:na]
+        at com.zaxxer.hikari.pool.HikariPool.<init>(HikariPool.java:97) ~[HikariCP-7.0.2.jar:na]
+        at com.zaxxer.hikari.HikariDataSource.getConnection(HikariDataSource.java:111) ~[HikariCP-7.0.2.jar:na]
+        at org.flywaydb.core.internal.jdbc.JdbcUtils.openConnection(JdbcUtils.java:73) ~[flyway-core-12.4.0.jar:na]
+        ... 27 common frames omitted
+
+PS C:\Users\rarlo\Desktop\Proyecto_Ingenieria_de_Software> 

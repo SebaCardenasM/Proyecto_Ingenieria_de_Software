@@ -9,18 +9,20 @@
     <style>
         .ubb-bg { background-color: #004b85; }
     </style>
+    <link th:href="@{/css/ubb-index.css}" rel="stylesheet">
 </head>
-<body class="bg-light">
+<body class="ubb-page ubb-inner">
 
     <nav class="navbar navbar-dark ubb-bg mb-4 shadow-sm">
         <div class="container">
-            <a class="navbar-brand fw-bold" th:href="@{/index}">
+            <div class="d-flex align-items-center"><img th:src="@{/images/escudo-monocromatico-oscuro.png}" alt="Escudo Universidad del Bío-Bío" class="nav-logo"><a class="navbar-brand fw-bold" th:href="@{/index}">
                 <i class="bi bi-arrow-left-circle me-2"></i>Volver al Dashboard
-            </a>
+            </a></div>
         </div>
     </nav>
 
     <div class="container-fluid px-4">
+        
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h3 class="fw-bold text-dark"><i class="bi bi-journal-bookmark-fill text-primary me-2"></i>Gestión de Prácticas</h3>
             <a th:href="@{/practicas/registro}" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i> Asignar Práctica</a>
@@ -35,12 +37,14 @@
                                 <th>ID</th>
                                 <th class="text-start">Estudiante</th>
                                 <th class="text-start">Centro de Práctica</th>
+                                <th class="text-start">Profesor Asignatura</th>
                                 <th class="text-start">Tutor Supervisor</th>
                                 <th class="text-start">Profesor Colaborador</th>
                                 <th>N° Práctica</th>
                                 <th>Periodo</th>
                                 <th>Estado</th>
                                 <th>Nota</th>
+                                <th class="pe-4">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -64,13 +68,22 @@
                                     <span th:if="${p.centroPractica == null}" class="badge bg-secondary">Pendiente</span>
                                 </td>
                                 
-                                <!-- Tutor Supervisor (Profesor) -->
+                                <!-- Profesor de Asignatura (UBB) -->
                                 <td class="text-start">
                                     <span th:if="${p.profesor != null}" 
                                           th:text="${p.profesor.nombre + ' ' + p.profesor.apellido}">
+                                        Profesor
+                                    </span>
+                                    <span th:if="${p.profesor == null}" class="badge bg-secondary">Sin Prof. Asignatura</span>
+                                </td>
+
+                                <!-- Tutor Supervisor (UBB) -->
+                                <td class="text-start">
+                                    <span th:if="${p.tutor != null}" 
+                                          th:text="${p.tutor.nombre + ' ' + p.tutor.apellido}">
                                         Tutor
                                     </span>
-                                    <span th:if="${p.profesor == null}" class="badge bg-secondary">Sin Tutor</span>
+                                    <span th:if="${p.tutor == null}" class="badge bg-secondary">Sin Tutor</span>
                                 </td>
 
                                 <!-- Profesor Colaborador (Colegio) -->
@@ -109,9 +122,16 @@
                                         -
                                     </span>
                                 </td>
+
+                                <!-- Acciones (Botón Editar) -->
+                                <td class="pe-4">
+                                    <a th:href="@{/practicas/editar/{id}(id=${p.id})}" class="btn btn-sm btn-outline-primary" title="Editar Práctica">
+                                        <i class="bi bi-pencil-fill"></i>
+                                    </a>
+                                </td>
                             </tr>
                             <tr th:if="${#lists.isEmpty(practicas)}">
-                                <td colspan="9" class="text-center text-muted py-4">No hay prácticas registradas aún.</td>
+                                <td colspan="11" class="text-center text-muted py-4">No hay prácticas registradas aún.</td>
                             </tr>
                         </tbody>
                     </table>
@@ -121,5 +141,25 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+        <!-- Popup de confirmación (mensaje enviado por el controlador) -->
+    <div th:if="${mensajeExito}" data-ubb-flash hidden
+         th:attr="data-mensaje=${mensajeExito},data-titulo=${tituloExito}"></div>
+    <script th:src="@{/js/ubb-popup.js}"></script>
+
+    <!-- Footer -->
+    <footer class="ubb-footer compact">
+        <div class="container py-3 d-flex flex-column flex-md-row align-items-center justify-content-between gap-3 text-center text-md-start">
+            <div class="d-flex align-items-center gap-3">
+                <img th:src="@{/images/escudo-monocromatico-oscuro.png}" alt="Escudo Universidad del Bío-Bío" class="footer-logo">
+                <div>
+                    <div class="fw-bold">Universidad del Bío-Bío</div>
+                    <small>Escuela de Pedagogía en Educación Matemática</small>
+                </div>
+            </div>
+            <small>Plataforma de Prácticas · &copy; <span class="anio"></span></small>
+        </div>
+    </footer>
+    <script>document.querySelectorAll('.anio').forEach(e => e.textContent = new Date().getFullYear());</script>
 </body>
 </html>
