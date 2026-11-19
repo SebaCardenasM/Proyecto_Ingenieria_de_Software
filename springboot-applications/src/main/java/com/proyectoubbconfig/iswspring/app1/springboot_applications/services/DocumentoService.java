@@ -198,8 +198,10 @@ public class DocumentoService {
         }
 
         // --- Lógica del Límite: Máximo 4 Pautas ---
+        // Solo cuentan las pautas del tutor: las del profesor colaborador llegan por enlace y no consumen este límite
         long cantidadPautas = practica.getArchivos().stream()
                 .filter(d -> d instanceof Pauta || (d.getTipoDocumento() != null && d.getTipoDocumento().name().equals("PAUTA")))
+                .filter(d -> !(d instanceof Pauta pa && pa.getTipoEvaluador() == TipoEvaluador.PROFESOR_COLABORADOR))
                 .count();
                 
         if (cantidadPautas >= 4) {
@@ -320,10 +322,10 @@ public class DocumentoService {
                 .collect(Collectors.toList());
     }
 
-   public List<Documento> obtenerPautasDeEstudiante() {
+    public List<Documento> obtenerPautasDeEstudiante() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String rut = auth.getName();
-
+        
         Optional<Usuario> usuarioOpt = usuarioRepository.findById(rut);
         if (usuarioOpt.isPresent() && usuarioOpt.get() instanceof Estudiante) {
             Estudiante estudiante = (Estudiante) usuarioOpt.get();
@@ -335,6 +337,6 @@ public class DocumentoService {
                     .collect(Collectors.toList());
         }
         return List.of();
-}
+    }
 
 }

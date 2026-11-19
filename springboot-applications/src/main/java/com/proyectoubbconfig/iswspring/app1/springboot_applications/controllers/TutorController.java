@@ -91,7 +91,9 @@ public class TutorController {
 
                 List<Pauta> pautasOnline = new ArrayList<>();
                 for (Documento doc : practica.getArchivos()) {
-                    if (doc instanceof Pauta && doc.getRutaServidor() != null && doc.getRutaServidor().startsWith("ONLINE_")) {
+                    // Solo las pautas del tutor: las del profesor colaborador llegan por enlace y no se editan aquí
+                    if (doc instanceof Pauta && doc.getRutaServidor() != null && doc.getRutaServidor().startsWith("ONLINE_")
+                            && ((Pauta) doc).getTipoEvaluador() != TipoEvaluador.PROFESOR_COLABORADOR) {
                         pautasOnline.add((Pauta) doc);
                     }
                 }
@@ -247,6 +249,13 @@ public class TutorController {
         if (docOpt.isPresent() && docOpt.get() instanceof Pauta) {
             Pauta pauta = (Pauta) docOpt.get();
             Practica practica = pauta.getPractica();
+
+            // Solo el tutor de esa práctica y solo pautas de tutor (no las del profesor colaborador)
+            if (practica == null || practica.getTutor() == null
+                    || !practica.getTutor().getRut().equals(rutUsuario)
+                    || pauta.getTipoEvaluador() == TipoEvaluador.PROFESOR_COLABORADOR) {
+                return "redirect:/tutor/alumnos";
+            }
 
             if (practica.getEstudiante() != null) {
                 practica.getEstudiante().getNombre();
