@@ -9,12 +9,14 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.Optional;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Documento;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.EstadoDocumento;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Estudiante;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Informe;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Pauta;
@@ -35,6 +37,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class DocumentoService {
     private static final Set<String> EXTENSIONES_PERMITIDAS =
         Set.of("pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "jpg", "jpeg", "png");
+
+    // true = el estudiante debe pasar su borrador por el asistente antes de enviarlo al gestor
+    @Value("${documentos.revision-ia.obligatoria:false}")
+    private boolean revisionIaObligatoria;
         
     @Autowired
     private DocumentoRepository documentoRepository;
@@ -57,15 +63,15 @@ public class DocumentoService {
 
         List<Documento> documentos;
 
-        // Coordinador: ve todo
+        // Coordinador: ve todo lo ENVIADO (los borradores son privados del estudiante)
         if (esCoordinador) {
-            documentos = documentoRepository.findAll();
+            documentos = soloEnviados(documentoRepository.findAll());
         } 
-        // Profesor de asignatura o tutor: ve lo de sus estudiantes
+        // Profesor de asignatura o tutor: ve lo ENVIADO de sus estudiantes
         else if (esProfesorAsignatura || esTutor) {
-            documentos = documentoRepository.findByAcademicoRut(rut);
+            documentos = soloEnviados(documentoRepository.findByAcademicoRut(rut));
         } 
-        // Estudiante: solo lo suyo (excluyendo pautas, ya que van en su propia pestaña)
+        // Estudiante: solo lo suyo, borradores incluidos (excluyendo pautas, que van en su propia pestaña)
         else {
             List<Documento> docsEstudiante = usuarioRepository.findById(rut)
                     .filter(u -> u instanceof Estudiante)
@@ -96,11 +102,30 @@ public class DocumentoService {
         return documentos;
     }
 
+    private List<Documento> soloEnviados(List<Documento> docs) {
+        return docs.stream().filter(d -> !d.isBorrador()).collect(Collectors.toList());
+    }
+
     private boolean tieneRol(Authentication auth, String rol) {
         return auth.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals(rol));
     }
 
+    private String rutDueno(Documento d) {
+        if (d.getEstudiante() != null) return d.getEstudiante().getRut();
+        if (d.getPractica() != null && d.getPractica().getEstudiante() != null) {
+            return d.getPractica().getEstudiante().getRut();
+        }
+        return null;
+    }
+
+    // El asistente solo puede leer PDF y DOCX; los demás formatos no quedan bloqueados por la revisión obligatoria
+    private boolean esRevisable(Documento d) {
+        String ruta = d.getRutaServidor() == null ? "" : d.getRutaServidor().toLowerCase();
+        return ruta.endsWith(".pdf") || ruta.endsWith(".docx");
+    }
+
+    /** Paso 1 de la cadena: el archivo se sube y queda como BORRADOR (planificaciones e informes). */
     public Documento subirArchivo(MultipartFile archivo, Integer numeroPractica, TipoDocumento tipoDocumento) throws Exception {
         if (archivo == null || archivo.isEmpty()) {
             throw new Exception("El archivo está vacío");
@@ -166,8 +191,31 @@ public class DocumentoService {
         nuevoDocumento.setNumeroPractica(numeroPractica);
         nuevoDocumento.setPractica(practicaEncontrada);
         nuevoDocumento.setEstudiante(estudiante);
+        // Planificaciones e informes pasan por la cadena (borrador -> revisión -> gestor)
+        nuevoDocumento.setEstado(tipoDocumento == TipoDocumento.PAUTA ? EstadoDocumento.ENVIADO : EstadoDocumento.BORRADOR);
 
         return documentoRepository.save(nuevoDocumento);
+    }
+
+    /** Paso 3 de la cadena: el estudiante envía su borrador al gestor (queda visible para sus profesores). */
+    @Transactional
+    public Documento enviarAlGestor(Long idDocumento) throws Exception {
+        Documento documento = documentoRepository.findById(idDocumento)
+                .orElseThrow(() -> new Exception("No se encontró el documento con ID: " + idDocumento));
+
+        String rutUsuario = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (!rutUsuario.equals(rutDueno(documento))) {
+            throw new Exception("Acceso denegado: este documento no es tuyo.");
+        }
+        if (!documento.isBorrador()) {
+            throw new Exception("Este documento ya fue enviado al gestor.");
+        }
+        if (revisionIaObligatoria && esRevisable(documento) && !documento.isRevisadoIa()) {
+            throw new Exception("Antes de enviarlo debes pasar el documento por la revisión del asistente.");
+        }
+
+        documento.setEstado(EstadoDocumento.ENVIADO);
+        return documentoRepository.save(documento);
     }
 
     @Transactional
@@ -238,45 +286,39 @@ public class DocumentoService {
     }
 
     public List<Documento> obtenerTodosLosDocumentos() {
-        return documentoRepository.findAll();
+        return soloEnviados(documentoRepository.findAll());
     }
 
-  @Transactional(readOnly = true)
+    @Transactional(readOnly = true)
     public boolean puedeVerArchivo(String rutaRelativa) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null) return false;
-        if (tieneRol(auth, "ROLE_COORDINADOR")) return true;
-
         String rutUsuario = auth.getName();
 
-        // 1. Si es Estudiante, permitimos ver si el documento está asociado a su perfil
-        if (tieneRol(auth, "ROLE_ESTUDIANTE")) {
-            Optional<Usuario> usuarioOpt = usuarioRepository.findById(rutUsuario);
-            if (usuarioOpt.isPresent() && usuarioOpt.get() instanceof Estudiante) {
-                Estudiante estudiante = (Estudiante) usuarioOpt.get();
-                List<Documento> docsEstudiante = documentoRepository.findByEstudiante(estudiante);
-                boolean esSuyo = docsEstudiante.stream()
-                        .anyMatch(d -> d.getRutaServidor() != null && (rutaRelativa.contains(d.getRutaServidor()) || d.getRutaServidor().contains(rutaRelativa)));
-                if (esSuyo) return true;
-            }
+        Optional<Documento> docOpt = documentoRepository.findFirstByRutaServidor(rutaRelativa)
+                .or(() -> documentoRepository.findFirstByRutaServidor("/" + rutaRelativa));
+
+        // Archivo sin registro en la BD: solo el coordinador (comportamiento anterior)
+        if (docOpt.isEmpty()) {
+            return tieneRol(auth, "ROLE_COORDINADOR");
         }
 
-        // 2. Verificamos si el documento pertenece a una práctica supervisada por este tutor
-        Optional<Documento> docEncontrado = documentoRepository.findAll().stream()
-                .filter(d -> d.getRutaServidor() != null && (rutaRelativa.contains(d.getRutaServidor()) || d.getRutaServidor().contains(rutaRelativa)))
-                .findFirst();
+        Documento doc = docOpt.get();
+        boolean esDueno = rutUsuario.equals(rutDueno(doc));
 
-        if (docEncontrado.isPresent()) {
-            Documento doc = docEncontrado.get();
-            if (doc.getPractica() != null && doc.getPractica().getTutor() != null) {
-                if (doc.getPractica().getTutor().getRut().equals(rutUsuario)) {
-                    return true;
-                }
-            }
+        // Los borradores son privados: solo los ve su dueño
+        if (doc.isBorrador()) return esDueno;
+
+        if (tieneRol(auth, "ROLE_COORDINADOR") || esDueno) return true;
+
+        // Tutor de la práctica a la que pertenece el documento
+        if (doc.getPractica() != null && doc.getPractica().getTutor() != null
+                && doc.getPractica().getTutor().getRut().equals(rutUsuario)) {
+            return true;
         }
 
         return obtenerDocumentosSegunRol().stream()
-                .anyMatch(d -> d.getRutaServidor() != null && (rutaRelativa.contains(d.getRutaServidor()) || d.getRutaServidor().contains(rutaRelativa)));
+                .anyMatch(d -> d.getId() != null && d.getId().equals(doc.getId()));
     }
 
     @Transactional
@@ -284,12 +326,14 @@ public class DocumentoService {
         Documento documento = documentoRepository.findById(idDocumento)
                 .orElseThrow(() -> new Exception("No se encontró el documento con ID: " + idDocumento));
 
-        // Validar permisos: el coordinador puede borrar todo, o el tutor si es de su práctica
+        // Permisos: el coordinador borra todo; el estudiante puede descartar SUS borradores;
+        // el tutor puede borrar documentos de su práctica
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         boolean esCoordinador = tieneRol(auth, "ROLE_COORDINADOR");
         String rutUsuario = auth.getName();
+        boolean esDuenoDeBorrador = documento.isBorrador() && rutUsuario.equals(rutDueno(documento));
 
-        if (!esCoordinador) {
+        if (!esCoordinador && !esDuenoDeBorrador) {
             if (documento.getPractica() == null || documento.getPractica().getTutor() == null ||
                 !documento.getPractica().getTutor().getRut().equals(rutUsuario)) {
                 throw new Exception("Acceso denegado: No tienes permisos para eliminar este documento.");
@@ -311,13 +355,13 @@ public class DocumentoService {
     }
 
     public List<Documento> obtenerDocumentosDeEstudiantesParaProfesor() {
-        return documentoRepository.findAll().stream()
+        return soloEnviados(documentoRepository.findAll()).stream()
                 .filter(doc -> doc.getTipoDocumento() == null || !doc.getTipoDocumento().name().equals("PAUTA"))
                 .collect(Collectors.toList());
     }
 
     public List<Documento> obtenerDocumentosMisEstudiantes() {
-        return documentoRepository.findAll().stream()
+        return soloEnviados(documentoRepository.findAll()).stream()
                 .filter(doc -> doc.getTipoDocumento() == null || !doc.getTipoDocumento().name().equals("PAUTA"))
                 .collect(Collectors.toList());
     }

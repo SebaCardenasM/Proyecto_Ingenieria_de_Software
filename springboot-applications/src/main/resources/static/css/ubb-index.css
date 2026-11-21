@@ -325,6 +325,11 @@ body.ubb-auth .role-card:hover .display-4 { animation: wiggle 0.6s ease; }
 }
 .ubb-popup.error { --p-color: #dc3545; --p-soft: #f8d7da; }
 
+.ubb-popup.confirm { --p-color: #004b85; --p-soft: #dbe9f7; }
+.ubb-popup p { white-space: pre-line; }
+.ubb-popup-actions { display: flex; gap: .6rem; justify-content: center; flex-wrap: wrap; }
+.ubb-popup button.secundario { color: #33475b; background: #e9eef5; box-shadow: none; }
+.ubb-popup button.secundario:hover { background: #dce5f0; box-shadow: none; }
 .ubb-popup-icon {
     width: 86px;
     height: 86px;
