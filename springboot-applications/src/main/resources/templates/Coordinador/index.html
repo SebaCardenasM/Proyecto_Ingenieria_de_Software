@@ -3,23 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <title>Dashboard - Prácticas Educación Matemática</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    <style>
-        .ubb-bg { background-color: #004b85; }
-        .card:hover { transform: translateY(-3px); transition: 0.3s; box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
-    </style>
+    <link th:href="@{/css/ubb-index.css}" rel="stylesheet">
+    <script>
+        // La animación de entrada se muestra solo una vez por sesión (se reinicia al pasar por el login)
+        try {
+            if (sessionStorage.getItem('ubbIndexAnim')) document.documentElement.classList.add('sin-anim');
+            else sessionStorage.setItem('ubbIndexAnim', '1');
+        } catch (e) {}
+    </script>
 </head>
-<body class="bg-light">
+<body class="ubb-page">
 
     <!-- Barra de Navegación -->
-    <nav class="navbar navbar-expand-lg navbar-dark ubb-bg mb-4 shadow-sm">
+    <nav class="navbar navbar-expand-lg navbar-dark ubb-nav mb-4">
         <div class="container">
-            <a class="navbar-brand fw-bold" th:href="@{/index}">
-                <i class="bi bi-mortarboard-fill me-2"></i>Plataforma de Prácticas
+            <a class="navbar-brand fw-bold d-flex align-items-center" th:href="@{/index}">
+                <img th:src="@{/images/escudo-monocromatico-oscuro.png}" alt="Escudo Universidad del Bío-Bío" class="nav-logo">
+                Plataforma de Prácticas
             </a>
-            
+
             <div class="d-flex text-white align-items-center ms-auto">
                 <i class="bi bi-person-circle fs-3 me-2"></i>
                 <div class="d-flex flex-column text-end me-3">
@@ -42,34 +49,28 @@
             </div>
         </div>
     </nav>
-    
+
     <!-- Contenedor Principal -->
-    <div class="container">
+    <main class="container">
 
-        <!-- Alerta de éxito al registrar centro -->
-        <div th:if="${mensajeExito}" class="alert alert-success alert-dismissible fade show shadow-sm mb-4" role="alert">
-            <i class="bi bi-check-circle-fill me-2"></i><span th:text="${mensajeExito}"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-
-        <div class="row mb-4">
-            <div class="col-12">
-                <h2 class="fw-bold text-dark">Panel de Control (Coordinación)</h2>
-                <p class="text-muted">Sistema centralizado para evaluación, gestión de roles y recopilación de evidencias para la acreditación 2030.</p>
-            </div>
-        </div>
+        <!-- Bienvenida -->
+        <section class="hero mb-4">
+            <div class="hero-hello" th:text="${'Bienvenido/a, ' + (usuarioActivo != null ? usuarioActivo.nombre : '')}">Bienvenido/a</div>
+            <h2>Panel de Control (Coordinación)</h2>
+            <p>Sistema centralizado para evaluación, gestión de roles y recopilación de evidencias para la acreditación 2030.</p>
+        </section>
 
         <div class="row g-4">
             <!-- 1. Gestión de Usuarios -->
             <div class="col-md-6">
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="card-body pt-4">
+                <div class="card ubb-card accent-blue" style="--i:0">
+                    <div class="card-body">
                         <div class="d-flex align-items-center mb-3">
-                            <div class="display-5 text-primary me-3"><i class="bi bi-people-fill"></i></div>
-                            <h4 class="card-title fw-bold mb-0">Gestión de Usuarios</h4>
+                            <div class="icon-bubble"><i class="bi bi-people-fill"></i></div>
+                            <h4 class="card-title mb-0">Gestión de Usuarios</h4>
                         </div>
                         <p class="card-text text-muted mb-4">Administración de credenciales y asignación de roles múltiples (Coordinadores, Estudiantes, Profesores y Tutores).</p>
-                        
+
                         <div class="d-grid gap-2">
                             <a th:href="@{/usuarios/registro}" class="btn btn-outline-primary">
                                 <i class="bi bi-person-plus me-1"></i> Registrar Nuevo Usuario
@@ -93,11 +94,11 @@
 
             <!-- 2. Gestor de Archivos -->
             <div class="col-md-6">
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="card-body pt-4">
+                <div class="card ubb-card accent-red" style="--i:1">
+                    <div class="card-body">
                         <div class="d-flex align-items-center mb-3">
-                            <div class="display-5 text-danger me-3"><i class="bi bi-folder-fill"></i></div>
-                            <h4 class="card-title fw-bold mb-0">Gestor de Archivos</h4>
+                            <div class="icon-bubble"><i class="bi bi-folder-fill"></i></div>
+                            <h4 class="card-title mb-0">Gestor de Archivos</h4>
                         </div>
                         <p class="card-text text-muted mb-4">Recepción, almacenamiento y revisión de planificaciones, pautas e informes.</p>
                         <div class="d-grid gap-2">
@@ -109,15 +110,14 @@
 
             <!-- 3. Gestión de Prácticas -->
             <div class="col-md-6">
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="card-body pt-4">
+                <div class="card ubb-card accent-green" style="--i:2">
+                    <div class="card-body">
                         <div class="d-flex align-items-center mb-3">
-                            <div class="display-5 text-success me-3"><i class="bi bi-journal-bookmark-fill"></i></div>
-                            <h4 class="card-title fw-bold mb-0">Gestión de Prácticas</h4>
+                            <div class="icon-bubble"><i class="bi bi-journal-bookmark-fill"></i></div>
+                            <h4 class="card-title mb-0">Gestión de Prácticas</h4>
                         </div>
                         <p class="card-text text-muted mb-4">Asignación de alumnos a centros de práctica, profesores tutores y colaboradores del colegio.</p>
                         <div class="row g-2">
-                            <!-- Columna Izquierda: Acciones de Prácticas -->
                             <div class="col-6">
                                 <div class="d-grid gap-2">
                                     <a th:href="@{/practicas/registro}" class="btn btn-outline-success w-100">
@@ -128,7 +128,6 @@
                                     </a>
                                 </div>
                             </div>
-                            <!-- Columna Derecha: Acciones de Centros -->
                             <div class="col-6">
                                 <div class="d-grid gap-2">
                                     <a th:href="@{/centros-practica/nuevo}" class="btn btn-outline-success w-100">
@@ -146,11 +145,11 @@
 
             <!-- 4. Portafolio del Estudiante -->
             <div class="col-md-6">
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="card-body pt-4">
+                <div class="card ubb-card accent-amber" style="--i:3">
+                    <div class="card-body">
                         <div class="d-flex align-items-center mb-3">
-                            <div class="display-5 text-warning me-3"><i class="bi bi-person-vcard"></i></div>
-                            <h4 class="card-title fw-bold mb-0">Portafolio Estudiantil</h4>
+                            <div class="icon-bubble"><i class="bi bi-person-vcard"></i></div>
+                            <h4 class="card-title mb-0">Portafolio Estudiantil</h4>
                         </div>
                         <p class="card-text text-muted mb-4">Registro consolidado del desempeño de cada alumno a lo largo de sus ciclos de práctica.</p>
                         <div class="d-grid gap-2">
@@ -165,8 +164,31 @@
                 </div>
             </div>
         </div>
-    </div>
+    </main>
+
+        <!-- Popup de confirmación (mensaje enviado por el controlador) -->
+    <div th:if="${mensajeExito}" data-ubb-flash hidden
+         th:attr="data-mensaje=${mensajeExito},data-titulo=${tituloExito}"></div>
+    <script th:src="@{/js/ubb-popup.js}"></script>
+
+    <!-- Footer -->
+    <footer class="ubb-footer">
+        <div class="container py-4 d-flex flex-column flex-md-row align-items-center justify-content-between gap-3 text-center text-md-start">
+            <div class="d-flex align-items-center gap-3">
+                <img th:src="@{/images/escudo-monocromatico-oscuro.png}" alt="Escudo Universidad del Bío-Bío" class="footer-logo">
+                <div>
+                    <div class="fw-bold">Universidad del Bío-Bío</div>
+                    <small>Escuela de Pedagogía en Educación Matemática</small>
+                </div>
+            </div>
+            <small>Plataforma de Prácticas · &copy; <span class="anio"></span></small>
+        </div>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>document.querySelectorAll('.anio').forEach(e => e.textContent = new Date().getFullYear());</script>
+
+     <!-- Asistente (solo consultas) -->
+    <div th:replace="~{fragments/chatbot :: chatbot(false)}"></div>
 </body>
 </html>

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Mis Pautas de Evaluación - Prácticas UBB</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        .ubb-bg { background-color: #004b85; }
+        body { background-color: #f4f6f9; }
+        .btn-practica {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+    </style>
+    <link th:href="@{/css/ubb-index.css}" rel="stylesheet">
+</head>
+<body class="ubb-page ubb-inner">
+
+    <nav class="navbar navbar-dark ubb-bg mb-4 shadow-sm">
+        <div class="container-fluid px-4">
+            <div class="d-flex align-items-center"><img th:src="@{/images/escudo-monocromatico-oscuro.png}" alt="Escudo Universidad del Bío-Bío" class="nav-logo"><a class="navbar-brand fw-bold" th:href="@{/estudiante/index}">
+                <i class="bi bi-arrow-left-circle me-2"></i>Volver al Panel
+            </a></div>
+            <div class="d-flex text-white align-items-center">
+                <i class="bi bi-person-badge fs-5 me-2"></i> Portafolio Estudiantil
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid px-4 px-md-5 mb-5">
+
+        <div class="row mb-4 align-items-center">
+            <div class="col-md-8">
+                <h2 class="fw-bold text-dark mb-0"><i class="bi bi-award-fill text-primary me-2"></i>Mis Pautas de Evaluación</h2>
+                <p class="text-muted mt-1 mb-0">Revisa las pautas que tu tutor y tu profesor colaborador han subido para ti.</p>
+            </div>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                <a th:href="@{/estudiante/archivos}" class="btn btn-outline-danger shadow-sm">
+                    <i class="bi bi-folder2-open me-1"></i> Ir a mis Evidencias
+                </a>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-9">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0 align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="ps-4">Nombre de la Pauta</th>
+                                        <th>Evaluador</th>
+                                        <th>Fecha de Subida</th>
+                                        <th class="text-center">N° Práctica</th>
+                                        <th class="text-center">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tablaPautas">
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted py-5">
+                                            <div class="spinner-border text-primary spinner-border-sm me-2" role="status"></div>
+                                            Cargando pautas...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-white border-0 small text-muted px-4 py-3">
+                        <span class="badge bg-success me-1">Formulario web</span>
+                        Las filas en verde son formularios completados en línea por tu tutor; se abren en modo solo lectura.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filtros -->
+            <div class="col-lg-3">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+                        <h5 class="fw-bold text-dark"><i class="bi bi-funnel text-warning me-2"></i>Filtros</h5>
+                    </div>
+                    <div class="card-body">
+                        <h6 class="fw-bold text-secondary mb-3 mt-2">Por N° de Práctica</h6>
+                        <div class="d-flex flex-wrap gap-2 mb-4">
+                            <div th:each="i : ${#numbers.sequence(1, 6)}">
+                                <input type="checkbox" class="btn-check filtro-practica-pauta" th:id="'practicaPauta' + ${i}" th:value="${i}" autocomplete="off">
+                                <label class="btn btn-outline-primary btn-practica" th:for="'practicaPauta' + ${i}" th:text="${i}"></label>
+                            </div>
+                        </div>
+
+                        <h6 class="fw-bold text-secondary mb-3">Por Evaluador</h6>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input filtro-evaluador" type="checkbox" value="TUTOR" id="evaluadorTutor">
+                            <label class="form-check-label" for="evaluadorTutor">Tutor</label>
+                        </div>
+                        <div class="form-check mb-4">
+                            <input class="form-check-input filtro-evaluador" type="checkbox" value="COLABORADOR" id="evaluadorColaborador">
+                            <label class="form-check-label" for="evaluadorColaborador">Profesor Colaborador</label>
+                        </div>
+
+                        <h6 class="fw-bold text-secondary mb-3">Por Formato</h6>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input filtro-formato" type="checkbox" value="WEB" id="formatoWeb">
+                            <label class="form-check-label" for="formatoWeb">Formulario web</label>
+                        </div>
+                        <div class="form-check mb-4">
+                            <input class="form-check-input filtro-formato" type="checkbox" value="ARCHIVO" id="formatoArchivo">
+                            <label class="form-check-label" for="formatoArchivo">Archivo subido</label>
+                        </div>
+
+                        <button id="btnLimpiarFiltros" type="button" class="btn btn-sm btn-outline-secondary w-100 d-none">
+                            <i class="bi bi-x-circle me-1"></i>Limpiar Filtros
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        let pautasGlobales = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            cargarPautas();
+            document.querySelectorAll('.filtro-practica-pauta, .filtro-evaluador, .filtro-formato')
+                .forEach(cb => cb.addEventListener('change', renderizarPautas));
+            document.getElementById('btnLimpiarFiltros').addEventListener('click', () => {
+                document.querySelectorAll('.filtro-practica-pauta, .filtro-evaluador, .filtro-formato')
+                    .forEach(cb => cb.checked = false);
+                renderizarPautas();
+            });
+        });
+
+        async function cargarPautas() {
+            const tabla = document.getElementById('tablaPautas');
+            try {
+                const respuesta = await fetch('/api/documentos/pautas-estudiante', { headers: { 'Accept': 'application/json' } });
+                // 204 = sin pautas (no trae cuerpo)
+                if (respuesta.status === 204 || respuesta.status === 404) {
+                    pautasGlobales = [];
+                } else {
+                    if (!respuesta.ok) throw new Error('El servidor respondió ' + respuesta.status);
+                    pautasGlobales = await respuesta.json();
+                }
+                renderizarPautas();
+            } catch (error) {
+                console.error('Error cargando pautas:', error);
+                tabla.innerHTML = '<tr><td colspan="5" class="text-center text-danger py-4"><i class="bi bi-exclamation-triangle-fill me-2"></i>Error al cargar las pautas.</td></tr>';
+            }
+        }
+
+        function renderizarPautas() {
+            const tabla = document.getElementById('tablaPautas');
+
+            if (!pautasGlobales || pautasGlobales.length === 0) {
+                tabla.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-5"><i class="bi bi-inbox fs-3 d-block mb-2"></i>Aún no tienes pautas de evaluación disponibles.</td></tr>';
+                return;
+            }
+
+            const practicasSel = Array.from(document.querySelectorAll('.filtro-practica-pauta:checked')).map(cb => cb.value);
+            const evaluadoresSel = Array.from(document.querySelectorAll('.filtro-evaluador:checked')).map(cb => cb.value);
+            const formatosSel = Array.from(document.querySelectorAll('.filtro-formato:checked')).map(cb => cb.value);
+
+            document.getElementById('btnLimpiarFiltros').classList.toggle('d-none',
+                !(practicasSel.length || evaluadoresSel.length || formatosSel.length));
+
+            const filtradas = pautasGlobales.filter(p => {
+                const numPrac = p.numeroPractica || (p.practica ? p.practica.numeroPractica : null);
+                const tipoEval = p.tipoEvaluador === 'TUTOR_UNIVERSIDAD' ? 'TUTOR' : 'COLABORADOR';
+                const formato = p.rutaServidor === 'ONLINE_ENVIADA' ? 'WEB' : 'ARCHIVO';
+
+                return (practicasSel.length === 0 || (numPrac && practicasSel.includes(numPrac.toString())))
+                    && (evaluadoresSel.length === 0 || evaluadoresSel.includes(tipoEval))
+                    && (formatosSel.length === 0 || formatosSel.includes(formato));
+            });
+
+            if (filtradas.length === 0) {
+                tabla.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4"><i class="bi bi-search me-2"></i>No hay pautas que coincidan con los filtros aplicados.</td></tr>';
+                return;
+            }
+
+            tabla.innerHTML = '';
+            filtradas.forEach(p => {
+                const fecha = p.fechaSubida
+                    ? new Date(p.fechaSubida).toLocaleDateString('es-CL', {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'})
+                    : 'Recién subido';
+                const esWeb = p.rutaServidor === 'ONLINE_ENVIADA'; // formulario web enviado por el tutor
+
+                const badgeEvaluador = p.tipoEvaluador === 'TUTOR_UNIVERSIDAD'
+                    ? '<span class="badge bg-primary">Tutor</span>'
+                    : '<span class="badge bg-success">Profesor Colaborador</span>';
+
+                const celdaNombre = esWeb
+                    ? `<td class="ps-4 fw-semibold text-success">
+                           <i class="bi bi-ui-radios me-2"></i>${escapeHtml(p.nombreArchivo)}
+                           <span class="badge bg-success ms-2">Formulario web</span>
+                       </td>`
+                    : `<td class="ps-4 fw-semibold text-dark">
+                           <i class="bi bi-file-earmark-text text-primary me-2"></i>${escapeHtml(p.nombreArchivo)}
+                       </td>`;
+
+                const boton = esWeb
+                    ? `<a href="/estudiante/pauta-online/${encodeURIComponent(p.id)}" class="btn btn-sm btn-success" title="Ver formulario (solo lectura)">
+                           <i class="bi bi-eye me-1"></i>Ver formulario
+                       </a>`
+                    : `<a href="${escapeHtml(rutaSegura(p.rutaServidor))}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary" title="Ver Pauta">
+                           <i class="bi bi-eye"></i>
+                       </a>`;
+
+                tabla.insertAdjacentHTML('beforeend', `
+                    <tr class="${esWeb ? 'table-success' : ''}">
+                        ${celdaNombre}
+                        <td>${badgeEvaluador}</td>
+                        <td>${escapeHtml(fecha)}</td>
+                        <td class="text-center"><span class="badge ${esWeb ? 'bg-success' : 'bg-primary'}">Práctica ${escapeHtml(p.numeroPractica || 'N/A')}</span></td>
+                        <td class="text-center">${boton}</td>
+                    </tr>
+                `);
+            });
+        }
+
+        function escapeHtml(v) { return String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
+        function rutaSegura(r) { return !r ? '#' : (r.startsWith('/') ? r : '/' + r); }
+    </script>
+
+    <!-- Footer -->
+    <footer class="ubb-footer compact">
+        <div class="container py-3 d-flex flex-column flex-md-row align-items-center justify-content-between gap-3 text-center text-md-start">
+            <div class="d-flex align-items-center gap-3">
+                <img th:src="@{/images/escudo-monocromatico-oscuro.png}" alt="Escudo Universidad del Bío-Bío" class="footer-logo">
+                <div>
+                    <div class="fw-bold">Universidad del Bío-Bío</div>
+                    <small>Escuela de Pedagogía en Educación Matemática</small>
+                </div>
+            </div>
+            <small>Plataforma de Prácticas · &copy; <span class="anio"></span></small>
+        </div>
+    </footer>
+    <script>document.querySelectorAll('.anio').forEach(e => e.textContent = new Date().getFullYear());</script>
+</body>
+</html>
