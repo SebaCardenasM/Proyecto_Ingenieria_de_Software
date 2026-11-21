@@ -33,6 +33,9 @@ public class SecurityConfig {
                // API de documentos: cada endpoint con su rol
                 .requestMatchers(HttpMethod.POST, "/api/documentos/subir", "/api/documentos/subir-tutor").hasAnyRole("ESTUDIANTE", "TUTOR", "PROFESOR_ASIGNATURA")
 
+                // Paso 3 de la cadena: solo el estudiante envía sus borradores al gestor
+                .requestMatchers(HttpMethod.POST, "/api/documentos/enviar/**").hasRole("ESTUDIANTE")
+
                 // PERMITE ELIMINAR
                 .requestMatchers(HttpMethod.POST, "/api/documentos/eliminar/**").hasAnyRole("ESTUDIANTE", "TUTOR", "PROFESOR_ASIGNATURA", "COORDINADOR")
 
@@ -44,7 +47,8 @@ public class SecurityConfig {
 
                 // Chatbot
                 .requestMatchers(HttpMethod.POST, "/api/chat/preguntar").authenticated()
-                .requestMatchers(HttpMethod.POST, "/api/chat/preguntar").authenticated()
+                // Paso 2 de la cadena: revisión de borradores (solo estudiantes)
+                .requestMatchers(HttpMethod.POST, "/api/chat/revisar/**").hasRole("ESTUDIANTE")
                 // Cualquier otro endpoint de la API queda bloqueado (debe ir DESPUÉS de definir las rutas de /api/ permitidas)
                 .requestMatchers("/api/**").denyAll()
 

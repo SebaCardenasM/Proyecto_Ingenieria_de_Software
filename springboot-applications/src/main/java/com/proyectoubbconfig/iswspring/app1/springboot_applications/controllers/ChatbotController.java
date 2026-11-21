@@ -6,6 +6,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -42,6 +43,23 @@ public class ChatbotController {
         }
     }
 
+    // Paso 2 de la cadena: revisión de un borrador con el asistente (solo estudiantes, ver SecurityConfig)
+    @PostMapping("/api/chat/revisar/{id}")
+    @ResponseBody
+    public ResponseEntity<ChatResponse> revisarDocumento(@PathVariable Long id, Authentication authentication) {
+        try {
+            String revision = chatbotService.revisarDocumento(authentication.getName(), id);
+            return ResponseEntity.ok(new ChatResponse(revision));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(new ChatResponse(e.getMessage()));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(503).body(new ChatResponse(e.getMessage()));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(500)
+                    .body(new ChatResponse("Ocurrió un error al revisar el documento. Intenta de nuevo."));
+        }
+    }
+
     // Vista de Analíticas para el Profesor / Coordinador (HU 2)
     @GetMapping("/profesor/analiticas-ia")
     public String verAnaliticasIa(Model model) {
@@ -49,4 +67,4 @@ public class ChatbotController {
         model.addAttribute("ultimasDudas", interaccionIARepository.findTop20ByOrderByFechaDesc());
         return "Profesor/analiticas-ia";
     }
-}
+}
