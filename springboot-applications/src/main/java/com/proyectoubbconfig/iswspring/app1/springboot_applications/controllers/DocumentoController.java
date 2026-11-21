@@ -6,7 +6,12 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.dto.DocumentoDTO;
@@ -21,6 +26,7 @@ public class DocumentoController {
     @Autowired
     private DocumentoService documentoService;
 
+    // Paso 1: el archivo se sube y queda como BORRADOR
     @PostMapping("/subir")
     @Transactional
     public ResponseEntity<?> subirDocumento(
@@ -30,6 +36,18 @@ public class DocumentoController {
         try {
             Documento guardado = documentoService.subirArchivo(archivo, numeroPractica, tipoDocumento);
             return ResponseEntity.ok(DocumentoDTO.desde(guardado));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    // Paso 3: el borrador (revisado o no, según configuración) pasa al gestor
+    @PostMapping("/enviar/{id}")
+    @Transactional
+    public ResponseEntity<?> enviarAlGestor(@PathVariable Long id) {
+        try {
+            Documento enviado = documentoService.enviarAlGestor(id);
+            return ResponseEntity.ok(DocumentoDTO.desde(enviado));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

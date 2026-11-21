@@ -1,0 +1,381 @@
+/* =========================================================
+   Estilos compartidos de los paneles (index) - Prácticas UBB
+   Ubicación: src/main/resources/static/css/ubb-index.css
+   ========================================================= */
+
+:root {
+    --ubb-blue: #004b85;
+    --ubb-dark: #003366;
+    --ubb-deep: #00264d;
+}
+
+/* ---------- Fondo de página (ya no es blanco plano) ---------- */
+body.ubb-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background:
+        radial-gradient(circle at 8% 0%, rgba(0, 75, 133, 0.16), transparent 45%),
+        radial-gradient(circle at 95% 18%, rgba(13, 202, 240, 0.16), transparent 40%),
+        radial-gradient(circle at 50% 100%, rgba(255, 193, 7, 0.10), transparent 45%),
+        linear-gradient(180deg, #eef3f9 0%, #dfe8f3 100%);
+    background-attachment: fixed;
+}
+body.ubb-page main { flex: 1 0 auto; }
+
+/* ---------- Navbar ---------- */
+.ubb-nav {
+    background: linear-gradient(90deg, var(--ubb-deep), var(--ubb-blue));
+    box-shadow: 0 4px 16px rgba(0, 38, 77, 0.25);
+}
+.nav-logo {
+    height: 46px;
+    width: auto;
+    margin-right: 12px;
+    transition: transform 0.3s ease;
+}
+.navbar-brand:hover .nav-logo { transform: scale(1.08) rotate(-3deg); }
+
+/* ---------- Hero / bienvenida ---------- */
+.hero {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1.1rem;
+    padding: 2rem 2.2rem;
+    color: #fff;
+    background: linear-gradient(120deg, var(--ubb-blue) 0%, #0a6cc2 60%, #1f8ff0 100%);
+    box-shadow: 0 12px 30px -10px rgba(0, 75, 133, 0.55);
+    animation: fadeDown 0.6s ease backwards;
+}
+.hero::before,
+.hero::after {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.10);
+}
+.hero::before { width: 260px; height: 260px; right: -60px; top: -90px; }
+.hero::after  { width: 160px; height: 160px; right: 140px; bottom: -90px; background: rgba(255, 255, 255, 0.07); }
+.hero h2 { font-weight: 800; margin-bottom: 0.4rem; position: relative; z-index: 1; }
+.hero p  { margin: 0; color: rgba(255, 255, 255, 0.88); max-width: 760px; position: relative; z-index: 1; }
+.hero .hero-hello { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8; position: relative; z-index: 1; }
+
+/* ---------- Tarjetas ---------- */
+.ubb-card {
+    position: relative;
+    height: 100%;
+    background: #fff;
+    border: 0;
+    border-radius: 1.1rem;
+    overflow: hidden;
+    box-shadow: 0 6px 18px rgba(0, 43, 92, 0.12);
+    transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.3s ease;
+    /* "backwards": anima la entrada sin bloquear el hover después */
+    animation: fadeUp 0.65s ease backwards;
+    animation-delay: calc(var(--i, 0) * 0.13s + 0.2s);
+}
+/* Franja de color superior */
+.ubb-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 6px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+}
+/* Burbuja decorativa que crece al pasar el mouse */
+.ubb-card::after {
+    content: "";
+    position: absolute;
+    right: -45px;
+    bottom: -45px;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: 0.08;
+    transition: transform 0.5s ease, opacity 0.3s ease;
+}
+.ubb-card:hover {
+    transform: translateY(-9px);
+    box-shadow: 0 22px 45px -8px rgba(0, 43, 92, 0.30), 0 0 0 2px var(--accent-soft);
+}
+.ubb-card:hover::after { transform: scale(2.8); opacity: 0.12; }
+
+.ubb-card .card-body { position: relative; z-index: 1; padding: 1.7rem 1.6rem 1.6rem; }
+.ubb-card .card-title { font-weight: 700; color: #1b2a41; }
+
+/* Icono dentro de burbuja con degradado */
+.icon-bubble {
+    flex: none;
+    width: 62px;
+    height: 62px;
+    margin-right: 1rem;
+    border-radius: 18px;
+    display: grid;
+    place-items: center;
+    font-size: 1.85rem;
+    color: #fff;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    box-shadow: 0 10px 20px -6px var(--accent);
+    transition: transform 0.4s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+.ubb-card:hover .icon-bubble { transform: rotate(-8deg) scale(1.14); }
+
+/* Botones dentro de las tarjetas */
+.ubb-card .btn { border-radius: 0.7rem; font-weight: 600; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.ubb-card .btn:hover { transform: translateX(4px); box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12); }
+
+/* Colores por tarjeta */
+.accent-blue   { --accent: #0d6efd; --accent-2: #4dabf7; --accent-soft: rgba(13, 110, 253, 0.25); }
+.accent-red    { --accent: #dc3545; --accent-2: #ff7b86; --accent-soft: rgba(220, 53, 69, 0.25); }
+.accent-green  { --accent: #198754; --accent-2: #4cd694; --accent-soft: rgba(25, 135, 84, 0.25); }
+.accent-amber  { --accent: #f59f00; --accent-2: #ffd43b; --accent-soft: rgba(245, 159, 0, 0.30); }
+.accent-cyan   { --accent: #0aa2c0; --accent-2: #5ce1f5; --accent-soft: rgba(10, 162, 192, 0.28); }
+
+/* ---------- Footer ---------- */
+.ubb-footer {
+    flex-shrink: 0;
+    margin-top: 3.5rem;
+    color: rgba(255, 255, 255, 0.82);
+    background: linear-gradient(90deg, var(--ubb-deep), var(--ubb-blue));
+    border-top: 4px solid #ffc107;
+}
+.footer-logo { height: 54px; width: auto; }
+.ubb-footer small { color: rgba(255, 255, 255, 0.70); }
+
+/* Animación de entrada ya mostrada en esta sesión (clase puesta por un script en el <head>) */
+html.sin-anim .hero,
+html.sin-anim .ubb-card { animation: none; }
+
+/* ---------- Animaciones ---------- */
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(32px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-24px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Respeta a quienes desactivan animaciones en su sistema */
+@media (prefers-reduced-motion: reduce) {
+    .hero, .ubb-card { animation: none; }
+    .ubb-card, .icon-bubble, .ubb-card .btn, .nav-logo { transition: none; }
+}
+
+
+/* =========================================================
+   PÁGINAS INTERNAS (listas, gestores, formularios, perfiles)
+   Se activan con <body class="ubb-page ubb-inner">
+   Sin animaciones de entrada (herramientas de trabajo): solo efectos al pasar el mouse.
+   ========================================================= */
+
+/* ---------- Navbar con logo ---------- */
+body.ubb-inner .navbar.ubb-bg {
+    background-image: linear-gradient(90deg, var(--ubb-deep), var(--ubb-blue));
+    box-shadow: 0 4px 16px rgba(0, 38, 77, 0.25);
+}
+
+/* ---------- Tarjetas ---------- */
+body.ubb-inner .card {
+    border: 0;
+    border-radius: 1rem;
+    box-shadow: 0 6px 18px rgba(0, 43, 92, 0.12) !important;
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+body.ubb-inner .card:hover { box-shadow: 0 16px 36px -10px rgba(0, 43, 92, 0.28) !important; }
+
+/* Encabezado azul de los formularios */
+body.ubb-inner .card-header.ubb-bg {
+    background-image: linear-gradient(120deg, var(--ubb-blue), #0a6cc2);
+    border-radius: 1rem 1rem 0 0;
+}
+body.ubb-inner .card > .table-responsive,
+body.ubb-inner .card-body.p-0 { border-radius: 1rem; overflow: hidden; }
+
+/* Tarjetas pequeñas (documentos, pautas) con levitación */
+body.ubb-inner .doc-card:hover { transform: translateY(-6px); }
+
+/* ---------- Tablas ---------- */
+body.ubb-inner .table > thead.table-light {
+    --bs-table-bg: #e4edf8;
+    --bs-table-color: #16385c;
+    --bs-table-border-color: #cddcee;
+}
+body.ubb-inner .table > tbody > tr {
+    transition: background-color 0.2s ease;
+}
+body.ubb-inner .table > tbody > tr > td:first-child { transition: box-shadow 0.2s ease; }
+body.ubb-inner .table > tbody > tr:hover > td:first-child { box-shadow: inset 4px 0 0 var(--ubb-blue); }
+
+/* ---------- Botones, badges, filtros ---------- */
+body.ubb-inner .btn { transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, color 0.2s ease; }
+body.ubb-inner .btn:hover:not(:disabled):not(.btn-close) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px -6px rgba(0, 0, 0, 0.25);
+}
+body.ubb-inner .btn-practica:hover { transform: scale(1.14); }
+body.ubb-inner .badge { transition: transform 0.2s ease; }
+body.ubb-inner tr:hover .badge { transform: scale(1.08); }
+
+/* ---------- Formularios ---------- */
+body.ubb-inner .form-control,
+body.ubb-inner .form-select { transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+body.ubb-inner .form-control:focus,
+body.ubb-inner .form-select:focus {
+    border-color: var(--ubb-blue);
+    box-shadow: 0 0 0 0.25rem rgba(0, 75, 133, 0.20);
+}
+
+/* ---------- Alertas ---------- */
+body.ubb-inner .alert { border-radius: 0.8rem; }
+
+/* ---------- Espaciado y footer en páginas internas ---------- */
+body.ubb-inner > .container,
+body.ubb-inner > .container-fluid { margin-bottom: 2.5rem; }
+body.ubb-inner > .ubb-footer { margin-top: auto; }
+.ubb-footer.compact .footer-logo { height: 44px; }
+
+/* ---------- Login y selección de perfil ---------- */
+body.ubb-auth {
+    background:
+        radial-gradient(circle at 10% 0%, rgba(0, 75, 133, 0.20), transparent 45%),
+        radial-gradient(circle at 95% 25%, rgba(13, 202, 240, 0.18), transparent 40%),
+        linear-gradient(180deg, #eef3f9 0%, #dfe8f3 100%) !important;
+    background-attachment: fixed !important;
+}
+body.ubb-auth .login-card { animation: fadeUp 0.7s ease backwards; }
+body.ubb-auth .login-logo { animation: floaty 3.5s ease-in-out infinite; }
+body.ubb-auth .btn { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+body.ubb-auth .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 16px -6px rgba(0, 0, 0, 0.3); }
+body.ubb-auth .role-card { animation: fadeUp 0.65s ease backwards; box-shadow: 0 6px 18px rgba(0, 43, 92, 0.12) !important; }
+body.ubb-auth .row.g-4 > *:nth-child(1) .role-card { animation-delay: 0.15s; }
+body.ubb-auth .row.g-4 > *:nth-child(2) .role-card { animation-delay: 0.30s; }
+body.ubb-auth .row.g-4 > *:nth-child(3) .role-card { animation-delay: 0.45s; }
+body.ubb-auth .row.g-4 > *:nth-child(4) .role-card { animation-delay: 0.60s; }
+body.ubb-auth .role-card:hover .display-4 { animation: wiggle 0.6s ease; }
+.logo-pill {
+    display: inline-flex;
+    padding: 0.7rem 1.3rem;
+    margin-bottom: 1rem;
+    border-radius: 1rem;
+    background: linear-gradient(120deg, var(--ubb-deep), var(--ubb-blue));
+    box-shadow: 0 10px 22px -8px rgba(0, 75, 133, 0.6);
+    animation: fadeDown 0.6s ease backwards;
+}
+.logo-pill img { height: 56px; width: auto; }
+
+/* ---------- Animaciones extra ---------- */
+@keyframes rowIn {
+    from { opacity: 0; transform: translateX(-14px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(-12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes floaty {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-6px); }
+}
+@keyframes wiggle {
+    0%, 100% { transform: rotate(0); }
+    25%      { transform: rotate(-10deg) scale(1.1); }
+    75%      { transform: rotate(10deg) scale(1.1); }
+}
+
+@media print {
+    .ubb-footer { display: none !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.ubb-auth .login-card, body.ubb-auth .login-logo,
+    body.ubb-auth .role-card, .logo-pill { animation: none !important; }
+    body.ubb-inner .btn, body.ubb-inner .card { transition: none; }
+}
+
+
+/* =========================================================
+   POPUP DE CONFIRMACIÓN (éxito / error)  - ver js/ubb-popup.js
+   ========================================================= */
+.ubb-popup-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 20000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(0, 30, 60, 0.55);
+    backdrop-filter: blur(3px);
+    animation: ubbFadeIn 0.25s ease;
+}
+.ubb-popup {
+    --p-color: #198754;
+    --p-soft: #d1e7dd;
+    position: relative;
+    width: min(420px, 100%);
+    padding: 2rem 1.8rem 1.7rem;
+    text-align: center;
+    background: #fff;
+    border-top: 6px solid var(--p-color);
+    border-radius: 1.25rem;
+    box-shadow: 0 30px 70px -20px rgba(0, 0, 0, 0.55);
+    animation: ubbPop 0.45s cubic-bezier(0.2, 1.3, 0.4, 1);
+}
+.ubb-popup.error { --p-color: #dc3545; --p-soft: #f8d7da; }
+
+.ubb-popup.confirm { --p-color: #004b85; --p-soft: #dbe9f7; }
+.ubb-popup p { white-space: pre-line; }
+.ubb-popup-actions { display: flex; gap: .6rem; justify-content: center; flex-wrap: wrap; }
+.ubb-popup button.secundario { color: #33475b; background: #e9eef5; box-shadow: none; }
+.ubb-popup button.secundario:hover { background: #dce5f0; box-shadow: none; }
+.ubb-popup-icon {
+    width: 86px;
+    height: 86px;
+    margin: 0 auto 1rem;
+    border-radius: 50%;
+    background: var(--p-soft);
+    display: grid;
+    place-items: center;
+    animation: ubbBounce 0.6s 0.15s ease backwards;
+}
+.ubb-popup-icon svg { width: 64px; height: 64px; }
+.ubb-popup-icon .c, .ubb-popup-icon .k {
+    fill: none;
+    stroke: var(--p-color);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.ubb-popup-icon .c { stroke-width: 3; stroke-dasharray: 151; stroke-dashoffset: 151; animation: ubbDraw 0.6s 0.15s ease forwards; }
+.ubb-popup-icon .k { stroke-width: 4; stroke-dasharray: 50;  stroke-dashoffset: 50;  animation: ubbDraw 0.4s 0.55s ease forwards; }
+
+.ubb-popup h4 { font-weight: 800; color: #1b2a41; margin-bottom: 0.5rem; }
+.ubb-popup p  { color: #5b6677; margin-bottom: 1.5rem; }
+.ubb-popup button {
+    padding: 0.65rem 2.4rem;
+    border: 0;
+    border-radius: 0.8rem;
+    font-weight: 700;
+    color: #fff;
+    background: var(--p-color);
+    box-shadow: 0 8px 18px -6px var(--p-color);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.ubb-popup button:hover { transform: translateY(-2px); box-shadow: 0 12px 22px -6px var(--p-color); }
+.ubb-popup button:focus-visible { outline: 3px solid var(--p-soft); outline-offset: 2px; }
+
+.ubb-popup-overlay.saliendo { animation: ubbFadeOut 0.2s ease forwards; }
+.ubb-popup-overlay.saliendo .ubb-popup { animation: ubbPopOut 0.2s ease forwards; }
+
+@keyframes ubbFadeIn  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ubbFadeOut { to { opacity: 0; } }
+@keyframes ubbPop     { from { opacity: 0; transform: scale(0.6) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+@keyframes ubbPopOut  { to { opacity: 0; transform: scale(0.9); } }
+@keyframes ubbDraw    { to { stroke-dashoffset: 0; } }
+@keyframes ubbBounce  { 0% { transform: scale(0); } 60% { transform: scale(1.15); } 100% { transform: scale(1); } }
+
+@media (prefers-reduced-motion: reduce) {
+    .ubb-popup-overlay, .ubb-popup, .ubb-popup-icon, .ubb-popup-icon .c, .ubb-popup-icon .k { animation: none !important; }
+    .ubb-popup-icon .c, .ubb-popup-icon .k { stroke-dashoffset: 0; }
+}
