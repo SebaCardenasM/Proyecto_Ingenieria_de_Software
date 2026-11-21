@@ -1,13 +1,13 @@
 package com.proyectoubbconfig.iswspring.app1.springboot_applications.dto;
 
+import java.time.LocalDateTime;
+import java.util.Comparator;
+
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Documento;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Estudiante;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Pauta;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Practica;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.TipoDocumento;
-
-import java.time.LocalDateTime;
-import java.util.Comparator;
 
 public record DocumentoDTO(
         Long id,
@@ -19,6 +19,8 @@ public record DocumentoDTO(
         Integer anoPractica,
         Integer semestrePractica,
         String tipoEvaluador,
+        String estado,          // BORRADOR | ENVIADO
+        boolean revisadoIa,     // pasó por el asistente
         EstudianteResumen estudiante
 ) {
 
@@ -68,6 +70,8 @@ public record DocumentoDTO(
                 anoPractica,
                 semestrePractica,
                 evaluadorStr,
+                d.getEstado().name(),
+                d.isRevisadoIa(),
                 e == null ? null : new EstudianteResumen(e.getRut(), e.getNombre(), e.getApellido(), e.getAnoIngreso())
         );
     }

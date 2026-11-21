@@ -12,7 +12,7 @@ import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Plani
 @Repository
 public interface PlanificacionRepository extends JpaRepository<Planificacion, Long> {
 
-    // Planificaciones que le corresponde revisar a un profesor UBB:
+    // Planificaciones que le corresponde revisar a un profesor UBB (sin borradores):
     // las de las prácticas donde es el profesor asignado; si la práctica no tiene profesor,
     // las de los estudiantes que coordina.
     @Query("SELECT p FROM Planificacion p " +
@@ -20,7 +20,8 @@ public interface PlanificacionRepository extends JpaRepository<Planificacion, Lo
            "LEFT JOIN pr.profesor pp " +
            "LEFT JOIN p.estudiante e " +
            "LEFT JOIN e.profesorCoordinador pc " +
-           "WHERE pp.rut = :rut OR (pp IS NULL AND pc.rut = :rut) " +
+           "WHERE (pp.rut = :rut OR (pp IS NULL AND pc.rut = :rut)) " +
+           "AND (p.estado IS NULL OR p.estado <> com.proyectoubbconfig.iswspring.app1.springboot_applications.models.EstadoDocumento.BORRADOR) " +
            "ORDER BY p.fechaSubida DESC")
     List<Planificacion> findParaRevisar(@Param("rut") String rut);
 
@@ -30,6 +31,7 @@ public interface PlanificacionRepository extends JpaRepository<Planificacion, Lo
            "LEFT JOIN p.estudiante e " +
            "LEFT JOIN e.profesorCoordinador pc " +
            "WHERE (pp.rut = :rut OR (pp IS NULL AND pc.rut = :rut)) " +
+           "AND (p.estado IS NULL OR p.estado <> com.proyectoubbconfig.iswspring.app1.springboot_applications.models.EstadoDocumento.BORRADOR) " +
            "AND (p.revisada IS NULL OR p.revisada = false)")
     long contarPendientes(@Param("rut") String rut);
 }
