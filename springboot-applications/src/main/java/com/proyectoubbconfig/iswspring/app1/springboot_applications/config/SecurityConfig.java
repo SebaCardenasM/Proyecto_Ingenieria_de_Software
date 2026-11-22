@@ -23,15 +23,18 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
             .authorizeHttpRequests(auth -> auth
-                // Públicas: estáticos, login y acceso por token del colaborador
+                // Públicas: estáticos, login, recuperación de contraseña y acceso por token del colaborador
                 .requestMatchers("/css/**", "/js/**", "/images/**",
-                                 "/login", "/evaluacion-colaborador/**").permitAll()
+                                "/login", "/recuperar/**", "/evaluacion-colaborador/**").permitAll()
 
                 // Cualquier usuario autenticado (el acceso fino a /uploads lo valida el interceptor)
                 .requestMatchers("/seleccionar-rol", "/uploads/**").authenticated()
 
                // API de documentos: cada endpoint con su rol
                 .requestMatchers(HttpMethod.POST, "/api/documentos/subir", "/api/documentos/subir-tutor").hasAnyRole("ESTUDIANTE", "TUTOR", "PROFESOR_ASIGNATURA")
+
+                // Paso 3 de la cadena: solo el estudiante envía sus borradores al gestor
+                .requestMatchers(HttpMethod.POST, "/api/documentos/enviar/**").hasRole("ESTUDIANTE")
 
                 // PERMITE ELIMINAR
                 .requestMatchers(HttpMethod.POST, "/api/documentos/eliminar/**").hasAnyRole("ESTUDIANTE", "TUTOR", "PROFESOR_ASIGNATURA", "COORDINADOR")
@@ -41,19 +44,27 @@ public class SecurityConfig {
                 .requestMatchers("/api/documentos/mis-estudiantes-documentos")
                     .hasAnyRole("PROFESOR_ASIGNATURA", "TUTOR", "COORDINADOR")
                 .requestMatchers("/api/documentos/todos").hasRole("COORDINADOR")
-                .requestMatchers("/api/**").denyAll() // cualquier endpoint de API nuevo queda bloqueado hasta que lo autorices
+
+                // Chatbot
+                .requestMatchers(HttpMethod.POST, "/api/chat/preguntar").authenticated()
+                // Paso 2 de la cadena: revisión de borradores (solo estudiantes)
+                .requestMatchers(HttpMethod.POST, "/api/chat/revisar/**").hasRole("ESTUDIANTE")
+                // Cualquier otro endpoint de la API queda bloqueado (debe ir DESPUÉS de definir las rutas de /api/ permitidas)
+                .requestMatchers("/api/**").denyAll()
 
                 // Paneles por rol (lo específico va antes que lo general)
                 .requestMatchers("/estudiante/**").hasRole("ESTUDIANTE")
                 .requestMatchers("/profesor/archivos").hasAnyRole("PROFESOR_ASIGNATURA", "TUTOR")
+                .requestMatchers("/profesor/analiticas-ia").hasAnyRole("PROFESOR_ASIGNATURA", "TUTOR", "COORDINADOR")
                 .requestMatchers("/profesor/**").hasRole("PROFESOR_ASIGNATURA")
                 .requestMatchers("/tutor/**").hasRole("TUTOR")
 
                 // Coordinación
                 .requestMatchers("/estudiantes/**", "/profesores/**", "/practicas/**",
-                                 "/gestor-archivos/**", "/portafolios/**", "/usuarios/**",
-                                 "/index").hasRole("COORDINADOR")
+                                "/gestor-archivos/**", "/portafolios/**", "/usuarios/**",
+                                "/index").hasRole("COORDINADOR")
 
+                // Esta línea SIEMPRE debe ser la última
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form

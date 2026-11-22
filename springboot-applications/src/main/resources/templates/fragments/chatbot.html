@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+  Uso:  <div th:replace="~{fragments/chatbot :: chatbot(true)}"></div>
+  true  = con pestaña "Revisar documento" (estudiantes)
+  false = solo consultas (coordinación)
+-->
+<th:block th:fragment="chatbot(conArchivos)">
+    <link th:href="@{/css/chatbot.css}" rel="stylesheet">
+
+    <div id="ubb-chatbot"
+     th:attr="data-archivos=${conArchivos},data-obligatoria=${revisionIaObligatoria}">
+
+        <button id="ubbChatFab" type="button" class="ubb-chat-fab" aria-label="Abrir asistente">
+            <i class="bi bi-chat-dots-fill"></i>
+            <span>Asistente UBB</span>
+            <span id="ubbChatBadge" class="ubb-chat-badge" hidden>0</span>
+        </button>
+
+        <section id="ubbChatPanel" class="ubb-chat-panel" hidden aria-label="Asistente de prácticas">
+
+            <header class="ubb-chat-head">
+                <div class="ubb-chat-head-title">
+                    <span class="ubb-chat-avatar"><i class="bi bi-robot"></i></span>
+                    <div>
+                        <strong>Asistente de Prácticas</strong>
+                        <small>Universidad del Bío-Bío</small>
+                    </div>
+                </div>
+                <button id="ubbChatClose" type="button" class="ubb-chat-close" aria-label="Cerrar"><i class="bi bi-x-lg"></i></button>
+            </header>
+
+            <nav class="ubb-chat-tabs" th:if="${conArchivos}">
+                <button type="button" data-tab="consultas" class="active"><i class="bi bi-chat-left-text me-1"></i>Consultas</button>
+                <button type="button" data-tab="revision"><i class="bi bi-file-earmark-check me-1"></i>Revisar documento</button>
+            </nav>
+
+            <!-- ============ TAB: CONSULTAS ============ -->
+            <div class="ubb-chat-body" data-panel="consultas">
+                <div id="ubbChatMsgs" class="ubb-chat-msgs" aria-live="polite"></div>
+
+                <div class="ubb-chat-chips" id="ubbChatChips">
+                    <button type="button" data-q="¿Qué debe incluir una planificación de clase?">Planificación</button>
+                    <button type="button" data-q="¿Cómo se evalúa mi práctica?">Evaluación</button>
+                    <button type="button" data-q="¿Qué debe tener el informe final?">Informe final</button>
+                </div>
+
+                <form id="ubbChatForm" class="ubb-chat-form" autocomplete="off">
+                    <input id="ubbChatInput" type="text" maxlength="500" class="form-control form-control-sm"
+                           placeholder="Escribe tu pregunta...">
+                    <button type="submit" class="btn btn-primary btn-sm" aria-label="Enviar"><i class="bi bi-send-fill"></i></button>
+                </form>
+            </div>
+
+            <!-- ============ TAB: REVISIÓN (cadena de proceso) ============ -->
+            <div class="ubb-chat-body ubb-rv" data-panel="revision" hidden th:if="${conArchivos}">
+
+                <ol class="rv-steps" id="rvSteps">
+                    <li data-step="1"><span>1</span>Borrador</li>
+                    <li data-step="2"><span>2</span>Revisión IA</li>
+                    <li data-step="3"><span>3</span>Gestor</li>
+                </ol>
+
+                <div class="rv-scroll">
+                    <p class="rv-hint" id="rvIntro"></p>
+
+                    <label class="rv-label" for="rvBorradores">Tus borradores</label>
+                    <select id="rvBorradores" class="form-select form-select-sm"></select>
+                    <div id="rvVacio" class="rv-vacio" hidden>
+                        <i class="bi bi-inbox"></i> No tienes borradores pendientes. Sube un archivo para comenzar.
+                    </div>
+
+                    <details class="rv-subir" id="rvSubirBox">
+                        <summary><i class="bi bi-cloud-arrow-up me-1"></i>Subir un archivo nuevo <small>(queda como borrador)</small></summary>
+                        <div class="rv-subir-body">
+                            <div class="row g-2 mb-2">
+                                <div class="col-6">
+                                    <select id="rvPractica" class="form-select form-select-sm">
+                                        <option value="" selected disabled>Práctica…</option>
+                                        <option value="1">Práctica 1</option><option value="2">Práctica 2</option>
+                                        <option value="3">Práctica 3</option><option value="4">Práctica 4</option>
+                                        <option value="5">Práctica 5</option><option value="6">Práctica 6</option>
+                                    </select>
+                                </div>
+                                <div class="col-6">
+                                    <select id="rvTipo" class="form-select form-select-sm">
+                                        <option value="" selected disabled>Tipo…</option>
+                                        <option value="PLANIFICACION">Planificación</option>
+                                        <option value="INFORME_FINAL">Informe final</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <label class="rv-drop" for="rvArchivo">
+                                <i class="bi bi-file-earmark-arrow-up"></i>
+                                <span id="rvArchivoNombre">Arrastra un archivo o haz clic para elegirlo</span>
+                                <input id="rvArchivo" type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png">
+                            </label>
+                            <button id="rvSubir" type="button" class="btn btn-outline-primary btn-sm w-100 mt-2">
+                                <i class="bi bi-cloud-upload me-1"></i>Subir como borrador
+                            </button>
+                        </div>
+                    </details>
+
+                    <div class="rv-card" id="rvCard" hidden>
+                        <div class="rv-doc">
+                            <i class="bi bi-file-earmark-text"></i>
+                            <div>
+                                <strong id="rvNombre"></strong>
+                                <small id="rvMeta"></small>
+                            </div>
+                        </div>
+
+                        <div id="rvResultado" class="rv-resultado" hidden></div>
+                        <div id="rvCargando" class="rv-cargando" hidden>
+                            <span class="spinner-border spinner-border-sm"></span>
+                            <span id="rvCargandoTxt">El asistente está leyendo tu documento…</span>
+                        </div>
+
+                        <div class="rv-actions">
+                            <button id="rvRevisar" type="button" class="btn btn-primary btn-sm"><i class="bi bi-robot me-1"></i>Revisar con el asistente</button>
+                            <button id="rvEnviar" type="button" class="btn btn-success btn-sm"><i class="bi bi-send-check me-1"></i>Enviar al gestor</button>
+                            <button id="rvDescartar" type="button" class="btn btn-outline-danger btn-sm" title="Descartar borrador"><i class="bi bi-trash"></i></button>
+                        </div>
+                        <small id="rvNota" class="rv-hint"></small>
+                    </div>
+
+                    <div id="rvMsg" class="rv-msg" hidden></div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script th:src="@{/js/ubb-popup.js}"></script>
+    <script th:src="@{/js/chatbot.js}"></script>
+</th:block>
+</body>
+</html>

@@ -1,6 +1,8 @@
 package com.proyectoubbconfig.iswspring.app1.springboot_applications.controllers;
 
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Usuario;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.NotificacionRepository;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.PlanificacionRepository;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -21,6 +23,12 @@ public class InicioController {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private NotificacionRepository notificacionRepository;
+
+    @Autowired
+    private PlanificacionRepository planificacionRepository;
 
     private boolean estaAutenticado(Authentication authentication) {
         return authentication != null
@@ -107,12 +115,16 @@ public class InicioController {
     @GetMapping("/estudiante/index")
     public String inicioEstudiante(Model model, Authentication authentication) {
         cargarDatosUsuario(model, authentication);
+        // Avisos sin leer (campana y banner del panel)
+        model.addAttribute("avisosNuevos", notificacionRepository.contarNoLeidas(authentication.getName()));
         return "Estudiante/indexEstudiante";
     }
 
     @GetMapping("/profesor/index")
     public String inicioProfesor(Model model, Authentication authentication) {
         cargarDatosUsuario(model, authentication);
+        // Planificaciones por revisar (insignia de la tarjeta)
+        model.addAttribute("planificacionesPendientes", planificacionRepository.contarPendientes(authentication.getName()));
         return "Profesor/indexProfesor";
     }
 

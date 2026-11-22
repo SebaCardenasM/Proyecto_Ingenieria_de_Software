@@ -3,23 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <title>Mi Panel - Estudiante UBB</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    <style>
-        .ubb-bg { background-color: #004b85; }
-        .card:hover { transform: translateY(-3px); transition: 0.3s; box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
-    </style>
+    <link th:href="@{/css/ubb-index.css}" rel="stylesheet">
+    <script>
+        // La animación de entrada se muestra solo una vez por sesión (se reinicia al pasar por el login)
+        try {
+            if (sessionStorage.getItem('ubbIndexAnim')) document.documentElement.classList.add('sin-anim');
+            else sessionStorage.setItem('ubbIndexAnim', '1');
+        } catch (e) {}
+    </script>
 </head>
-<body class="bg-light">
+<body class="ubb-page">
 
     <!-- Barra de Navegación -->
-    <nav class="navbar navbar-expand-lg navbar-dark ubb-bg mb-4 shadow-sm">
+    <nav class="navbar navbar-expand-lg navbar-dark ubb-nav mb-4">
         <div class="container">
-            <a class="navbar-brand fw-bold" th:href="@{/estudiante/index}">
-                <i class="bi bi-mortarboard-fill me-2"></i>Plataforma de Prácticas
+            <a class="navbar-brand fw-bold d-flex align-items-center" th:href="@{/estudiante/index}">
+                <img th:src="@{/images/escudo-monocromatico-oscuro.png}" alt="Escudo Universidad del Bío-Bío" class="nav-logo">
+                Plataforma de Prácticas
             </a>
-            
+
             <div class="d-flex text-white align-items-center ms-auto">
                 <i class="bi bi-person-circle fs-3 me-2"></i>
                 <div class="d-flex flex-column text-end me-3">
@@ -27,6 +34,14 @@
                     <small class="text-white-50 mt-1" style="font-size: 0.75rem;"
                         th:text="${rolesUsuario != null ? #strings.arrayJoin(rolesUsuario, ', ') : 'ESTUDIANTE'}">ESTUDIANTE</small>
                 </div>
+
+                <!-- Campana de avisos -->
+                <a th:href="@{/estudiante/avisos}" class="btn btn-outline-light btn-sm position-relative me-2" title="Mis avisos">
+                    <i class="bi bi-bell-fill"></i>
+                    <span th:if="${avisosNuevos != null and avisosNuevos > 0}"
+                          class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                          th:text="${avisosNuevos}">1</span>
+                </a>
 
                 <!-- Botón de cambio de rol si posee más de uno -->
                 <div th:if="${rolesUsuario != null and rolesUsuario.size() > 1}" class="me-2">
@@ -45,22 +60,34 @@
     </nav>
 
     <!-- Contenedor Principal -->
-    <div class="container">
-        <div class="row mb-4">
-            <div class="col-12">
-                <h2 class="fw-bold text-dark">Portal del Estudiante</h2>
-                <p class="text-muted">Gestiona tus entregas, revisa tu estado de práctica y consulta tus avances.</p>
+    <main class="container">
+
+        <!-- Bienvenida -->
+        <section class="hero mb-4">
+            <div class="hero-hello" th:text="${'Bienvenido/a, ' + (usuarioActivo != null ? usuarioActivo.nombre : '')}">Bienvenido/a</div>
+            <h2>Portal del Estudiante</h2>
+            <p>Gestiona tus entregas, revisa tu estado de práctica y consulta tus avances.</p>
+        </section>
+
+        <!-- Aviso de novedades (planificación confirmada, pauta recibida...) -->
+        <div th:if="${avisosNuevos != null and avisosNuevos > 0}"
+             class="alert alert-warning border-0 shadow-sm d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4" role="alert">
+            <div>
+                <i class="bi bi-bell-fill me-2"></i>
+                <strong th:text="${avisosNuevos == 1 ? 'Tienes 1 aviso nuevo' : 'Tienes ' + avisosNuevos + ' avisos nuevos'}">Tienes avisos nuevos</strong>
+                <span class="text-muted ms-1">Revisa los enlaces para tu profesor colaborador.</span>
             </div>
+            <a th:href="@{/estudiante/avisos}" class="btn btn-warning btn-sm fw-semibold"><i class="bi bi-arrow-right-circle me-1"></i>Ver avisos</a>
         </div>
 
         <div class="row g-4">
             <!-- Mis Prácticas -->
-            <div class="col-md-6">
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="card-body pt-4">
+            <div class="col-md-6 col-xl-3">
+                <div class="card ubb-card accent-green" style="--i:0">
+                    <div class="card-body">
                         <div class="d-flex align-items-center mb-3">
-                            <div class="display-5 text-success me-3"><i class="bi bi-journal-bookmark-fill"></i></div>
-                            <h4 class="card-title fw-bold mb-0">Mi Práctica</h4>
+                            <div class="icon-bubble"><i class="bi bi-journal-bookmark-fill"></i></div>
+                            <h4 class="card-title mb-0">Mi Práctica</h4>
                         </div>
                         <p class="card-text text-muted mb-4">Consulta los detalles de tu centro asignado, tutor universitario y profesor colaborador.</p>
                         <div class="d-grid gap-2">
@@ -73,12 +100,12 @@
             </div>
 
             <!-- Subir Evidencias / Archivos -->
-            <div class="col-md-6">
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="card-body pt-4">
+            <div class="col-md-6 col-xl-3">
+                <div class="card ubb-card accent-red" style="--i:1">
+                    <div class="card-body">
                         <div class="d-flex align-items-center mb-3">
-                            <div class="display-5 text-danger me-3"><i class="bi bi-cloud-upload-fill"></i></div>
-                            <h4 class="card-title fw-bold mb-0">Gestor de Documentos</h4>
+                            <div class="icon-bubble"><i class="bi bi-cloud-upload-fill"></i></div>
+                            <h4 class="card-title mb-0">Gestor de Documentos</h4>
                         </div>
                         <p class="card-text text-muted mb-4">Sube tus planificaciones de clases, informes y evidencias requeridas para evaluación.</p>
                         <div class="d-grid gap-2">
@@ -90,13 +117,31 @@
                 </div>
             </div>
 
-            <!-- Portafolio Personal -->
-            <div class="col-md-6">
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="card-body pt-4">
+            <!-- Mis Pautas de Evaluación -->
+            <div class="col-md-6 col-xl-3">
+                <div class="card ubb-card accent-blue" style="--i:2">
+                    <div class="card-body">
                         <div class="d-flex align-items-center mb-3">
-                            <div class="display-5 text-warning me-3"><i class="bi bi-person-vcard"></i></div>
-                            <h4 class="card-title fw-bold mb-0">Mi Portafolio</h4>
+                            <div class="icon-bubble"><i class="bi bi-award-fill"></i></div>
+                            <h4 class="card-title mb-0">Mis Pautas</h4>
+                        </div>
+                        <p class="card-text text-muted mb-4">Revisa las pautas de evaluación que tu tutor y tu profesor colaborador han subido para ti.</p>
+                        <div class="d-grid gap-2">
+                            <a th:href="@{/estudiante/pautas}" class="btn btn-outline-primary">
+                                <i class="bi bi-clipboard-check me-1"></i> Revisar mis Pautas
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Portafolio Personal -->
+            <div class="col-md-6 col-xl-3">
+                <div class="card ubb-card accent-amber" style="--i:3">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="icon-bubble"><i class="bi bi-person-vcard"></i></div>
+                            <h4 class="card-title mb-0">Mi Portafolio</h4>
                         </div>
                         <p class="card-text text-muted mb-4">Revisa tu historial académico, notas acumuladas y observaciones de tus pautas.</p>
                         <div class="d-grid gap-2">
@@ -108,8 +153,26 @@
                 </div>
             </div>
         </div>
-    </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="ubb-footer">
+        <div class="container py-4 d-flex flex-column flex-md-row align-items-center justify-content-between gap-3 text-center text-md-start">
+            <div class="d-flex align-items-center gap-3">
+                <img th:src="@{/images/escudo-monocromatico-oscuro.png}" alt="Escudo Universidad del Bío-Bío" class="footer-logo">
+                <div>
+                    <div class="fw-bold">Universidad del Bío-Bío</div>
+                    <small>Escuela de Pedagogía en Educación Matemática</small>
+                </div>
+            </div>
+            <small>Plataforma de Prácticas · &copy; <span class="anio"></span></small>
+        </div>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>document.querySelectorAll('.anio').forEach(e => e.textContent = new Date().getFullYear());</script>
+
+      <!-- Asistente (consultas + revisión de documentos) -->
+    <div th:replace="~{fragments/chatbot :: chatbot(true)}"></div>
 </body>
 </html>

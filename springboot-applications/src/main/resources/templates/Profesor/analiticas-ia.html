@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Analíticas de Dudas IA - Prácticas UBB</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .ubb-bg { background-color: #004b85; }
+        .barra-frec { height: 10px; border-radius: 10px; background: #e4edf8; overflow: hidden; }
+        .barra-frec > div {
+            height: 100%;
+            border-radius: 10px;
+            background: linear-gradient(90deg, #0d6efd, #4dabf7);
+            animation: crecer 0.9s ease backwards;
+            animation-delay: 0.4s;
+        }
+        @keyframes crecer { from { width: 0 !important; } }
+    </style>
+    <link th:href="@{/css/ubb-index.css}" rel="stylesheet">
+</head>
+<body class="ubb-page ubb-inner">
+
+    <nav class="navbar navbar-dark ubb-bg mb-4 shadow-sm">
+        <div class="container">
+            <div class="d-flex align-items-center">
+                <img th:src="@{/images/escudo-monocromatico-oscuro.png}" alt="Escudo Universidad del Bío-Bío" class="nav-logo">
+                <a class="navbar-brand fw-bold" th:href="@{/}">
+                    <i class="bi bi-arrow-left-circle me-2"></i>Volver al Panel
+                </a>
+            </div>
+            <div class="d-flex text-white align-items-center">
+                <i class="bi bi-robot fs-5 me-2"></i> Analíticas del Asistente IA
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+
+        <div class="mb-4">
+            <h2 class="fw-bold text-dark mb-1"><i class="bi bi-bar-chart-line-fill text-info me-2"></i>Preguntas frecuentes al Asistente IA</h2>
+            <p class="text-muted mb-0">Resumen agrupado por categoría para detectar falencias en el programa de estudios.</p>
+        </div>
+
+        <div class="row g-4">
+            <!-- Frecuencias por categoría -->
+            <div class="col-lg-5">
+                <div class="card h-100">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-3"><i class="bi bi-tags-fill text-primary me-2"></i>Categorías de duda</h5>
+
+                        <div th:each="item : ${frecuentes}" class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="fw-semibold" th:text="${item.categoria}">Categoría</span>
+                                <span class="badge bg-primary" th:text="${item.total}">0</span>
+                            </div>
+                            <div class="barra-frec">
+                                <div th:style="'width:' + (${item.total} * 100 / ${frecuentes[0].total}) + '%'"></div>
+                            </div>
+                        </div>
+
+                        <div th:if="${#lists.isEmpty(frecuentes)}" class="text-center text-muted py-4">
+                            <i class="bi bi-inbox fs-3 d-block mb-2"></i>Aún no hay consultas registradas.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Últimas consultas -->
+            <div class="col-lg-7">
+                <div class="card h-100">
+                    <div class="card-body p-0">
+                        <div class="px-4 pt-4 pb-2">
+                            <h5 class="fw-bold mb-0"><i class="bi bi-chat-dots-fill text-success me-2"></i>Últimas consultas registradas</h5>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped mb-0 align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="ps-4">Fecha</th>
+                                        <th>RUT Alumno</th>
+                                        <th>Nivel</th>
+                                        <th>Categoría</th>
+                                        <th>Pregunta realizada</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="duda : ${ultimasDudas}">
+                                        <td class="ps-4 text-nowrap" th:text="${#temporals.format(duda.fecha, 'dd-MM-yyyy HH:mm')}"></td>
+                                        <td th:text="${duda.rutEstudiante}"></td>
+                                        <td><span class="badge bg-secondary" th:text="${duda.nivelPractica != null ? 'Práctica ' + duda.nivelPractica : 'N/A'}"></span></td>
+                                        <td><span class="badge bg-info text-dark" th:text="${duda.categoriaDuda}"></span></td>
+                                        <td th:text="${duda.promptUsuario}"></td>
+                                    </tr>
+                                    <tr th:if="${#lists.isEmpty(ultimasDudas)}">
+                                        <td colspan="5" class="text-center text-muted py-4">Sin consultas registradas.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="ubb-footer compact">
+        <div class="container py-3 d-flex flex-column flex-md-row align-items-center justify-content-between gap-3 text-center text-md-start">
+            <div class="d-flex align-items-center gap-3">
+                <img th:src="@{/images/escudo-monocromatico-oscuro.png}" alt="Escudo Universidad del Bío-Bío" class="footer-logo">
+                <div>
+                    <div class="fw-bold">Universidad del Bío-Bío</div>
+                    <small>Escuela de Pedagogía en Educación Matemática</small>
+                </div>
+            </div>
+            <small>Plataforma de Prácticas · &copy; <span class="anio"></span></small>
+        </div>
+    </footer>
+    <script>document.querySelectorAll('.anio').forEach(e => e.textContent = new Date().getFullYear());</script>
+</body>
+</html>
