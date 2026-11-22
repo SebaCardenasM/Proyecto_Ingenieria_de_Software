@@ -16,6 +16,7 @@ public record FilaPlanificacion(
         String centro,
         boolean revisada,
         LocalDateTime fechaRevision,
+        boolean evaluaConPautas,      // NUEVO: tick 2
         String estadoEnlace,          // NINGUNO | VIGENTE | EXPIRADO | USADO
         LocalDateTime enlaceExpira,
         boolean puedeReenviar

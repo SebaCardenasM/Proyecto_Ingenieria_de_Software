@@ -3,10 +3,10 @@ package com.proyectoubbconfig.iswspring.app1.springboot_applications.services;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
 import java.util.Map;
 import java.util.regex.Pattern;
-import java.time.ZoneId;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -96,7 +96,8 @@ public class EvaluacionColaboradorService {
 
         Planificacion plan = planificacionRepository.findById(enlace.getPlanificacionId()).orElse(null);
         Practica pr = enlace.getPractica();
-        if (plan == null || !plan.isRevisada() || pr == null || pr.getEstudiante() == null) {
+        if (plan == null || !plan.isRevisada() || !plan.isEvaluaConPautas()
+                || pr == null || pr.getEstudiante() == null) {
             return Estado.INVALIDO;
         }
         return Estado.OK;
