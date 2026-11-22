@@ -10,7 +10,7 @@
         .ubb-bg { background-color: #004b85; }
         body { background-color: #f4f6f9; }
 
-        /* El "tick" de confirmación */
+        /* Ticks de revisión */
         .tick-btn {
             width: 46px; height: 46px; border-radius: 50%;
             display: inline-grid; place-items: center; font-size: 1.5rem;
@@ -50,7 +50,10 @@
         <div class="row mb-4 align-items-center">
             <div class="col-lg-7">
                 <h2 class="fw-bold text-dark mb-0"><i class="bi bi-clipboard2-check-fill text-success me-2"></i>Revisión de Planificaciones</h2>
-                <p class="text-muted mt-1 mb-0">Revisa cada planificación y márcala con el tick para autorizar la clase. Al confirmar, el estudiante recibe un aviso con el enlace temporal para su profesor colaborador.</p>
+                <p class="text-muted mt-1 mb-0">
+                    <strong>Tick 1:</strong> marca la planificación como revisada.
+                    <strong>Tick 2:</strong> indica que la clase se evaluará con pautas; el estudiante recibe un aviso con el enlace temporal para su profesor colaborador.
+                </p>
             </div>
             <div class="col-lg-5 mt-3 mt-lg-0">
                 <div class="input-group shadow-sm">
@@ -96,7 +99,30 @@
                                 th:attr="data-estado=${f.evaluaConPautas} ? 'CON_PAUTAS' : (${f.revisada} ? 'REVISADA' : 'PENDIENTE')"
                                 th:classappend="${f.evaluaConPautas} ? 'table-success' : (${f.revisada} ? 'table-info' : '')">
 
-                                <!-- ... celdas Estudiante, Planificación, Práctica, Subida (sin cambios) ... -->
+                                <!-- Estudiante -->
+                                <td class="ps-4">
+                                    <span class="fw-semibold" th:text="${f.estudianteNombre}">Estudiante</span>
+                                    <small class="d-block text-muted" th:text="${f.estudianteRut}">RUT</small>
+                                </td>
+
+                                <!-- Planificación -->
+                                <td>
+                                    <i class="bi bi-file-earmark-text text-primary me-1"></i>
+                                    <span th:text="${f.nombreArchivo}">archivo.pdf</span>
+                                    <a th:if="${f.rutaServidor != null}" th:href="@{'/' + ${f.rutaServidor}}" target="_blank" rel="noopener noreferrer"
+                                       class="btn btn-sm btn-outline-primary ms-2" title="Abrir el archivo para revisarlo">
+                                        <i class="bi bi-eye"></i> Revisar
+                                    </a>
+                                </td>
+
+                                <!-- Práctica -->
+                                <td class="text-center">
+                                    <span class="badge bg-info text-dark" th:text="'Práctica ' + ${f.numeroPractica != null ? f.numeroPractica : 'N/A'}">Práctica 1</span>
+                                    <small class="d-block text-muted" th:if="${f.ano != null}" th:text="${f.ano + '-' + f.semestre}">2026-1</small>
+                                </td>
+
+                                <!-- Subida -->
+                                <td class="text-nowrap" th:text="${f.fechaSubida != null ? #temporals.format(f.fechaSubida, 'dd/MM/yyyy HH:mm') : '—'}">fecha</td>
 
                                 <!-- Estado -->
                                 <td>
@@ -104,22 +130,33 @@
                                     <span th:if="${f.revisada and !f.evaluaConPautas}" class="badge bg-info text-dark"><i class="bi bi-check-circle me-1"></i>Revisada</span>
                                     <span th:if="${f.evaluaConPautas}" class="badge bg-success"><i class="bi bi-clipboard2-check me-1"></i>Se evalúa con pautas</span>
                                     <small class="d-block text-muted" th:if="${f.revisada and f.fechaRevision != null}"
-                                        th:text="${#temporals.format(f.fechaRevision, 'dd/MM/yyyy HH:mm')}">fecha</small>
+                                           th:text="${#temporals.format(f.fechaRevision, 'dd/MM/yyyy HH:mm')}">fecha</small>
                                 </td>
 
-                                <!-- Enlace colaborador (sin cambios) -->
-                                <td th:switch="${f.estadoEnlace}"> ... </td>
+                                <!-- Enlace colaborador -->
+                                <td th:switch="${f.estadoEnlace}">
+                                    <span th:case="'NINGUNO'" class="text-muted">—</span>
+                                    <span th:case="'VIGENTE'">
+                                        <span class="badge bg-primary"><i class="bi bi-link-45deg me-1"></i>Vigente</span>
+                                        <small class="d-block text-muted">hasta <span th:text="${#temporals.format(f.enlaceExpira, 'dd/MM/yyyy HH:mm')}">fecha</span></small>
+                                    </span>
+                                    <span th:case="'EXPIRADO'">
+                                        <span class="badge bg-secondary"><i class="bi bi-hourglass-bottom me-1"></i>Expirado</span>
+                                        <small class="d-block text-muted" th:text="${#temporals.format(f.enlaceExpira, 'dd/MM/yyyy HH:mm')}">fecha</small>
+                                    </span>
+                                    <span th:case="'USADO'" class="badge bg-success"><i class="bi bi-clipboard-check me-1"></i>Pauta recibida</span>
+                                </td>
 
-                                <!-- TICK 1 -->
+                                <!-- TICK 1: revisada -->
                                 <td class="text-center">
                                     <form th:if="${!f.revisada}" th:action="@{/profesor/planificaciones/{id}/revisar(id=${f.id})}" method="post" class="d-inline"
-                                        onsubmit="return confirm('¿Marcar esta planificación como revisada?');">
+                                          onsubmit="return confirm('¿Marcar esta planificación como revisada?');">
                                         <button type="submit" class="tick-btn" title="Marcar como revisada"><i class="bi bi-check-lg"></i></button>
                                     </form>
                                     <span th:if="${f.revisada}" class="tick-ok" title="Planificación revisada"><i class="bi bi-check-lg"></i></span>
                                 </td>
 
-                                <!-- TICK 2 -->
+                                <!-- TICK 2: se evaluará con pautas -->
                                 <td class="text-center pe-4">
                                     <!-- Bloqueado hasta que esté revisada -->
                                     <span th:if="${!f.revisada}" class="tick-disabled" title="Primero marca la planificación como revisada">
@@ -128,8 +165,8 @@
 
                                     <!-- Habilitado -->
                                     <form th:if="${f.revisada and !f.evaluaConPautas}"
-                                        th:action="@{/profesor/planificaciones/{id}/pautas(id=${f.id})}" method="post" class="d-inline"
-                                        onsubmit="return confirm('¿Esta clase se evaluará con pautas?\n\nSe avisará al estudiante y se generará un enlace temporal para su profesor colaborador.');">
+                                          th:action="@{/profesor/planificaciones/{id}/pautas(id=${f.id})}" method="post" class="d-inline"
+                                          onsubmit="return confirm('¿Esta clase se evaluará con pautas?\n\nSe avisará al estudiante y se generará un enlace temporal para su profesor colaborador.');">
                                         <button type="submit" class="tick-btn" title="Indicar que la clase se evaluará con pautas"><i class="bi bi-check-lg"></i></button>
                                     </form>
 
@@ -137,13 +174,22 @@
                                     <div th:if="${f.evaluaConPautas}" class="d-flex flex-column align-items-center gap-1">
                                         <span class="tick-ok" title="La clase se evaluará con pautas"><i class="bi bi-check-lg"></i></span>
                                         <form th:if="${f.puedeReenviar}" th:action="@{/profesor/planificaciones/{id}/reenviar(id=${f.id})}" method="post"
-                                            onsubmit="return confirm('Se generará un enlace nuevo y el anterior dejará de funcionar. ¿Continuar?');">
+                                              onsubmit="return confirm('Se generará un enlace nuevo y el anterior dejará de funcionar. ¿Continuar?');">
                                             <button type="submit" class="btn btn-sm btn-link text-decoration-none p-0" title="Generar un enlace nuevo">
                                                 <i class="bi bi-arrow-repeat"></i> Nuevo enlace
                                             </button>
                                         </form>
                                     </div>
                                 </td>
+                            </tr>
+
+                            <tr th:if="${#lists.isEmpty(filas)}">
+                                <td colspan="8" class="text-center text-muted py-5">
+                                    <i class="bi bi-inbox fs-3 d-block mb-2"></i>Aún no hay planificaciones para revisar.
+                                </td>
+                            </tr>
+                            <tr id="filaSinResultados" class="d-none">
+                                <td colspan="8" class="text-center text-muted py-4"><i class="bi bi-search me-2"></i>Ninguna planificación coincide con el filtro.</td>
                             </tr>
                         </tbody>
                     </table>
@@ -187,7 +233,6 @@
             aplicarFiltros();
         }
     </script>
-    
 
     <!-- Popups de confirmación / error (mensajes del controlador) -->
     <div th:if="${mensajeExito}" data-ubb-flash hidden
