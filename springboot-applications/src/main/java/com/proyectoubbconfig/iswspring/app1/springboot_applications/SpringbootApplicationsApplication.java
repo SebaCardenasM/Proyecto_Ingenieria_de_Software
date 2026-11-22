@@ -567,6 +567,8 @@ public class SpringbootApplicationsApplication {
             p.setRevisada(true);
             p.setFechaRevision(fecha);
             p.setProfesorRevisor(revisor);
+            p.setEvaluaConPautas(true);        // NUEVO
+            p.setFechaMarcaPautas(fecha);      // NUEVO
             planificacionRepository.save(p);
         }
 

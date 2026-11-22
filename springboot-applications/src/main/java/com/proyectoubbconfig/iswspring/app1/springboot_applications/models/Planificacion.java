@@ -51,4 +51,16 @@ public class Planificacion extends Documento {
 
     public Profesor getProfesorRevisor() { return profesorRevisor; }
     public void setProfesorRevisor(Profesor profesorRevisor) { this.profesorRevisor = profesorRevisor; }
+
+    // Tick 2: la clase se evaluará con pautas (se habilita después de "revisada")
+    private Boolean evaluaConPautas = false;
+
+    private LocalDateTime fechaMarcaPautas;
+
+    public boolean isEvaluaConPautas() { return Boolean.TRUE.equals(evaluaConPautas); }
+    public void setEvaluaConPautas(Boolean evaluaConPautas) { this.evaluaConPautas = evaluaConPautas; }
+
+    public LocalDateTime getFechaMarcaPautas() { return fechaMarcaPautas; }
+    public void setFechaMarcaPautas(LocalDateTime fechaMarcaPautas) { this.fechaMarcaPautas = fechaMarcaPautas; }
 }
+
