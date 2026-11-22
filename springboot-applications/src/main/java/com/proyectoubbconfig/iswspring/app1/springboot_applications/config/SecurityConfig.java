@@ -61,12 +61,9 @@ public class SecurityConfig {
                 .requestMatchers("/profesor/**").hasRole("PROFESOR_ASIGNATURA")
                 .requestMatchers("/tutor/**").hasRole("TUTOR")
 
-                // Coordinación
-                .requestMatchers("/estudiantes/**", "/profesores/**", "/practicas/**",
-                                "/gestor-archivos/**", "/portafolios/**", "/usuarios/**",
-                                "/index").hasRole("COORDINADOR")
-                
-                .requestMatchers("/estudiantes/**", "/profesores/**", "/practicas/**",
+                // Coordinación (un solo bloque)
+                .requestMatchers("/estudiantes/**", "/profesores/**", "/colaboradores/**",
+                                "/practicas/**", "/centros-practica/**",
                                 "/gestor-archivos/**", "/portafolios/**", "/usuarios/**",
                                 "/monitoreo-chat/**", "/index").hasRole("COORDINADOR")
 

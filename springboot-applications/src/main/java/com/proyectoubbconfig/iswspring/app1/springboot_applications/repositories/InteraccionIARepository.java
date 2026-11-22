@@ -1,10 +1,12 @@
 package com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.InteraccionIA;
@@ -28,6 +30,15 @@ public interface InteraccionIARepository extends JpaRepository<InteraccionIA, Lo
     List<ConteoDudaDTO> obtenerDudasMasFrecuentes();
 
     List<InteraccionIA> findTop20ByOrderByFechaDesc();
+
+    // Versiones filtradas por estudiantes (analíticas de profesor / tutor).
+    // Quien llama debe evitar pasar una colección vacía.
+    @Query("SELECT i.categoriaDuda AS categoria, COUNT(i) AS total " +
+           "FROM InteraccionIA i WHERE i.rutEstudiante IN :ruts " +
+           "GROUP BY i.categoriaDuda ORDER BY COUNT(i) DESC")
+    List<ConteoDudaDTO> obtenerDudasMasFrecuentesDe(@Param("ruts") Collection<String> ruts);
+
+    List<InteraccionIA> findTop20ByRutEstudianteInOrderByFechaDesc(Collection<String> ruts);
 
     // Una fila por usuario: cuántos mensajes y cuándo fue el último
     @Query("SELECT i.rutEstudiante AS rut, COUNT(i) AS total, MAX(i.fecha) AS ultima " +
