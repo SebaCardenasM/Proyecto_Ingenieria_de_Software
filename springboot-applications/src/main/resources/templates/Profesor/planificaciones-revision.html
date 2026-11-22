@@ -190,7 +190,14 @@
                 aplicarFiltros();
             });
         });
+
+        const rutFiltro = new URLSearchParams(window.location.search).get('rut');
+        if (rutFiltro) {
+            document.getElementById('inputBuscar').value = rutFiltro;
+            aplicarFiltros();
+        }
     </script>
+    
 
     <!-- Popups de confirmación / error (mensajes del controlador) -->
     <div th:if="${mensajeExito}" data-ubb-flash hidden
