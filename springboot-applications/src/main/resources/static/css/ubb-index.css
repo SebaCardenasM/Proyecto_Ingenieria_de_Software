@@ -205,8 +205,58 @@ body.ubb-inner .table > thead.table-light {
 body.ubb-inner .table > tbody > tr {
     transition: background-color 0.2s ease;
 }
-body.ubb-inner .table > tbody > tr > td:first-child { transition: box-shadow 0.2s ease; }
-body.ubb-inner .table > tbody > tr:hover > td:first-child { box-shadow: inset 4px 0 0 var(--ubb-blue); }
+/* ---------- Hover en listas y gestores: fondo azul + letras blancas ----------
+   No se aplica a las filas de mensaje ("Cargando...", "No hay documentos...") */
+body.ubb-inner .table > tbody > tr:not(:has(> td[colspan])):hover > * {
+    --bs-table-bg-state: var(--ubb-blue);
+    --bs-table-color-state: #fff;
+    background-color: var(--ubb-blue);
+    color: #fff;
+    box-shadow: inset 0 0 0 9999px var(--ubb-blue);
+}
+/* Barrita amarilla en la primera celda (va como imagen de fondo: no se anima, así no parpadea) */
+body.ubb-inner .table > tbody > tr:not(:has(> td[colspan])):hover > td:first-child {
+    background-image: linear-gradient(#ffc107, #ffc107);
+    background-size: 4px 100%;
+    background-repeat: no-repeat;
+    background-position: left center;
+}
+/* Sin transiciones en las celdas: el cambio a azul es directo */
+body.ubb-inner .table > tbody > tr > * { transition: none; }
+/* Textos e iconos con colores de Bootstrap (text-dark, text-primary, etc.) */
+body.ubb-inner .table > tbody > tr:not(:has(> td[colspan])):hover
+:is(.text-dark, .text-primary, .text-secondary, .text-muted, .text-success,
+    .text-danger, .text-info, .text-body, a:not(.btn)):not(.badge) {
+    color: #fff !important;
+}
+/* Botones de contorno dentro de la fila: borde y letra blancos */
+body.ubb-inner .table > tbody > tr:not(:has(> td[colspan])):hover
+:is(.btn-outline-primary, .btn-outline-secondary, .btn-outline-success,
+    .btn-outline-danger, .btn-outline-info, .btn-outline-warning, .btn-outline-dark) {
+    --bs-btn-color: #fff;
+    --bs-btn-border-color: #fff;
+    --bs-btn-hover-bg: #fff;
+    --bs-btn-hover-color: var(--ubb-blue);
+    --bs-btn-hover-border-color: #fff;
+}
+/* Los badges conservan su color; borde claro para que no se pierdan sobre el azul */
+body.ubb-inner .table > tbody > tr:not(:has(> td[colspan])):hover .badge {
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.6);
+}
+
+/* Listas, tarjetas de documentos y menús desplegables */
+body.ubb-inner .list-group-item-action:hover,
+body.ubb-inner .list-group-item-action:focus,
+body.ubb-inner .doc-card:hover,
+body.ubb-inner .dropdown-item:hover,
+body.ubb-inner .dropdown-item:focus {
+    background-color: var(--ubb-blue);
+    color: #fff;
+}
+body.ubb-inner :is(.list-group-item-action, .doc-card):hover
+:is(.text-dark, .text-primary, .text-secondary, .text-muted, small, h5, h6):not(.badge) {
+    color: #fff !important;
+}
 
 /* ---------- Botones, badges, filtros ---------- */
 body.ubb-inner .btn { transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, color 0.2s ease; }
