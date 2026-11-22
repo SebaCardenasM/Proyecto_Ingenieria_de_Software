@@ -3,183 +3,218 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Mi Práctica - Plataforma de Prácticas</title>
+    <title>Mi Práctica - Prácticas UBB</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        :root {
-            --azul-oscuro: #0a3d7a;
-            --azul: #0b6bc4;
-            --verde: #1f9d63;
-            --naranja: #f5a400;
-            --rojo: #e04b59;
-            --texto: #1f2d3d;
-            --gris: #6b7a8c;
-        }
-        * { box-sizing: border-box; }
-        body {
-            margin: 0;
-            font-family: "Segoe UI", Arial, sans-serif;
-            color: var(--texto);
-            background: linear-gradient(135deg, #f1f5fb, #d9edf8);
-            min-height: 100vh;
-        }
-        header {
-            background: linear-gradient(90deg, #052c5c, #0b5aa8);
-            color: #fff;
-            padding: 18px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        header h1 { margin: 0; font-size: 1.3rem; }
-        header a {
-            color: #fff;
-            text-decoration: none;
-            border: 1px solid rgba(255, 255, 255, .6);
-            padding: 6px 14px;
-            border-radius: 6px;
-            font-size: .9rem;
-        }
-        main { max-width: 1100px; margin: 28px auto; padding: 0 20px; }
-        .banner {
-            background: linear-gradient(90deg, #0a5db5, #0b7be0);
-            color: #fff;
-            border-radius: 18px;
-            padding: 26px 34px;
-            margin-bottom: 26px;
-        }
-        .banner small { letter-spacing: 1px; opacity: .85; }
-        .banner h2 { margin: 6px 0; font-size: 2rem; }
-        .banner p { margin: 0; opacity: .9; }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-            gap: 22px;
-        }
-        .card {
-            background: #fff;
-            border-radius: 16px;
-            padding: 24px;
-            box-shadow: 0 6px 18px rgba(10, 61, 122, .1);
-            border-top: 6px solid var(--azul);
-        }
-        .card.centro { border-top-color: var(--verde); }
-        .card.colaborador { border-top-color: var(--naranja); }
-        .card.asignatura { border-top-color: var(--rojo); }
-        .card h3 { margin: 0 0 14px; font-size: 1.25rem; }
-        dl { margin: 0; }
-        dt {
-            font-size: .75rem;
-            text-transform: uppercase;
-            letter-spacing: .6px;
-            color: var(--gris);
-            margin-top: 12px;
-        }
-        dd { margin: 2px 0 0; font-size: 1.02rem; font-weight: 500; }
-        .no-asignado { color: var(--gris); font-style: italic; margin: 0; }
-        .volver {
-            display: inline-block;
-            margin-top: 26px;
-            color: var(--azul-oscuro);
-            text-decoration: none;
-            font-weight: 600;
-        }
-        footer {
-            background: #052c5c;
-            color: #fff;
-            padding: 20px 40px;
-            margin-top: 40px;
-            border-top: 4px solid #f5b400;
-        }
+        .ubb-bg { background-color: #004b85; }
+        body { background-color: #f4f6f9; }
+        #tabsPractica .nav-link { font-weight: 600; white-space: nowrap; }
+        #tabsPractica .nav-link.active { color: #004b85; border-bottom: 3px solid #004b85; }
+        .etiqueta { font-size: .72rem; letter-spacing: .5px; text-transform: uppercase; color: #6b7c8d; font-weight: 700; }
     </style>
+    <link th:href="@{/css/ubb-index.css}" rel="stylesheet">
 </head>
-<body>
+<body class="ubb-page ubb-inner">
 
-<header>
-    <h1>Plataforma de Prácticas</h1>
-    <a th:href="@{/logout}">Salir</a>
-</header>
+    <!-- Barra de navegación -->
+    <nav class="navbar navbar-expand-lg navbar-dark ubb-bg mb-4 shadow-sm">
+        <div class="container">
+            <div class="d-flex align-items-center">
+                <img th:src="@{/images/escudo-monocromatico-oscuro.png}" alt="Escudo Universidad del Bío-Bío" class="nav-logo">
+                <a class="navbar-brand fw-bold" th:href="@{/estudiante/index}">
+                    <i class="bi bi-mortarboard-fill me-2"></i>Plataforma de Prácticas
+                </a>
+            </div>
 
-<main>
-    <section class="banner">
-        <small>PORTAL DEL ESTUDIANTE</small>
-        <h2>Mi Práctica</h2>
-        <p>Detalles de tu centro de práctica, profesor colaborador, tutor universitario y profesor de la asignatura.</p>
-    </section>
+            <div class="d-flex text-white align-items-center ms-auto">
+                <i class="bi bi-person-circle fs-3 me-2"></i>
+                <div class="d-flex flex-column text-end me-3">
+                    <span class="fw-bold lh-1" th:text="${usuarioActivo != null ? usuarioActivo.nombre + ' ' + usuarioActivo.apellido : 'Estudiante'}">Estudiante</span>
+                    <small class="text-white-50 mt-1" style="font-size: 0.75rem;"
+                           th:text="${rolesUsuario != null ? #strings.arrayJoin(rolesUsuario, ', ') : 'ESTUDIANTE'}">ESTUDIANTE</small>
+                </div>
 
-    <section class="grid">
+                <div th:if="${rolesUsuario != null and rolesUsuario.size() > 1}" class="me-2">
+                    <a th:href="@{/seleccionar-rol}" class="btn btn-outline-light btn-sm" title="Cambiar de perfil">
+                        <i class="bi bi-person-gear"></i> Cambiar Perfil
+                    </a>
+                </div>
 
-        <!-- Centro de práctica -->
-        <article class="card centro">
-            <h3>Centro de práctica</h3>
-            <dl th:if="${centro != null}">
-                <dt>Nombre</dt>
-                <dd th:text="${centro.nombre}"></dd>
-                <dt>Dirección</dt>
-                <dd th:text="${(centro.calle ?: '') + ' ' + (centro.numero ?: '')}"></dd>
-                <dt>Comuna</dt>
-                <dd th:text="${centro.comuna}"></dd>
-                <dt>Región</dt>
-                <dd th:text="${centro.region}"></dd>
-            </dl>
-            <p th:unless="${centro != null}" class="no-asignado">Centro de práctica no asignado</p>
-        </article>
+                <!-- Logout por POST (con GET Spring Security 6 no cierra sesión) -->
+                <form th:action="@{/logout}" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-outline-light btn-sm" title="Cerrar sesión">
+                        <i class="bi bi-box-arrow-right"></i> Salir
+                    </button>
+                </form>
+            </div>
+        </div>
+    </nav>
 
-        <!-- Profesor colaborador -->
-        <article class="card colaborador">
-            <h3>Profesor colaborador</h3>
-            <dl th:if="${colaborador != null}">
-                <dt>RUT</dt>
-                <dd th:text="${colaborador.rut}"></dd>
-                <dt>Nombre</dt>
-                <dd th:text="${colaborador.nombre + ' ' + colaborador.apellido}"></dd>
-                <dt>Correo</dt>
-                <dd th:text="${colaborador.correo}"></dd>
-                <dt>Teléfono</dt>
-                <dd th:text="${colaborador.telefono}"></dd>
-            </dl>
-            <p th:unless="${colaborador != null}" class="no-asignado">Profesor colaborador no asignado</p>
-        </article>
+    <div class="container mb-5">
 
-        <!-- Tutor universitario -->
-        <article class="card">
-            <h3>Tutor universitario</h3>
-            <dl th:if="${tutor != null}">
-                <dt>RUT</dt>
-                <dd th:text="${tutor.rut}"></dd>
-                <dt>Nombre</dt>
-                <dd th:text="${tutor.nombre + ' ' + tutor.apellido}"></dd>
-                <dt>Correo</dt>
-                <dd th:text="${tutor.correo}"></dd>
-                <dt>Teléfono</dt>
-                <dd th:text="${tutor.telefono}"></dd>
-            </dl>
-            <p th:unless="${tutor != null}" class="no-asignado">Tutor universitario no asignado</p>
-        </article>
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+            <div>
+                <h2 class="fw-bold text-dark mb-0"><i class="bi bi-journal-bookmark-fill text-success me-2"></i>Mi Práctica</h2>
+                <p class="text-muted mb-0">Centro, profesores, fechas, estado y nota de cada una de tus prácticas.</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a th:href="@{/estudiante/portafolio}" class="btn btn-outline-warning text-dark btn-sm">
+                    <i class="bi bi-person-vcard me-1"></i> Mi portafolio
+                </a>
+                <a th:href="@{/estudiante/index}" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-arrow-left me-1"></i> Volver al panel
+                </a>
+            </div>
+        </div>
 
-        <!-- Profesor de la asignatura -->
-        <article class="card asignatura">
-            <h3>Profesor de la asignatura</h3>
-            <dl th:if="${profesorAsignatura != null}">
-                <dt>RUT</dt>
-                <dd th:text="${profesorAsignatura.rut}"></dd>
-                <dt>Nombre</dt>
-                <dd th:text="${profesorAsignatura.nombre + ' ' + profesorAsignatura.apellido}"></dd>
-                <dt>Correo</dt>
-                <dd th:text="${profesorAsignatura.correo}"></dd>
-                <dt>Teléfono</dt>
-                <dd th:text="${profesorAsignatura.telefono}"></dd>
-            </dl>
-            <p th:unless="${profesorAsignatura != null}" class="no-asignado">Profesor de la asignatura no asignado</p>
-        </article>
+        <!-- Pestañas 1 a 6 (deshabilitadas si esa práctica aún no existe) -->
+        <ul class="nav nav-tabs flex-nowrap overflow-auto mb-4" id="tabsPractica" role="tablist">
+            <li class="nav-item" role="presentation" th:each="p : ${paneles}">
+                <button th:if="${p.existe}" type="button" class="nav-link" role="tab"
+                        th:classappend="${p.numero == tabActiva} ? 'active'"
+                        data-bs-toggle="tab"
+                        th:attr="data-bs-target='#panel-' + ${p.numero}, title=${p.nombre}">
+                    Práctica <span th:text="${p.numero}">1</span>
+                    <i th:if="${p.numero == practicaActual}" class="bi bi-star-fill text-warning ms-1" title="Práctica actual"></i>
+                </button>
+                <button th:unless="${p.existe}" type="button" class="nav-link disabled" disabled
+                        th:attr="title='Aún no iniciada'">
+                    Práctica <span th:text="${p.numero}">1</span>
+                </button>
+            </li>
+        </ul>
 
-    </section>
+        <div class="tab-content">
+            <div th:each="p : ${paneles}" th:if="${p.existe}" class="tab-pane fade" role="tabpanel"
+                 th:id="'panel-' + ${p.numero}"
+                 th:classappend="${p.numero == tabActiva} ? 'show active'">
 
-    <a class="volver" th:href="@{/estudiante/index}">&larr; Volver al portal</a>
-</main>
+                <h4 class="fw-bold mb-3">
+                    <span th:text="${p.nombre}">Nombre</span>
+                    <span class="badge bg-primary ms-1" th:if="${p.numero == 6}">Profesional</span>
+                </h4>
 
-<footer>
-    <strong>Universidad del Bío-Bío</strong> · Plataforma de Prácticas
-</footer>
+                <!-- Un bloque por intento (si repitió la práctica, el vigente va primero) -->
+                <div th:each="i : ${p.intentos}" class="card border-0 shadow-sm mb-4"
+                     th:classappend="${!i.vigente} ? 'opacity-75'">
 
+                    <div class="card-header bg-white border-0 pt-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+                        <div class="d-flex flex-wrap align-items-center gap-2">
+                            <span class="fw-bold fs-5"><i class="bi bi-calendar3 me-1"></i>
+                                <span th:text="${i.ano != null ? i.ano + '-' + i.semestre : 'Sin periodo'}">2026-2</span></span>
+                            <span class="badge bg-secondary" th:if="${i.totalIntentos > 1}"
+                                  th:text="'Intento ' + ${i.intento} + ' de ' + ${i.totalIntentos}">Intento 1 de 2</span>
+                            <span class="badge bg-info text-dark" th:if="${i.totalIntentos > 1 and i.vigente}">Vigente</span>
+                        </div>
+
+                        <div class="d-flex align-items-center gap-3">
+                            <span th:switch="${i.estado}">
+                                <span th:case="'APROBADA'" class="badge bg-success fs-6"><i class="bi bi-check-circle me-1"></i>Aprobada</span>
+                                <span th:case="'REPROBADA'" class="badge bg-danger fs-6"><i class="bi bi-x-circle me-1"></i>Reprobada</span>
+                                <span th:case="*" class="badge bg-warning text-dark fs-6"><i class="bi bi-hourglass-split me-1"></i>En curso</span>
+                            </span>
+                            <span>
+                                <span class="etiqueta me-1">Nota</span>
+                                <span class="fw-bold fs-5"
+                                      th:classappend="${i.nota != null and i.nota < 4.0} ? 'text-danger'"
+                                      th:text="${i.nota != null} ? ${#numbers.formatDecimal(i.nota, 1, 'POINT', 1, 'COMMA')} : '—'">5,5</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="row g-3 mb-3">
+                            <div class="col-sm-6">
+                                <span class="etiqueta">Fecha de inicio</span>
+                                <div class="fw-semibold"
+                                     th:text="${i.fechaInicio != null ? #temporals.format(i.fechaInicio, 'dd/MM/yyyy') : '—'}">—</div>
+                            </div>
+                            <div class="col-sm-6">
+                                <span class="etiqueta">Fecha de término</span>
+                                <div class="fw-semibold"
+                                     th:text="${i.fechaFin != null ? #temporals.format(i.fechaFin, 'dd/MM/yyyy') : '—'}">—</div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+
+                            <!-- Profesor de la asignatura -->
+                            <div class="col-md-6">
+                                <div class="card h-100 border shadow-none"><div class="card-body">
+                                    <div class="etiqueta mb-2"><i class="bi bi-person-badge me-1"></i>Profesor de la asignatura</div>
+                                    <th:block th:if="${i.profesor != null}">
+                                        <div class="fw-semibold" th:text="${i.profesor.nombre}">Nombre</div>
+                                        <div class="small text-muted"><i class="bi bi-envelope me-1"></i><span th:text="${#strings.isEmpty(i.profesor.correo) ? '—' : i.profesor.correo}">—</span></div>
+                                        <div class="small text-muted"><i class="bi bi-telephone me-1"></i><span th:text="${#strings.isEmpty(i.profesor.telefono) ? '—' : i.profesor.telefono}">—</span></div>
+                                    </th:block>
+                                    <p th:if="${i.profesor == null}" class="text-muted fst-italic mb-0">No asignado</p>
+                                </div></div>
+                            </div>
+
+                            <!-- Centro de práctica -->
+                            <div class="col-md-6" th:if="${p.conCentro}">
+                                <div class="card h-100 border shadow-none"><div class="card-body">
+                                    <div class="etiqueta mb-2"><i class="bi bi-building me-1"></i>Centro de práctica</div>
+                                    <th:block th:if="${i.centro != null}">
+                                        <div class="fw-semibold" th:text="${i.centro.nombre}">Colegio</div>
+                                        <div class="small text-muted"><i class="bi bi-geo-alt me-1"></i>
+                                            <span th:text="${#strings.isEmpty(i.centro.direccion) ? '—' : i.centro.direccion}">—</span></div>
+                                        <div class="small text-muted"><i class="bi bi-map me-1"></i>
+                                            <span th:text="${(i.centro.comuna != null ? i.centro.comuna : '—') + (i.centro.region != null ? ', ' + i.centro.region : '')}">—</span></div>
+                                    </th:block>
+                                    <p th:if="${i.centro == null}" class="text-muted fst-italic mb-0">No asignado</p>
+                                </div></div>
+                            </div>
+
+                            <!-- Profesor colaborador -->
+                            <div class="col-md-6" th:if="${p.conColaborador}">
+                                <div class="card h-100 border shadow-none"><div class="card-body">
+                                    <div class="etiqueta mb-2"><i class="bi bi-people me-1"></i>Profesor colaborador (colegio)</div>
+                                    <th:block th:if="${i.colaborador != null}">
+                                        <div class="fw-semibold" th:text="${i.colaborador.nombre}">Nombre</div>
+                                        <div class="small text-muted"><i class="bi bi-envelope me-1"></i><span th:text="${#strings.isEmpty(i.colaborador.correo) ? '—' : i.colaborador.correo}">—</span></div>
+                                        <div class="small text-muted"><i class="bi bi-telephone me-1"></i><span th:text="${#strings.isEmpty(i.colaborador.telefono) ? '—' : i.colaborador.telefono}">—</span></div>
+                                    </th:block>
+                                    <p th:if="${i.colaborador == null}" class="text-muted fst-italic mb-0">No asignado</p>
+                                </div></div>
+                            </div>
+
+                            <!-- Tutor supervisor -->
+                            <div class="col-md-6" th:if="${p.conTutor}">
+                                <div class="card h-100 border shadow-none"><div class="card-body">
+                                    <div class="etiqueta mb-2"><i class="bi bi-geo-alt-fill me-1"></i>Tutor universitario</div>
+                                    <th:block th:if="${i.tutor != null}">
+                                        <div class="fw-semibold" th:text="${i.tutor.nombre}">Nombre</div>
+                                        <div class="small text-muted"><i class="bi bi-envelope me-1"></i><span th:text="${#strings.isEmpty(i.tutor.correo) ? '—' : i.tutor.correo}">—</span></div>
+                                        <div class="small text-muted"><i class="bi bi-telephone me-1"></i><span th:text="${#strings.isEmpty(i.tutor.telefono) ? '—' : i.tutor.telefono}">—</span></div>
+                                    </th:block>
+                                    <p th:if="${i.tutor == null}" class="text-muted fst-italic mb-0">No asignado</p>
+                                </div></div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="ubb-footer compact">
+        <div class="container py-3 d-flex flex-column flex-md-row align-items-center justify-content-between gap-3 text-center text-md-start">
+            <div class="d-flex align-items-center gap-3">
+                <img th:src="@{/images/escudo-monocromatico-oscuro.png}" alt="Escudo Universidad del Bío-Bío" class="footer-logo">
+                <div>
+                    <div class="fw-bold">Universidad del Bío-Bío</div>
+                    <small>Escuela de Pedagogía en Educación Matemática</small>
+                </div>
+            </div>
+            <small>Plataforma de Prácticas · &copy; <span class="anio"></span></small>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>document.querySelectorAll('.anio').forEach(e => e.textContent = new Date().getFullYear());</script>
 </body>
 </html>
