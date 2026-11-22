@@ -174,5 +174,9 @@
 
       <!-- Asistente (consultas + revisión de documentos) -->
     <div th:replace="~{fragments/chatbot :: chatbot(true)}"></div>
+        <!-- Popup de aviso (mensaje enviado por el controlador) -->
+    <div th:if="${errorMensaje}" data-ubb-flash hidden data-tipo="error" data-titulo="Sin práctica asignada"
+         th:attr="data-mensaje=${errorMensaje}"></div>
+    <script th:src="@{/js/ubb-popup.js}"></script>
 </body>
 </html>

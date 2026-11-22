@@ -17,9 +17,17 @@ import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Rol;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.ProfesorRepository;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.services.UsuarioEdicionService;
 
+
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.EstadoPractica;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Practica;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.PracticaRepository;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.UsuarioRepository;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.security.Principal;
+import java.util.Comparator;
 
 @Controller
 public class ProfesorController {
@@ -32,7 +40,53 @@ public class ProfesorController {
     private ProfesorRepository profesorRepository;
 
     @Autowired
+    private PracticaRepository practicaRepository;
+
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+    @Autowired
     private UsuarioEdicionService usuarioEdicionService;
+
+    private static final Comparator<Practica> ORDEN_ESTUDIANTES = Comparator
+            .comparing((Practica p) -> p.getEstudiante() == null || p.getEstudiante().getApellido() == null
+                    ? "" : p.getEstudiante().getApellido(), String.CASE_INSENSITIVE_ORDER)
+            .thenComparing(Practica::getNumeroPractica, Comparator.nullsLast(Comparator.<Integer>naturalOrder()))
+            .thenComparing(Practica::getAno, Comparator.nullsLast(Comparator.<Integer>reverseOrder()))
+            .thenComparing(Practica::getSemestre, Comparator.nullsLast(Comparator.<Integer>reverseOrder()));
+
+    // "Mis Estudiantes" del profesor de asignatura (acceso por /profesor/** en SecurityConfig)
+    @GetMapping("/profesor/estudiantes")
+    @Transactional(readOnly = true)
+    public String misEstudiantes(Model model, Principal principal) {
+        Profesor profesor = profesorRepository.findById(principal.getName()).orElse(null);
+        if (profesor == null) {
+            return "redirect:/profesor/index";
+        }
+
+        List<Practica> practicas = practicaRepository.findByProfesor(profesor).stream()
+                .sorted(ORDEN_ESTUDIANTES)
+                .toList();
+
+        model.addAttribute("practicas", practicas);
+        model.addAttribute("total", practicas.size());
+        model.addAttribute("pendientes", contarPracticas(practicas, EstadoPractica.PENDIENTE));
+        model.addAttribute("aprobadas", contarPracticas(practicas, EstadoPractica.APROBADA));
+        model.addAttribute("reprobadas", contarPracticas(practicas, EstadoPractica.REPROBADA));
+
+        // Datos para la barra de navegación
+        usuarioRepository.findByRut(principal.getName()).ifPresent(u -> {
+            model.addAttribute("usuarioActivo", u);
+            model.addAttribute("rolesUsuario", u.getRoles().stream().map(Enum::name).toList());
+        });
+
+        return "Profesor/mis-estudiantes";
+    }
+
+    private long contarPracticas(List<Practica> practicas, EstadoPractica estado) {
+        return practicas.stream()
+                .filter(p -> (p.getEstado() == null ? EstadoPractica.PENDIENTE : p.getEstado()) == estado)
+                .count();
+    }
 
     @GetMapping("/profesores")
     public String listarProfesores(Model model) {

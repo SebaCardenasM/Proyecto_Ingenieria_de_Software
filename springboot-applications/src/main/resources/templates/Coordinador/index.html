@@ -163,6 +163,43 @@
                     </div>
                 </div>
             </div>
+                        <!-- 5. Monitoreo del Asistente IA -->
+            <div class="col-md-6">
+                <div class="card ubb-card accent-cyan" style="--i:4">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="icon-bubble"><i class="bi bi-robot"></i></div>
+                            <h4 class="card-title mb-0">Monitoreo del Asistente IA</h4>
+                        </div>
+                        <p class="card-text text-muted mb-4">Revisa los mensajes de cada estudiante con el asistente y genera un resumen de su retroalimentación.</p>
+                        <div class="d-grid gap-2">
+                            <a th:href="@{/monitoreo-chat}" class="btn btn-outline-info text-dark">
+                                <i class="bi bi-chat-square-text me-1"></i> Ver Mensajes de Estudiantes
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 6. Profesores Colaboradores -->
+            <div class="col-md-6">
+                <div class="card ubb-card accent-blue" style="--i:5">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="icon-bubble"><i class="bi bi-person-workspace"></i></div>
+                            <h4 class="card-title mb-0">Profesores Colaboradores</h4>
+                        </div>
+                        <p class="card-text text-muted mb-4">Docentes de los centros de práctica que guían y evalúan a los estudiantes. Registra sus datos de contacto y mantenlos al día.</p>
+                        <div class="d-grid gap-2">
+                            <a th:href="@{/colaboradores/nuevo}" class="btn btn-outline-primary">
+                                <i class="bi bi-person-plus me-1"></i> Registrar Colaborador
+                            </a>
+                            <a th:href="@{/colaboradores}" class="btn btn-outline-primary">
+                                <i class="bi bi-people me-1"></i> Ver Colaboradores
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
 

@@ -1,35 +1,42 @@
 package com.proyectoubbconfig.iswspring.app1.springboot_applications.controllers;
 
+import java.security.Principal;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-
-import com.proyectoubbconfig.iswspring.app1.springboot_applications.dto.DatosPautaColaborador;
-import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Documento;
-import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Estudiante;
-import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Pauta;
-import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Practica;
-import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.TipoEvaluador;
-import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.DocumentoRepository;
-import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.EstudianteRepository;
-import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.PracticaRepository;
-
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.proyectoubbconfig.iswspring.app1.springboot_applications.dto.NotasFiltro;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.dto.DatosPautaColaborador;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.dto.NotasFiltro; // ya lo tenías
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.dto.PracticaPanelDTO;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.dto.UsuarioEdicionDTO;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.CentroPractica;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Colaborador;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Documento;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Estudiante;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Pauta;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Practica;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Profesor;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.TipoEvaluador;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Usuario;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.DocumentoRepository;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.EstudianteRepository;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.PracticaRepository;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.ProfesorRepository;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.services.UsuarioEdicionService;
-
-import java.security.Principal;
-import java.util.List;
-import java.util.Optional;
 
 @Controller
 public class EstudianteController {
@@ -54,7 +61,118 @@ public class EstudianteController {
         model.addAttribute("estudiantes", estudianteRepository.findAll());
         return "Coordinador/estudiantes";
     }
+    
+        // Orden cronológico: el último de la lista es el intento vigente
+    private static final Comparator<Practica> CRONOLOGICO = Comparator
+            .comparing(Practica::getAno, Comparator.nullsFirst(Comparator.<Integer>naturalOrder()))
+            .thenComparing(Practica::getSemestre, Comparator.nullsFirst(Comparator.<Integer>naturalOrder()));
 
+    // Orden del plan de estudios (P1 a P6)
+    private static final String[] NOMBRES_PRACTICA = {
+            "Aproximación al sistema escolar",
+            "Ambientes de aprendizaje",
+            "Trabajo colaborativo en el aula",
+            "Investigación en el aula",
+            "Práctica pedagógica",
+            "Práctica profesional"
+    };
+
+    @GetMapping("/estudiante/practica")
+    @Transactional(readOnly = true)
+    public String miPractica(Model model, Principal principal, RedirectAttributes redirectAttributes) {
+        // El username de sesión es el RUT (CustomUserDetailsService)
+        Estudiante estudiante = estudianteRepository.findById(principal.getName())
+                .orElseThrow(() -> new IllegalArgumentException("Estudiante no encontrado: " + principal.getName()));
+
+        Map<Integer, List<Practica>> porNumero = practicaRepository.findPortafolioByRut(estudiante.getRut()).stream()
+                .filter(p -> p.getNumeroPractica() != null
+                        && p.getNumeroPractica() >= 1
+                        && p.getNumeroPractica() <= NotasFiltro.TOTAL_PRACTICAS)
+                .collect(Collectors.groupingBy(Practica::getNumeroPractica));
+
+        // Sin ninguna práctica asignada no hay nada que mostrar: vuelve al panel con un aviso
+        if (porNumero.isEmpty()) {
+            redirectAttributes.addFlashAttribute("errorMensaje",
+                    "Aún no tienes una práctica asignada. Consulta con coordinación.");
+            return "redirect:/estudiante/index";
+        }
+
+        List<PracticaPanelDTO> paneles = new ArrayList<>();
+        int ultimaExistente = 1;
+
+        for (int n = 1; n <= NotasFiltro.TOTAL_PRACTICAS; n++) {
+            List<Practica> cronologicas = porNumero.getOrDefault(n, List.of()).stream()
+                    .sorted(CRONOLOGICO)
+                    .toList();
+
+            List<PracticaPanelDTO.IntentoDTO> intentos = new ArrayList<>();
+            for (int i = 0; i < cronologicas.size(); i++) {
+                intentos.add(aIntento(cronologicas.get(i), i + 1, cronologicas.size(), i == cronologicas.size() - 1));
+            }
+            Collections.reverse(intentos);          // el vigente se muestra primero
+
+            if (!intentos.isEmpty()) ultimaExistente = n;
+            paneles.add(armarPanel(n, intentos));
+        }
+
+        // Pestaña abierta: la práctica actual del estudiante, o la más avanzada que exista
+        Integer actual = estudiante.getPracticaActual();
+        int tabActiva = (actual != null && porNumero.containsKey(actual)) ? actual : ultimaExistente;
+
+        model.addAttribute("paneles", paneles);
+        model.addAttribute("tabActiva", tabActiva);
+        model.addAttribute("practicaActual", actual);
+        model.addAttribute("usuarioActivo", estudiante);
+        model.addAttribute("rolesUsuario", estudiante.getRoles().stream().map(Enum::name).toList());
+        return "Estudiante/practica";
+    }
+
+    private PracticaPanelDTO armarPanel(int n, List<PracticaPanelDTO.IntentoDTO> intentos) {
+        boolean hayCentro = intentos.stream().anyMatch(i -> i.centro() != null);
+        boolean hayColaborador = intentos.stream().anyMatch(i -> i.colaborador() != null);
+        boolean hayTutor = intentos.stream().anyMatch(i -> i.tutor() != null);
+        return new PracticaPanelDTO(
+                n,
+                NOMBRES_PRACTICA[n - 1],
+                !intentos.isEmpty(),
+                n >= 3 || hayCentro,            // P1 y P2 son simulaciones en la universidad
+                n >= 3 || hayColaborador,
+                n == 6 || hayTutor,             // el tutor supervisor solo en la práctica profesional
+                intentos);
+    }
+
+    private PracticaPanelDTO.IntentoDTO aIntento(Practica p, int intento, int total, boolean vigente) {
+        return new PracticaPanelDTO.IntentoDTO(
+                p.getId(), intento, total, vigente,
+                p.getAno(), p.getSemestre(),
+                p.getEstado() != null ? p.getEstado().name() : "PENDIENTE",
+                p.getNotaAprobacion(),
+                p.getFechaInicio(), p.getFechaFin(),
+                contactoDe(p.getProfesor()),
+                contactoDe(p.getTutor()),
+                contactoDe(p.getColaborador()),
+                centroDe(p.getCentroPractica()));
+    }
+
+    private PracticaPanelDTO.ContactoDTO contactoDe(Usuario u) {
+        if (u == null) return null;
+        return new PracticaPanelDTO.ContactoDTO(u.getRut(),
+                ((u.getNombre() == null ? "" : u.getNombre()) + " " + (u.getApellido() == null ? "" : u.getApellido())).trim(),
+                u.getCorreo(), u.getTelefono());
+    }
+
+    private PracticaPanelDTO.ContactoDTO contactoDe(Colaborador c) {
+        if (c == null) return null;
+        return new PracticaPanelDTO.ContactoDTO(c.getRut(),
+                ((c.getNombre() == null ? "" : c.getNombre()) + " " + (c.getApellido() == null ? "" : c.getApellido())).trim(),
+                c.getCorreo(), c.getTelefono());
+    }
+
+    private PracticaPanelDTO.CentroDTO centroDe(CentroPractica c) {
+        if (c == null) return null;
+        String direccion = ((c.getCalle() == null ? "" : c.getCalle()) + " " + (c.getNumero() == null ? "" : c.getNumero())).trim();
+        return new PracticaPanelDTO.CentroDTO(c.getNombre(), direccion, c.getComuna(), c.getRegion());
+    }
     // Gestor de evidencias del estudiante (planificaciones e informes)
     @GetMapping("/estudiante/archivos")
     @Transactional(readOnly = true)
