@@ -26,8 +26,10 @@ import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.ProfesorRepository;
 
 /**
- * Revisión de planificaciones por el profesor UBB: al confirmar ("tick") se genera un enlace
- * temporal para el profesor colaborador y se avisa al estudiante.
+ * Revisión de planificaciones por el profesor UBB con dos ticks:
+ *  - Tick 1: la planificación ya fue revisada (se avisa al estudiante).
+ *  - Tick 2: la clase se evaluará con pautas (se genera el enlace temporal para el
+ *    profesor colaborador y se avisa al estudiante). Solo se habilita después del tick 1.
  */
 @Service
 public class RevisionPlanificacionService {
@@ -72,7 +74,8 @@ public class RevisionPlanificacionService {
         LocalDateTime expira = null;
         boolean puedeReenviar = false;
 
-        if (p.isRevisada()) {
+        // El enlace existe solo cuando la clase se marcó para evaluarse con pautas (tick 2)
+        if (p.isEvaluaConPautas()) {
             EnlaceEvaluacion ultimo = enlaceRepository
                     .findFirstByPlanificacionIdOrderByFechaCreacionDesc(p.getId()).orElse(null);
             if (ultimo != null) {
@@ -105,15 +108,16 @@ public class RevisionPlanificacionService {
                 pr != null && pr.getCentroPractica() != null ? pr.getCentroPractica().getNombre() : null,
                 p.isRevisada(),
                 p.getFechaRevision(),
+                p.isEvaluaConPautas(),
                 estado,
                 expira,
                 puedeReenviar);
     }
 
-    // ------------------------------------------------------------------ tick de confirmación
+    // ------------------------------------------------------------------ TICK 1: planificación revisada
 
     @Transactional(rollbackFor = Exception.class)
-    public EnlaceEvaluacion confirmar(Long idPlanificacion, String rutProfesor) throws Exception {
+    public void marcarRevisada(Long idPlanificacion, String rutProfesor) throws Exception {
         Planificacion p = planificacionRepository.findById(idPlanificacion)
                 .orElseThrow(() -> new Exception("No se encontró la planificación."));
 
@@ -121,7 +125,43 @@ public class RevisionPlanificacionService {
             throw new Exception("No tienes permiso para revisar esta planificación.");
         }
         if (p.isRevisada()) {
-            throw new Exception("Esta planificación ya fue confirmada.");
+            throw new Exception("Esta planificación ya fue marcada como revisada.");
+        }
+        Profesor profesor = profesorRepository.findById(rutProfesor)
+                .orElseThrow(() -> new Exception("No se encontró al profesor."));
+
+        p.setRevisada(true);
+        p.setFechaRevision(LocalDateTime.now());
+        p.setProfesorRevisor(profesor);
+        planificacionRepository.save(p);
+
+        // Aviso simple al estudiante (sin enlace)
+        Estudiante e = estudianteDe(p, practicaDe(p));
+        if (e != null) {
+            String quien = (profesor.getNombre() + " " + profesor.getApellido()).trim();
+            notificacionRepository.save(new Notificacion(
+                    e,
+                    "Tu planificación fue revisada",
+                    "Tu profesor " + quien + " revisó la planificación «" + p.getNombreArchivo() + "».",
+                    null));
+        }
+    }
+
+    // ------------------------------------------------------------------ TICK 2: la clase se evaluará con pautas
+
+    @Transactional(rollbackFor = Exception.class)
+    public EnlaceEvaluacion marcarEvaluaConPautas(Long idPlanificacion, String rutProfesor) throws Exception {
+        Planificacion p = planificacionRepository.findById(idPlanificacion)
+                .orElseThrow(() -> new Exception("No se encontró la planificación."));
+
+        if (!puedeRevisar(p, rutProfesor)) {
+            throw new Exception("No tienes permiso para revisar esta planificación.");
+        }
+        if (!p.isRevisada()) {
+            throw new Exception("Primero debes marcar la planificación como revisada.");
+        }
+        if (p.isEvaluaConPautas()) {
+            throw new Exception("Esta clase ya fue marcada para evaluarse con pautas.");
         }
 
         Practica pr = practicaDe(p);
@@ -134,9 +174,8 @@ public class RevisionPlanificacionService {
                 .orElseThrow(() -> new Exception("No se encontró al profesor."));
 
         p.setPractica(pr);
-        p.setRevisada(true);
-        p.setFechaRevision(LocalDateTime.now());
-        p.setProfesorRevisor(profesor);
+        p.setEvaluaConPautas(true);
+        p.setFechaMarcaPautas(LocalDateTime.now());
         planificacionRepository.save(p);
 
         return crearEnlaceYAviso(p, pr, e, profesor, false);
@@ -151,8 +190,8 @@ public class RevisionPlanificacionService {
         if (!puedeRevisar(p, rutProfesor)) {
             throw new Exception("No tienes permiso para revisar esta planificación.");
         }
-        if (!p.isRevisada()) {
-            throw new Exception("Primero debes confirmar la planificación.");
+        if (!p.isEvaluaConPautas()) {
+            throw new Exception("Primero debes marcar la clase para evaluarse con pautas.");
         }
 
         List<EnlaceEvaluacion> previos = enlaceRepository.findByPlanificacionId(idPlanificacion);
@@ -194,11 +233,11 @@ public class RevisionPlanificacionService {
         String quien = (profesor.getNombre() + " " + profesor.getApellido()).trim();
         String titulo = reenvio
                 ? "Nuevo enlace para tu profesor colaborador"
-                : "Tu planificación fue confirmada";
+                : "Tu clase será evaluada con pautas";
         String mensaje = (reenvio
                 ? "Tu profesor " + quien + " generó un nuevo enlace para la planificación «" + p.getNombreArchivo() + "». El enlace anterior ya no funciona. "
-                : "Tu planificación «" + p.getNombreArchivo() + "» (Práctica N° " + pr.getNumeroPractica()
-                    + ") fue confirmada por tu profesor " + quien + ". Ya puedes dar tu clase. ")
+                : "Tu profesor " + quien + " indicó que la clase de la planificación «" + p.getNombreArchivo()
+                    + "» (Práctica N° " + pr.getNumeroPractica() + ") se evaluará con pautas. Ya puedes dar tu clase. ")
                 + "Entrega el enlace de abajo a tu profesor colaborador para que complete su pauta de evaluación en línea. "
                 + "Es de un solo uso y vence el " + FMT.format(enlace.getFechaExpiracion()) + ".";
 
