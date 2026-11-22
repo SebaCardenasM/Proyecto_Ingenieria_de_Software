@@ -3,7 +3,9 @@ package com.proyectoubbconfig.iswspring.app1.springboot_applications.controllers
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -111,11 +113,35 @@ public class ChatbotController {
     }
     
 
-    // Vista de Analíticas para el Profesor / Coordinador (HU 2)
+    // Vista de Analíticas (HU 2). Coordinación ve todo; profesor de asignatura y tutor
+    // solo ven las consultas de los estudiantes de sus propias prácticas.
     @GetMapping("/profesor/analiticas-ia")
-    public String verAnaliticasIa(Model model) {
-        model.addAttribute("frecuentes", interaccionIARepository.obtenerDudasMasFrecuentes());
-        model.addAttribute("ultimasDudas", interaccionIARepository.findTop20ByOrderByFechaDesc());
+    public String verAnaliticasIa(Model model, Authentication authentication) {
+        if (tieneRol(authentication, "ROLE_COORDINADOR")) {
+            model.addAttribute("frecuentes", interaccionIARepository.obtenerDudasMasFrecuentes());
+            model.addAttribute("ultimasDudas", interaccionIARepository.findTop20ByOrderByFechaDesc());
+            return "Profesor/analiticas-ia";
+        }
+
+        Set<String> ruts = new HashSet<>();
+        if (tieneRol(authentication, "ROLE_PROFESOR_ASIGNATURA")) {
+            ruts.addAll(practicaRepository.findRutsEstudiantesDeProfesor(authentication.getName()));
+        }
+        if (tieneRol(authentication, "ROLE_TUTOR")) {
+            ruts.addAll(practicaRepository.findRutsEstudiantesDeTutor(authentication.getName()));
+        }
+
+        if (ruts.isEmpty()) {   // sin estudiantes: no se consulta (evita un IN vacío)
+            model.addAttribute("frecuentes", List.of());
+            model.addAttribute("ultimasDudas", List.of());
+        } else {
+            model.addAttribute("frecuentes", interaccionIARepository.obtenerDudasMasFrecuentesDe(ruts));
+            model.addAttribute("ultimasDudas", interaccionIARepository.findTop20ByRutEstudianteInOrderByFechaDesc(ruts));
+        }
         return "Profesor/analiticas-ia";
+    }
+
+    private boolean tieneRol(Authentication authentication, String rol) {
+        return authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals(rol));
     }
 }

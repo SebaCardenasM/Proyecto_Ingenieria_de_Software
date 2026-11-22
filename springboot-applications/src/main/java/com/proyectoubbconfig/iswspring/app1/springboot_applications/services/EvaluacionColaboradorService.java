@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 import java.util.Map;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.time.ZoneId;
 
@@ -29,6 +28,7 @@ import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.PautaRepository;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.PlanificacionRepository;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.PracticaRepository;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.util.RutUtil;
 
 /**
  * Pauta en línea del profesor colaborador. No hay cuenta ni login: el acceso es solo
@@ -38,7 +38,6 @@ import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories
 public class EvaluacionColaboradorService {
 
     public static final int TOTAL_CRITERIOS = 20;
-    private static final Pattern RUT = Pattern.compile("^(\\d{7,8})-?([\\dK])$");
     private static final Pattern CORREO = Pattern.compile("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
 
     public enum Estado { OK, INVALIDO, EXPIRADO, USADO }
@@ -179,8 +178,8 @@ public class EvaluacionColaboradorService {
         // ---- profesor colaborador (sin cuenta): el de la práctica, o el que se identifica aquí
         Colaborador colaborador = pr.getColaborador();
         if (colaborador == null) {
-            String rut = normalizarRut(p.get("rutColaborador"));
-            if (rut == null || !rutValido(rut)) {
+            String rut = RutUtil.conPuntos(p.get("rutColaborador"));   // formato canónico: con puntos
+            if (rut == null || !RutUtil.esValido(rut)) {
                 throw new IllegalArgumentException("El RUT ingresado no es válido.");
             }
             String nombre = requerido(p, "nombreColaborador", 100, "Nombre");
@@ -190,9 +189,7 @@ public class EvaluacionColaboradorService {
                 throw new IllegalArgumentException("El correo ingresado no es válido.");
             }
 
-            colaborador = colaboradorRepository.findById(rut)
-                    .or(() -> colaboradorRepository.findById(conPuntos(rut)))
-                    .orElse(null);
+            colaborador = buscarColaborador(rut);
             if (colaborador == null) {
                 colaborador = new Colaborador();
                 colaborador.setRut(rut);
@@ -200,6 +197,12 @@ public class EvaluacionColaboradorService {
                 colaborador.setApellido(apellido);
                 colaborador.setCorreo(correo);
                 colaborador = colaboradorRepository.save(colaborador);
+            } else if (colaborador.getCorreo() == null
+                    || !colaborador.getCorreo().trim().equalsIgnoreCase(correo)) {
+                // RUT ya registrado: solo se asocia si el correo coincide; los datos guardados nunca se pisan
+                throw new IllegalArgumentException(
+                        "Los datos ingresados no coinciden con los de un profesor colaborador ya registrado con ese RUT. "
+                        + "Revisa el correo o pide a coordinación que te asigne a esta práctica.");
             }
             pr.setColaborador(colaborador);     // queda ligado a la práctica
             practicaRepository.save(pr);
@@ -296,39 +299,13 @@ public class EvaluacionColaboradorService {
         return valor;
     }
 
-    // "12.345.678-9" / "123456789" -> "12345678-9"; null si no tiene forma de RUT
-    private static String normalizarRut(String texto) {
-        if (texto == null) return null;
-        String limpio = texto.replace(".", "").replace(" ", "").toUpperCase();
-        Matcher m = RUT.matcher(limpio);
-        return m.matches() ? m.group(1) + "-" + m.group(2) : null;
-    }
-
-    // Módulo 11
-    private static boolean rutValido(String rut) {
-        String cuerpo = rut.substring(0, rut.length() - 2);
-        char dv = rut.charAt(rut.length() - 1);
-        int suma = 0;
-        int multiplo = 2;
-        for (int i = cuerpo.length() - 1; i >= 0; i--) {
-            suma += (cuerpo.charAt(i) - '0') * multiplo;
-            multiplo = multiplo < 7 ? multiplo + 1 : 2;
+    // Busca tolerando RUT guardados con o sin puntos (registros anteriores a RutUtil)
+    private Colaborador buscarColaborador(String rut) {
+        for (String clave : new String[] { rut, RutUtil.normalizar(rut) }) {
+            if (clave == null) continue;
+            Colaborador c = colaboradorRepository.findById(clave).orElse(null);
+            if (c != null) return c;
         }
-        int resto = 11 - (suma % 11);
-        char esperado = resto == 11 ? '0' : (resto == 10 ? 'K' : (char) ('0' + resto));
-        return dv == esperado;
-    }
-
-    // "12345678-9" -> "12.345.678-9" (los RUT existentes podrían estar guardados con puntos)
-    private static String conPuntos(String rut) {
-        String cuerpo = rut.substring(0, rut.length() - 2);
-        char dv = rut.charAt(rut.length() - 1);
-        StringBuilder invertido = new StringBuilder(cuerpo).reverse();
-        StringBuilder con = new StringBuilder();
-        for (int i = 0; i < invertido.length(); i++) {
-            if (i > 0 && i % 3 == 0) con.append('.');
-            con.append(invertido.charAt(i));
-        }
-        return con.reverse().toString() + "-" + dv;
+        return null;
     }
 }
