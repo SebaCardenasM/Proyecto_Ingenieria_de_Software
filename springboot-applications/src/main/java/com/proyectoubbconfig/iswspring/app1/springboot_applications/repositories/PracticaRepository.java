@@ -32,5 +32,9 @@ public interface PracticaRepository extends JpaRepository<Practica, Long> {
     @Query("SELECT DISTINCT p.estudiante.rut FROM Practica p WHERE p.profesor.rut = :rut AND p.estudiante IS NOT NULL")
     List<String> findRutsEstudiantesDeProfesor(@Param("rut") String rutProfesor);
 
+    // RUT de los estudiantes que tienen una práctica supervisada por este tutor
+    @Query("SELECT DISTINCT p.estudiante.rut FROM Practica p WHERE p.tutor.rut = :rut AND p.estudiante IS NOT NULL")
+    List<String> findRutsEstudiantesDeTutor(@Param("rut") String rutTutor);
+
     boolean existsByProfesorRutAndEstudianteRut(String rutProfesor, String rutEstudiante);
 }
