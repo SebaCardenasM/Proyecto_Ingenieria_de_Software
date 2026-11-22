@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Planificación de clase - Prácticas UBB</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .ubb-bg { background-color: #004b85; }
+        body { background-color: #f4f6f9; }
+        .section-title { font-size: 1.05rem; font-weight: 700; color: #004b85; border-bottom: 2px solid #004b85;
+                         padding-bottom: 6px; margin: 2rem 0 1rem; }
+        @media print { .no-print { display: none !important; } }
+    </style>
+    <link th:href="@{/css/ubb-index.css}" rel="stylesheet">
+</head>
+<body class="ubb-page ubb-inner">
+
+    <nav class="navbar navbar-dark ubb-bg mb-4 shadow-sm no-print">
+        <div class="container">
+            <div class="d-flex align-items-center">
+                <img th:src="@{/images/escudo-monocromatico-oscuro.png}" alt="Escudo Universidad del Bío-Bío" class="nav-logo">
+                <a class="navbar-brand fw-bold" th:href="@{${volver}}"><i class="bi bi-arrow-left-circle me-2"></i>Volver</a>
+            </div>
+            <span class="text-white"><i class="bi bi-journal-text me-1"></i> Planificación de clase</span>
+        </div>
+    </nav>
+
+    <div class="container mb-5" style="max-width: 1000px;">
+        <div class="card border-0 shadow-sm"><div class="card-body p-4 p-md-5">
+
+            <h3 class="fw-bold mb-1">Planificación Diversificada de Aula</h3>
+            <p class="text-muted" th:if="${modoLectura}">Estudiante: <strong th:text="${estudianteNombre}"></strong></p>
+            <p class="text-muted" th:unless="${modoLectura}">Completa el formato. Puedes guardar como borrador en cualquier momento; los campos con * se exigen al enviar.</p>
+
+            <div th:if="${error}" class="alert alert-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${error}"></span></div>
+
+            <form th:action="@{/estudiante/planificacion/guardar}" method="post">
+                <input type="hidden" name="idPlanificacion" th:value="${idPlanificacion}">
+
+                <div class="row g-3 mt-1">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" for="numeroPractica">Práctica *</label>
+                        <select id="numeroPractica" name="numeroPractica" class="form-select" required th:disabled="${modoLectura}">
+                            <option value="" disabled th:selected="${numeroPractica == null}">Selecciona tu práctica...</option>
+                            <option th:each="pr : ${misPracticas}" th:value="${pr.numeroPractica}"
+                                    th:selected="${pr.numeroPractica == numeroPractica}"
+                                    th:text="'Práctica N° ' + ${pr.numeroPractica} + ' (' + ${pr.ano} + '-' + ${pr.semestre} + ')'"></option>
+                        </select>
+                        <!-- en modo lectura se muestra el número como texto -->
+                        <div th:if="${modoLectura}" class="form-text" th:text="'Práctica N° ' + ${numeroPractica}"></div>
+                    </div>
+                </div>
+
+                <th:block th:each="s : ${secciones}">
+                    <h2 class="section-title" th:text="${s.titulo}">Sección</h2>
+                    <div class="row g-3">
+                        <div th:each="c : ${s.campos}" th:classappend="${c.tipo == 'textarea' ? 'col-12' : 'col-md-6'}">
+                            <label class="form-label fw-semibold" th:for="${c.clave}"
+                                   th:text="${c.etiqueta} + (${c.requerido} ? ' *' : '')">Campo</label>
+
+                            <textarea th:if="${c.tipo == 'textarea'}" class="form-control"
+                                      th:id="${c.clave}" th:name="${c.clave}" th:rows="${c.filas}" th:maxlength="${c.max}"
+                                      th:required="${c.requerido}" th:readonly="${modoLectura}"
+                                      th:text="${valores[c.clave]}"></textarea>
+
+                            <input th:unless="${c.tipo == 'textarea'}" class="form-control"
+                                   th:type="${c.tipo}" th:id="${c.clave}" th:name="${c.clave}" th:maxlength="${c.max}"
+                                   th:required="${c.requerido}" th:readonly="${modoLectura}"
+                                   th:value="${valores[c.clave]}">
+
+                            <div class="form-text" th:if="${c.ayuda != ''}" th:text="${c.ayuda}"></div>
+                        </div>
+                    </div>
+                </th:block>
+
+                <div class="d-flex flex-wrap justify-content-end gap-2 mt-4 pt-3 border-top no-print">
+                    <button type="button" class="btn btn-outline-dark" onclick="window.print()"><i class="bi bi-printer me-1"></i>Imprimir / PDF</button>
+
+                    <th:block th:unless="${modoLectura}">
+                        <button type="submit" name="accion" value="BORRADOR" formnovalidate class="btn btn-warning fw-semibold">
+                            <i class="bi bi-floppy-fill me-1"></i>Guardar borrador
+                        </button>
+                        <button th:unless="${revisionIaObligatoria}" type="submit" name="accion" value="ENVIAR"
+                                class="btn btn-success fw-semibold"
+                                onclick="return confirm('¿Enviar la planificación al gestor? Tus profesores podrán verla y ya no podrás editarla.')">
+                            <i class="bi bi-send-check me-1"></i>Enviar al gestor
+                        </button>
+                    </th:block>
+                </div>
+                <p th:if="${revisionIaObligatoria and !modoLectura}" class="small text-muted text-end mb-0">
+                    La revisión con el asistente es obligatoria: guarda el borrador, revísalo y envíalo desde «Mis Evidencias».
+                </p>
+            </form>
+        </div></div>
+    </div>
+</body>
+</html>
