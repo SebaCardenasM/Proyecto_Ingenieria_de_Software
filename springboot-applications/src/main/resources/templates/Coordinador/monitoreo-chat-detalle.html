@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="_csrf" th:content="${_csrf?.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf?.headerName}"/>
+    <title>Conversación del estudiante - Prácticas UBB</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .ubb-bg { background-color: #004b85; }
+        .burbuja { white-space: pre-line; border-radius: 12px; padding: .6rem .85rem; font-size: .9rem; }
+        .burbuja.est { background: #004b85; color: #fff; }
+        .burbuja.bot { background: #f1f6fc; border: 1px solid #dbe5f0; color: #243447; }
+        #resumenTexto p { margin: 0 0 .4rem; } #resumenTexto ul { margin: .2rem 0 .5rem; padding-left: 1.2rem; }
+        .conv-scroll { max-height: 70vh; overflow-y: auto; }
+    </style>
+    <link th:href="@{/css/ubb-index.css}" rel="stylesheet">
+</head>
+<body class="ubb-page ubb-inner">
+
+    <nav class="navbar navbar-dark ubb-bg mb-4 shadow-sm">
+        <div class="container-fluid px-4">
+            <div class="d-flex align-items-center">
+                <img th:src="@{/images/escudo-monocromatico-oscuro.png}" alt="Escudo Universidad del Bío-Bío" class="nav-logo">
+                <a class="navbar-brand fw-bold" th:href="@{${base}}"><i class="bi bi-arrow-left-circle me-2"></i>Volver al listado</a>
+            </div>
+            <div class="d-flex text-white align-items-center"><i class="bi bi-robot fs-5 me-2"></i> <span th:text="${rolPanel}">Coordinación</span></div>
+        </div>
+    </nav>
+
+    <div class="container-fluid px-4 px-md-5 mb-5">
+        <div class="mb-4">
+            <h2 class="fw-bold text-dark mb-0">
+                <i class="bi bi-person-lines-fill text-primary me-2"></i>
+                <span th:text="${estudiante.nombre + ' ' + estudiante.apellido}">Estudiante</span>
+            </h2>
+            <p class="text-muted mt-1 mb-0">
+                RUT <span th:text="${estudiante.rut}">00.000.000-0</span> ·
+                <span th:text="${#lists.size(mensajes)}">0</span> mensajes
+                <span class="small">(se muestran los 200 más recientes)</span>
+            </p>
+        </div>
+
+        <div class="row g-4">
+            <!-- Resumen con IA -->
+            <div class="col-lg-5">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3 gap-2">
+                            <h5 class="fw-bold mb-0"><i class="bi bi-stars text-warning me-2"></i>Resumen de retroalimentación</h5>
+                            <button id="btnResumen" type="button" class="btn btn-primary btn-sm text-nowrap"
+                                    th:attr="data-rut=${estudiante.rut}" th:disabled="${#lists.isEmpty(mensajes)}">
+                                <i class="bi bi-robot me-1"></i>Generar resumen
+                            </button>
+                        </div>
+                        <div id="resumenTexto" class="small text-muted">
+                            Pulsa «Generar resumen» para que el asistente analice los mensajes y las revisiones de documentos de este estudiante.
+                        </div>
+                        <hr>
+                        <small class="text-muted">Resumen orientativo generado por IA a partir de los mensajes. No es una evaluación del estudiante.</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Conversación -->
+            <div class="col-lg-7">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3 gap-2">
+                            <h5 class="fw-bold mb-0"><i class="bi bi-chat-dots-fill text-success me-2"></i>Registro de mensajes</h5>
+                            <select id="filtroCategoria" class="form-select form-select-sm" style="max-width: 260px;">
+                                <option value="">Todas las categorías</option>
+                            </select>
+                        </div>
+
+                        <div class="conv-scroll">
+                            <div th:each="m : ${mensajes}" class="mb-4 mensaje" th:attr="data-categoria=${m.categoriaDuda}">
+                                <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                                    <small class="text-muted" th:text="${#temporals.format(m.fecha, 'dd/MM/yyyy HH:mm')}">fecha</small>
+                                    <span class="badge bg-info text-dark" th:text="${m.categoriaDuda}">Categoría</span>
+                                    <span class="badge bg-secondary" th:if="${m.nivelPractica != null}" th:text="'Práctica ' + ${m.nivelPractica}">P1</span>
+                                </div>
+                                <div class="burbuja est mb-2" th:text="${m.promptUsuario}">Pregunta</div>
+                                <div class="burbuja bot" th:text="${m.respuestaIa}">Respuesta</div>
+                            </div>
+
+                            <div th:if="${#lists.isEmpty(mensajes)}" class="text-center text-muted py-5">
+                                <i class="bi bi-inbox fs-3 d-block mb-2"></i>Este estudiante aún no ha escrito al asistente.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const esc = v => String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        const inline = s => s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+        function formatear(texto) {
+            let html = '', enLista = false;
+            for (const linea of esc(texto).split(/\r?\n/)) {
+                const m = linea.match(/^\s*[-*•]\s+(.*)$/);
+                if (m) {
+                    if (!enLista) { html += '<ul>'; enLista = true; }
+                    html += '<li>' + inline(m[1]) + '</li>';
+                } else {
+                    if (enLista) { html += '</ul>'; enLista = false; }
+                    if (linea.trim()) html += '<p>' + inline(linea) + '</p>';
+                }
+            }
+            return enLista ? html + '</ul>' : html;
+        }
+
+        // ---- filtro por categoría (se arma con las categorías que existen)
+        const mensajes = Array.from(document.querySelectorAll('.mensaje'));
+        const filtro = document.getElementById('filtroCategoria');
+        [...new Set(mensajes.map(m => m.dataset.categoria))].sort().forEach(c => {
+            const o = document.createElement('option');
+            o.value = c; o.textContent = c;
+            filtro.appendChild(o);
+        });
+        filtro.addEventListener('change', () => {
+            mensajes.forEach(m => m.classList.toggle('d-none', filtro.value !== '' && m.dataset.categoria !== filtro.value));
+        });
+
+        // ---- resumen con IA
+        const btn = document.getElementById('btnResumen');
+        const cont = document.getElementById('resumenTexto');
+        btn.addEventListener('click', async () => {
+            btn.disabled = true;
+            cont.className = 'small';
+            cont.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>El asistente está leyendo la conversación…';
+            try {
+                const headers = { 'Accept': 'application/json' };
+                const token = document.querySelector('meta[name="_csrf"]')?.content;
+                const cab = document.querySelector('meta[name="_csrf_header"]')?.content;
+                if (token && cab) headers[cab] = token;
+
+                const res = await fetch('/api/chat/resumen/' + encodeURIComponent(btn.dataset.rut), { method: 'POST', headers });
+                const data = await res.json().catch(() => ({}));
+                cont.innerHTML = res.ok
+                    ? formatear(data.respuesta)
+                    : '<div class="text-danger">' + esc(data.respuesta || 'No se pudo generar el resumen.') + '</div>';
+            } catch (e) {
+                cont.innerHTML = '<div class="text-danger">Error de conexión con el servidor.</div>';
+            }
+            btn.disabled = false;
+        });
+    </script>
+</body>
+</html>

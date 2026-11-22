@@ -16,6 +16,7 @@ import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.EstudianteRepository;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.PracticaRepository;
 
+
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,6 +31,7 @@ import com.proyectoubbconfig.iswspring.app1.springboot_applications.services.Usu
 import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
+import java.util.Comparator;
 
 @Controller
 public class EstudianteController {
@@ -54,7 +56,41 @@ public class EstudianteController {
         model.addAttribute("estudiantes", estudianteRepository.findAll());
         return "Coordinador/estudiantes";
     }
+    
+    @GetMapping("/estudiante/practica")
+    @Transactional(readOnly = true)
+    public String miPractica(Model model, Principal principal) {
+        // El username de sesión es el RUT (CustomUserDetailsService)
+        Estudiante estudiante = estudianteRepository.findById(principal.getName())
+                .orElseThrow(() -> new IllegalArgumentException("Estudiante no encontrado: " + principal.getName()));
 
+        List<Practica> practicas = practicaRepository.findByEstudiante(estudiante);
+
+        // Práctica actual del estudiante
+        Comparator<Practica> masReciente = Comparator
+        .comparing(Practica::getAno, Comparator.nullsFirst(Comparator.<Integer>naturalOrder()))
+        .thenComparing(Practica::getSemestre, Comparator.nullsFirst(Comparator.<Integer>naturalOrder()));
+
+        Practica practica = practicas.stream()
+                .filter(p -> p.getNumeroPractica() != null
+                        && p.getNumeroPractica().equals(estudiante.getPracticaActual()))
+                .max(masReciente)
+                .orElseGet(() -> practicas.stream()
+                        .filter(p -> p.getNumeroPractica() != null)
+                        .max(Comparator.comparing(Practica::getNumeroPractica).thenComparing(masReciente))
+                        .orElse(null));
+
+        if (practica != null) {
+            model.addAttribute("practica", practica);
+            model.addAttribute("centro", practica.getCentroPractica());
+            model.addAttribute("colaborador", practica.getColaborador());
+            model.addAttribute("tutor", practica.getTutor());
+            model.addAttribute("profesorAsignatura", practica.getProfesor());
+        }
+        // Sin práctica, los atributos no existen y el HTML muestra "no asignado" en las cuatro tarjetas
+
+        return "Estudiante/practica";
+    }
     // Gestor de evidencias del estudiante (planificaciones e informes)
     @GetMapping("/estudiante/archivos")
     @Transactional(readOnly = true)
