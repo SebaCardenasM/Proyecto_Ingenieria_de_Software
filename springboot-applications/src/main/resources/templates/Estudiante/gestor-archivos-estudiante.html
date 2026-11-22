@@ -190,7 +190,6 @@
                             <label for="tipoDocumentoSelect" class="form-label fw-semibold text-secondary">Tipo de Evidencia</label>
                             <select class="form-select" id="tipoDocumentoSelect" name="tipoDocumento" required>
                                 <option value="" selected disabled>Seleccione el tipo...</option>
-                                <option value="PLANIFICACION">Planificación</option>
                                 <option value="INFORME_FINAL">Informe Final</option>
                             </select>
                         </div>
@@ -285,6 +284,7 @@
                 if (respuesta.status === 204 || respuesta.status === 404) { archivosGlobales = []; renderizarTabla(); return; }
                 if (!respuesta.ok) throw new Error('El servidor respondió ' + respuesta.status);
                 archivosGlobales = await respuesta.json();
+                archivosGlobales = archivosGlobales.filter(a => a.tipoDocumento !== 'PLANIFICACION');
                 renderizarTabla();
             } catch (error) {
                 tabla.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">Error al cargar evidencias.</td></tr>';

@@ -69,20 +69,20 @@
             <p>Gestiona tus entregas, revisa tu estado de práctica y consulta tus avances.</p>
         </section>
 
-        <!-- Aviso de novedades (planificación confirmada, pauta recibida...) -->
-        <div th:if="${avisosNuevos != null and avisosNuevos > 0}"
-             class="alert alert-warning border-0 shadow-sm d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4" role="alert">
-            <div>
-                <i class="bi bi-bell-fill me-2"></i>
-                <strong th:text="${avisosNuevos == 1 ? 'Tienes 1 aviso nuevo' : 'Tienes ' + avisosNuevos + ' avisos nuevos'}">Tienes avisos nuevos</strong>
-                <span class="text-muted ms-1">Revisa los enlaces para tu profesor colaborador.</span>
+            <!-- Aviso de novedades (planificación confirmada, pauta recibida...) -->
+            <div th:if="${avisosNuevos != null and avisosNuevos > 0}"
+                class="alert alert-warning border-0 shadow-sm d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4" role="alert">
+                <div>
+                    <i class="bi bi-bell-fill me-2"></i>
+                    <strong th:text="${avisosNuevos == 1 ? 'Tienes 1 aviso nuevo' : 'Tienes ' + avisosNuevos + ' avisos nuevos'}">Tienes avisos nuevos</strong>
+                    <span class="text-muted ms-1">Revisa los enlaces para tu profesor colaborador.</span>
+                </div>
+                <a th:href="@{/estudiante/avisos}" class="btn btn-warning btn-sm fw-semibold"><i class="bi bi-arrow-right-circle me-1"></i>Ver avisos</a>
             </div>
-            <a th:href="@{/estudiante/avisos}" class="btn btn-warning btn-sm fw-semibold"><i class="bi bi-arrow-right-circle me-1"></i>Ver avisos</a>
-        </div>
 
-        <div class="row g-4">
+            <div class="row g-4">
             <!-- Mis Prácticas -->
-            <div class="col-md-6 col-xl-3">
+            <div class="col-md-6 col-xl-4">
                 <div class="card ubb-card accent-green" style="--i:0">
                     <div class="card-body">
                         <div class="d-flex align-items-center mb-3">
@@ -99,8 +99,26 @@
                 </div>
             </div>
 
+            <!-- Mis Planificaciones -->
+            <div class="col-md-6 col-xl-4">
+                <div class="card ubb-card accent-green" style="--i:1">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="icon-bubble"><i class="bi bi-clipboard2-check"></i></div>
+                            <h4 class="card-title mb-0">Mis Planificaciones</h4>
+                        </div>
+                        <p class="card-text text-muted mb-4">Completa tu planificación en un formulario o sube tu archivo, revísala con el asistente y envíala a tu profesor.</p>
+                        <div class="d-grid gap-2">
+                            <a th:href="@{/estudiante/planificaciones}" class="btn btn-outline-success">
+                                <i class="bi bi-pencil-square me-1"></i> Crear / Ver Planificaciones
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Subir Evidencias / Archivos -->
-            <div class="col-md-6 col-xl-3">
+            <div class="col-md-6 col-xl-4">
                 <div class="card ubb-card accent-red" style="--i:1">
                     <div class="card-body">
                         <div class="d-flex align-items-center mb-3">
@@ -118,7 +136,7 @@
             </div>
 
             <!-- Mis Pautas de Evaluación -->
-            <div class="col-md-6 col-xl-3">
+            <div class="col-md-6 col-xl-4">
                 <div class="card ubb-card accent-blue" style="--i:2">
                     <div class="card-body">
                         <div class="d-flex align-items-center mb-3">
@@ -136,7 +154,7 @@
             </div>
 
             <!-- Portafolio Personal -->
-            <div class="col-md-6 col-xl-3">
+            <div class="col-md-6 col-xl-4">
                 <div class="card ubb-card accent-amber" style="--i:3">
                     <div class="card-body">
                         <div class="d-flex align-items-center mb-3">
