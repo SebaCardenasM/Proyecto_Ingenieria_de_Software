@@ -49,6 +49,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/chat/preguntar").authenticated()
                 // Paso 2 de la cadena: revisión de borradores (solo estudiantes)
                 .requestMatchers(HttpMethod.POST, "/api/chat/revisar/**").hasRole("ESTUDIANTE")
+                .requestMatchers(HttpMethod.GET, "/api/chat/historial").authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/chat/resumen/**").hasAnyRole("COORDINADOR", "PROFESOR_ASIGNATURA")
                 // Cualquier otro endpoint de la API queda bloqueado (debe ir DESPUÉS de definir las rutas de /api/ permitidas)
                 .requestMatchers("/api/**").denyAll()
 
@@ -63,6 +65,10 @@ public class SecurityConfig {
                 .requestMatchers("/estudiantes/**", "/profesores/**", "/practicas/**",
                                 "/gestor-archivos/**", "/portafolios/**", "/usuarios/**",
                                 "/index").hasRole("COORDINADOR")
+                
+                .requestMatchers("/estudiantes/**", "/profesores/**", "/practicas/**",
+                                "/gestor-archivos/**", "/portafolios/**", "/usuarios/**",
+                                "/monitoreo-chat/**", "/index").hasRole("COORDINADOR")
 
                 // Esta línea SIEMPRE debe ser la última
                 .anyRequest().authenticated()

@@ -44,10 +44,36 @@
     // ---------------------------------------------------------------- panel
     const panel = $('ubbChatPanel');
 
-    function abrir() {
-    panel.hidden = false;
-    $('ubbChatFab').hidden = true;          // el botón se oculta mientras el panel está abierto
-    if (!$('ubbChatMsgs').childElementCount) saludar();
+        let historialCargado = false;
+
+    async function cargarHistorial() {
+        if (historialCargado) return;
+        historialCargado = true;
+        try {
+            const res = await api('/api/chat/historial');
+            const lista = res.ok ? await res.json() : [];
+            if (!lista.length) return;
+
+            $('ubbChatChips').hidden = true;
+            const sep = document.createElement('div');
+            sep.className = 'ubb-sep';
+            sep.textContent = 'Conversaciones anteriores';
+            msgs.appendChild(sep);
+
+            lista.forEach(m => {
+                agregarMensaje('user', esc(m.pregunta));
+                agregarMensaje('bot', formatear(m.respuesta));
+            });
+        } catch (e) { /* sin historial: el chat funciona igual */ }
+    }
+
+    async function abrir() {
+        panel.hidden = false;
+        $('ubbChatFab').hidden = true;
+        if (!$('ubbChatMsgs').childElementCount) {
+            saludar();
+            await cargarHistorial();
+        }
     }
     function cerrar() { panel.hidden = true; $('ubbChatFab').hidden = false; }
     $('ubbChatFab').addEventListener('click', abrir);
