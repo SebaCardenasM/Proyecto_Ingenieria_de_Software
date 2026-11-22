@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mi Práctica - Plataforma de Prácticas</title>
+    <style>
+        :root {
+            --azul-oscuro: #0a3d7a;
+            --azul: #0b6bc4;
+            --verde: #1f9d63;
+            --naranja: #f5a400;
+            --rojo: #e04b59;
+            --texto: #1f2d3d;
+            --gris: #6b7a8c;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            color: var(--texto);
+            background: linear-gradient(135deg, #f1f5fb, #d9edf8);
+            min-height: 100vh;
+        }
+        header {
+            background: linear-gradient(90deg, #052c5c, #0b5aa8);
+            color: #fff;
+            padding: 18px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        header h1 { margin: 0; font-size: 1.3rem; }
+        header a {
+            color: #fff;
+            text-decoration: none;
+            border: 1px solid rgba(255, 255, 255, .6);
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: .9rem;
+        }
+        main { max-width: 1100px; margin: 28px auto; padding: 0 20px; }
+        .banner {
+            background: linear-gradient(90deg, #0a5db5, #0b7be0);
+            color: #fff;
+            border-radius: 18px;
+            padding: 26px 34px;
+            margin-bottom: 26px;
+        }
+        .banner small { letter-spacing: 1px; opacity: .85; }
+        .banner h2 { margin: 6px 0; font-size: 2rem; }
+        .banner p { margin: 0; opacity: .9; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 22px;
+        }
+        .card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 6px 18px rgba(10, 61, 122, .1);
+            border-top: 6px solid var(--azul);
+        }
+        .card.centro { border-top-color: var(--verde); }
+        .card.colaborador { border-top-color: var(--naranja); }
+        .card.asignatura { border-top-color: var(--rojo); }
+        .card h3 { margin: 0 0 14px; font-size: 1.25rem; }
+        dl { margin: 0; }
+        dt {
+            font-size: .75rem;
+            text-transform: uppercase;
+            letter-spacing: .6px;
+            color: var(--gris);
+            margin-top: 12px;
+        }
+        dd { margin: 2px 0 0; font-size: 1.02rem; font-weight: 500; }
+        .no-asignado { color: var(--gris); font-style: italic; margin: 0; }
+        .volver {
+            display: inline-block;
+            margin-top: 26px;
+            color: var(--azul-oscuro);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        footer {
+            background: #052c5c;
+            color: #fff;
+            padding: 20px 40px;
+            margin-top: 40px;
+            border-top: 4px solid #f5b400;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Plataforma de Prácticas</h1>
+    <a th:href="@{/logout}">Salir</a>
+</header>
+
+<main>
+    <section class="banner">
+        <small>PORTAL DEL ESTUDIANTE</small>
+        <h2>Mi Práctica</h2>
+        <p>Detalles de tu centro de práctica, profesor colaborador, tutor universitario y profesor de la asignatura.</p>
+    </section>
+
+    <section class="grid">
+
+        <!-- Centro de práctica -->
+        <article class="card centro">
+            <h3>Centro de práctica</h3>
+            <dl th:if="${centro != null}">
+                <dt>Nombre</dt>
+                <dd th:text="${centro.nombre}"></dd>
+                <dt>Dirección</dt>
+                <dd th:text="${(centro.calle ?: '') + ' ' + (centro.numero ?: '')}"></dd>
+                <dt>Comuna</dt>
+                <dd th:text="${centro.comuna}"></dd>
+                <dt>Región</dt>
+                <dd th:text="${centro.region}"></dd>
+            </dl>
+            <p th:unless="${centro != null}" class="no-asignado">Centro de práctica no asignado</p>
+        </article>
+
+        <!-- Profesor colaborador -->
+        <article class="card colaborador">
+            <h3>Profesor colaborador</h3>
+            <dl th:if="${colaborador != null}">
+                <dt>RUT</dt>
+                <dd th:text="${colaborador.rut}"></dd>
+                <dt>Nombre</dt>
+                <dd th:text="${colaborador.nombre + ' ' + colaborador.apellido}"></dd>
+                <dt>Correo</dt>
+                <dd th:text="${colaborador.correo}"></dd>
+                <dt>Teléfono</dt>
+                <dd th:text="${colaborador.telefono}"></dd>
+            </dl>
+            <p th:unless="${colaborador != null}" class="no-asignado">Profesor colaborador no asignado</p>
+        </article>
+
+        <!-- Tutor universitario -->
+        <article class="card">
+            <h3>Tutor universitario</h3>
+            <dl th:if="${tutor != null}">
+                <dt>RUT</dt>
+                <dd th:text="${tutor.rut}"></dd>
+                <dt>Nombre</dt>
+                <dd th:text="${tutor.nombre + ' ' + tutor.apellido}"></dd>
+                <dt>Correo</dt>
+                <dd th:text="${tutor.correo}"></dd>
+                <dt>Teléfono</dt>
+                <dd th:text="${tutor.telefono}"></dd>
+            </dl>
+            <p th:unless="${tutor != null}" class="no-asignado">Tutor universitario no asignado</p>
+        </article>
+
+        <!-- Profesor de la asignatura -->
+        <article class="card asignatura">
+            <h3>Profesor de la asignatura</h3>
+            <dl th:if="${profesorAsignatura != null}">
+                <dt>RUT</dt>
+                <dd th:text="${profesorAsignatura.rut}"></dd>
+                <dt>Nombre</dt>
+                <dd th:text="${profesorAsignatura.nombre + ' ' + profesorAsignatura.apellido}"></dd>
+                <dt>Correo</dt>
+                <dd th:text="${profesorAsignatura.correo}"></dd>
+                <dt>Teléfono</dt>
+                <dd th:text="${profesorAsignatura.telefono}"></dd>
+            </dl>
+            <p th:unless="${profesorAsignatura != null}" class="no-asignado">Profesor de la asignatura no asignado</p>
+        </article>
+
+    </section>
+
+    <a class="volver" th:href="@{/estudiante/index}">&larr; Volver al portal</a>
+</main>
+
+<footer>
+    <strong>Universidad del Bío-Bío</strong> · Plataforma de Prácticas
+</footer>
+
+</body>
+</html>

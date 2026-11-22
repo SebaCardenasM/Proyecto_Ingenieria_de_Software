@@ -20,6 +20,7 @@ public abstract class Usuario {
 
     @Column(unique = true, nullable = false)
     private String correo;
+    private String telefono;
 
     @Column(nullable = false)
     @JsonIgnore
@@ -75,4 +76,7 @@ public abstract class Usuario {
 
     public Set<Rol> getRoles() { return roles; }
     public void setRoles(Set<Rol> roles) { this.roles = roles; }
+
+    public String getTelefono() { return telefono; }
+    public void setTelefono(String telefono) { this.telefono = telefono; }
 }

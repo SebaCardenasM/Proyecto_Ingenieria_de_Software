@@ -151,6 +151,12 @@
         let archivosGlobales = [];
 
         document.addEventListener("DOMContentLoaded", () => {
+            // Filtro que llega desde "Mis Estudiantes" (?rut=...)
+            const rutFiltro = new URLSearchParams(window.location.search).get('rut');
+            if (rutFiltro) {
+                document.getElementById('inputBuscarEstudiante').value = rutFiltro;
+            }
+
             cargarArchivos();
 
             // Listeners para filtros
