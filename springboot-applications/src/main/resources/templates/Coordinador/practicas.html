@@ -23,8 +23,16 @@
 
     <div class="container-fluid px-4">
         
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h3 class="fw-bold text-dark"><i class="bi bi-journal-bookmark-fill text-primary me-2"></i>Gestión de Prácticas</h3>
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+            <div>
+                <h3 class="fw-bold text-dark mb-1"><i class="bi bi-journal-bookmark-fill text-primary me-2"></i>Gestión de Prácticas</h3>
+                <div class="btn-group mt-2" role="group">
+                    <a th:href="@{/practicas}" class="btn btn-sm" th:classappend="${estadoSeleccionado == 'TODAS' or estadoSeleccionado == null ? 'btn-primary' : 'btn-outline-primary'}">Todas</a>
+                    <a th:href="@{/practicas(estado='PENDIENTE')}" class="btn btn-sm" th:classappend="${estadoSeleccionado == 'PENDIENTE' ? 'btn-warning text-dark fw-bold' : 'btn-outline-warning text-dark'}"><i class="bi bi-hourglass-split me-1"></i>Activas (Pendientes)</a>
+                    <a th:href="@{/practicas(estado='APROBADA')}" class="btn btn-sm" th:classappend="${estadoSeleccionado == 'APROBADA' ? 'btn-success' : 'btn-outline-success'}"><i class="bi bi-check-circle me-1"></i>Aprobadas</a>
+                    <a th:href="@{/practicas(estado='REPROBADA')}" class="btn btn-sm" th:classappend="${estadoSeleccionado == 'REPROBADA' ? 'btn-danger' : 'btn-outline-danger'}"><i class="bi bi-x-circle me-1"></i>Reprobadas</a>
+                </div>
+            </div>
             <a th:href="@{/practicas/registro}" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i> Asignar Práctica</a>
         </div>
 
@@ -131,7 +139,10 @@
                                 </td>
                             </tr>
                             <tr th:if="${#lists.isEmpty(practicas)}">
-                                <td colspan="11" class="text-center text-muted py-4">No hay prácticas registradas aún.</td>
+                                <td colspan="11" class="text-center text-muted py-4">
+                                    <span th:if="${estadoSeleccionado != null and estadoSeleccionado != 'TODAS'}">No hay prácticas registradas con estado <strong th:text="${estadoSeleccionado}"></strong>.</span>
+                                    <span th:if="${estadoSeleccionado == null or estadoSeleccionado == 'TODAS'}">No hay prácticas registradas aún.</span>
+                                </td>
                             </tr>
                         </tbody>
                     </table>

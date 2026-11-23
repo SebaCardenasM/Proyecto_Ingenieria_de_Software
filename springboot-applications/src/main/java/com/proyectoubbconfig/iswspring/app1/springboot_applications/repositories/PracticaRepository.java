@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.EstadoPractica;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Estudiante;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Practica;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Profesor;
@@ -16,6 +17,15 @@ public interface PracticaRepository extends JpaRepository<Practica, Long> {
 
     // Buscar prácticas de un estudiante
     List<Practica> findByEstudiante(Estudiante estudiante);
+
+    List<Practica> findByEstado(EstadoPractica estado);
+
+    boolean existsByEstudianteRutAndEstado(String rut, EstadoPractica estado);
+
+    boolean existsByEstudianteRutAndEstadoAndIdNot(String rut, EstadoPractica estado, Long id);
+
+    @Query("SELECT DISTINCT p.estudiante.rut FROM Practica p WHERE p.estado = :estado AND p.estudiante IS NOT NULL")
+    List<String> findRutsEstudiantesPorEstado(@Param("estado") EstadoPractica estado);
 
     // Buscar prácticas asignadas a un Profesor / Tutor Supervisor
     List<Practica> findByProfesor(Profesor profesor);

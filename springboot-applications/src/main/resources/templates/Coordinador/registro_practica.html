@@ -44,6 +44,12 @@
                                             th:text="${e.nombre + ' ' + e.apellido + ' (' + e.rut + ')'}">
                                     </option>
                                 </select>
+                                <div th:if="${#lists.isEmpty(estudiantes)}" class="form-text text-danger">
+                                    <i class="bi bi-info-circle me-1"></i>No hay estudiantes disponibles sin práctica activa/pendiente en este momento.
+                                </div>
+                                <div th:if="${!#lists.isEmpty(estudiantes)}" class="form-text text-muted">
+                                    Solo se muestran estudiantes que no tienen una práctica activa (pendiente) asignada actualmente.
+                                </div>
                             </div>
 
                             <!-- Selección de Centro de Práctica (Opcional/Nullable) -->

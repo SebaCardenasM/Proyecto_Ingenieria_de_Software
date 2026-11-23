@@ -393,10 +393,6 @@ public class EstudianteController {
 
         String error = usuarioEdicionService.validarDatosBase(rut, dto);
 
-        if (error == null && dto.getPracticaActual() != null
-                && (dto.getPracticaActual() < 1 || dto.getPracticaActual() > NotasFiltro.TOTAL_PRACTICAS)) {
-            error = "Error: La práctica actual debe estar entre 1 y " + NotasFiltro.TOTAL_PRACTICAS + ".";
-        }
         if (error == null && dto.getAnoIngreso() != null
                 && (dto.getAnoIngreso() < 1950 || dto.getAnoIngreso() > 2100)) {
             error = "Error: El año de ingreso no es válido.";
@@ -419,7 +415,7 @@ public class EstudianteController {
 
         usuarioEdicionService.aplicarDatosBase(e, dto);
         e.setAnoIngreso(dto.getAnoIngreso());
-        e.setPracticaActual(dto.getPracticaActual());
+        // La práctica actual no se modifica desde aquí; se gestiona desde el módulo de Prácticas
         e.setProfesorCoordinador(coordinador);
         estudianteRepository.save(e);
 
