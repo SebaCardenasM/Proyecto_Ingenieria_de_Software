@@ -384,7 +384,7 @@
 
             </div>
 
-            <!-- TAB 3: SEGURIDAD Y 2FA -->
+            <!-- TAB 3: SEGURIDAD Y VERIFICACIÓN POR CORREO -->
             <div class="tab-pane fade" id="tab-seguridad" role="tabpanel">
                 <div class="row g-4">
 
@@ -406,9 +406,23 @@
                                     <div class="form-text">Mínimo 8 caracteres. Recomendamos usar mayúsculas, números y símbolos.</div>
                                 </div>
 
-                                <div class="mb-4">
+                                <div class="mb-3">
                                     <label for="passwordConfirmar" class="form-label fw-semibold">Confirmar Nueva Contraseña *</label>
                                     <input type="password" class="form-control" id="passwordConfirmar" name="passwordConfirmar" minlength="8" required autocomplete="new-password">
+                                </div>
+
+                                <div class="mb-4">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <label for="codigoPassword" class="form-label fw-semibold mb-0">Código de Verificación por Correo *</label>
+                                        <button type="button" id="btnEnviarCodigoPassword" class="btn btn-outline-primary btn-sm py-1 px-2 fw-semibold">
+                                            <i class="bi bi-send-fill me-1"></i> Enviar código al correo
+                                        </button>
+                                    </div>
+                                    <input type="text" class="form-control text-center fw-bold fs-5 letter-spacing-1" id="codigoPassword" name="codigo"
+                                           maxlength="6" pattern="[0-9]{6}" inputmode="numeric" placeholder="123456" required>
+                                    <div class="form-text">
+                                        El código de 6 dígitos se enviará a <span class="fw-semibold text-primary" th:text="${correoOculto}">tu correo institucional</span>.
+                                    </div>
                                 </div>
 
                                 <div class="text-end">
@@ -424,9 +438,9 @@
                     <div class="col-lg-6">
                         <div class="card card-custom p-4 h-100">
                             <div class="d-flex justify-content-between align-items-center mb-1">
-                                <h4 class="fw-bold text-dark mb-0"><i class="bi bi-phone-fill text-primary me-2"></i>Autenticación en 2 Pasos (2FA)</h4>
+                                <h4 class="fw-bold text-dark mb-0"><i class="bi bi-envelope-shield text-primary me-2"></i>Autenticación en 2 Pasos (2FA)</h4>
                             </div>
-                            <p class="text-muted small mb-4">Añade una capa de seguridad adicional solicitando un código de 6 dígitos al iniciar sesión.</p>
+                            <p class="text-muted small mb-4">Añade una capa de seguridad adicional mediante códigos de verificación enviados a tu correo.</p>
 
                             <!-- ESTADO: YA ACTIVO -->
                             <div th:if="${usuario.twoFactorEnabled}" class="text-center p-4 bg-success-subtle rounded-3 border border-success">
@@ -435,7 +449,7 @@
                                 </div>
                                 <h5 class="fw-bold text-success mb-2">¡Tu cuenta está protegida con 2FA!</h5>
                                 <p class="text-muted small mb-4">
-                                    Cada vez que inicies sesión en la plataforma se te solicitará el código de 6 dígitos generado por tu aplicación de autenticación (Google Authenticator, Authy o Microsoft Authenticator).
+                                    Tu cuenta cuenta con verificación de seguridad mediante códigos enviados a tu correo institucional <strong class="text-dark" th:text="${correoOculto}"></strong>.
                                 </p>
 
                                 <form th:action="@{/perfil/2fa/desactivar}" method="post" class="d-inline-block text-start w-100 max-w-sm">
@@ -444,7 +458,7 @@
                                         <input type="password" class="form-control form-control-sm" id="passwordDesactivar" name="password" required placeholder="Tu contraseña actual">
                                     </div>
                                     <button type="submit" class="btn btn-outline-danger w-100 btn-sm fw-semibold"
-                                            data-ubb-confirm="¿Seguro que deseas desactivar la autenticación en dos pasos? Tu cuenta será más vulnerable."
+                                            data-ubb-confirm="¿Seguro que deseas desactivar la autenticación en dos pasos?"
                                             data-ubb-titulo="Desactivar 2FA"
                                             data-ubb-boton="Sí, desactivar">
                                         <i class="bi bi-shield-x me-1"></i> Desactivar 2FA
@@ -454,23 +468,28 @@
 
                             <!-- ESTADO: INACTIVO (FORMULARIO PARA ACTIVAR) -->
                             <div th:unless="${usuario.twoFactorEnabled}">
-                                <div class="alert alert-info py-2 small mb-3">
-                                    <i class="bi bi-info-circle me-1"></i> Compatible con <strong>Google Authenticator</strong>, <strong>Microsoft Authenticator</strong>, <strong>Authy</strong> o 1Password.
+                                <div class="alert alert-primary py-2 px-3 small mb-3 border-0 bg-primary bg-opacity-10 text-primary-emphasis d-flex align-items-center">
+                                    <i class="bi bi-envelope-check-fill fs-4 me-2 text-primary"></i>
+                                    <div>
+                                        Los códigos de verificación serán enviados directamente a tu correo institucional:
+                                        <strong class="d-block text-primary" th:text="${correoOculto}">tu correo institucional</strong>
+                                    </div>
                                 </div>
 
-                                <div class="qr-card p-3 text-center mb-3">
-                                    <p class="fw-bold text-dark mb-2 small">Paso 1: Escanea este código QR con tu aplicación</p>
-                                    <img th:src="${qrUrl2fa}" alt="Código QR 2FA" class="img-fluid rounded shadow-sm border mb-2" style="max-width: 170px;">
-                                    <div class="small text-muted mb-1">¿No puedes escanear el QR? Ingresa esta clave secreta:</div>
-                                    <code class="d-inline-block bg-white px-2 py-1 border rounded text-primary fw-bold letter-spacing-1 small" th:text="${secret2fa}">JBSWY3DPEHPK3PXP</code>
+                                <div class="card bg-light border p-3 text-center mb-3">
+                                    <span class="fw-bold text-dark mb-1 small d-block">Paso 1: Solicita el código a tu correo</span>
+                                    <p class="text-muted small mb-2">Presiona el botón para recibir tu código de 6 dígitos.</p>
+                                    <div>
+                                        <button type="button" id="btnEnviarCodigo2FA" class="btn btn-outline-primary btn-sm fw-semibold px-3">
+                                            <i class="bi bi-send-fill me-1"></i> Enviar código al correo
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <form th:action="@{/perfil/2fa/activar}" method="post">
-                                    <input type="hidden" name="secret" th:value="${secret2fa}">
-
                                     <div class="mb-3">
-                                        <label for="codigo2fa" class="form-label fw-semibold small">Paso 2: Ingresa el código de 6 dígitos que muestra tu aplicación</label>
-                                        <input type="text" class="form-control text-center fw-bold fs-5" id="codigo2fa" name="codigo"
+                                        <label for="codigo2fa" class="form-label fw-semibold small">Paso 2: Ingresa el código de 6 dígitos recibido</label>
+                                        <input type="text" class="form-control text-center fw-bold fs-5 letter-spacing-1" id="codigo2fa" name="codigo"
                                                maxlength="6" pattern="[0-9]{6}" inputmode="numeric" placeholder="123456" required>
                                     </div>
 
@@ -524,6 +543,58 @@
             const tabBtn = document.getElementById('academico-tab');
             if (tabBtn) bootstrap.Tab.getOrCreateInstance(tabBtn).show();
         }
+
+        // Manejo de envío de códigos por correo (cambio de password y 2FA)
+        function configurarEnvioCodigo(btnId, url) {
+            const btn = document.getElementById(btnId);
+            if (!btn) return;
+
+            btn.addEventListener('click', async function() {
+                btn.disabled = true;
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>Enviando...';
+
+                const csrfInput = document.querySelector('input[name="_csrf"]');
+                const headers = { 'X-Requested-With': 'XMLHttpRequest' };
+                if (csrfInput) {
+                    headers['X-CSRF-TOKEN'] = csrfInput.value;
+                }
+
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: headers
+                    });
+                    const data = await response.json();
+                    if (data.ok) {
+                        ubbPopup.exito(data.mensaje || 'Se ha enviado el código a tu correo institucional.', { titulo: '¡Código enviado!' });
+                        let segundos = 60;
+                        btn.innerHTML = `<i class="bi bi-clock me-1"></i>Reenviar (${segundos}s)`;
+                        const timer = setInterval(() => {
+                            segundos--;
+                            if (segundos <= 0) {
+                                clearInterval(timer);
+                                btn.disabled = false;
+                                btn.innerHTML = originalHtml;
+                            } else {
+                                btn.innerHTML = `<i class="bi bi-clock me-1"></i>Reenviar (${segundos}s)`;
+                            }
+                        }, 1000);
+                    } else {
+                        ubbPopup.error(data.mensaje || 'No se pudo enviar el código.', { titulo: 'Error al enviar' });
+                        btn.disabled = false;
+                        btn.innerHTML = originalHtml;
+                    }
+                } catch (err) {
+                    ubbPopup.error('Error de red o conexión al intentar enviar el código.', { titulo: 'Error de conexión' });
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                }
+            });
+        }
+
+        configurarEnvioCodigo('btnEnviarCodigoPassword', '/perfil/enviar-codigo-password');
+        configurarEnvioCodigo('btnEnviarCodigo2FA', '/perfil/enviar-codigo-2fa');
     </script>
 </body>
 </html>

@@ -89,9 +89,16 @@ public class TwoFactorService {
     }
 
     /**
-     * Envía un código de 6 dígitos al correo institucional del usuario como alternativa.
+     * Envía un código de 6 dígitos al correo institucional del usuario como alternativa o para confirmación.
      */
     public boolean enviarCodigoCorreo(Usuario usuario) {
+        return enviarCodigoCorreo(usuario, "verificacion");
+    }
+
+    /**
+     * Envía un código de 6 dígitos con asunto y cuerpo según el motivo (password, 2fa, verificacion).
+     */
+    public boolean enviarCodigoCorreo(Usuario usuario, String motivo) {
         if (usuario == null || usuario.getCorreo() == null || usuario.getCorreo().isBlank()) {
             return false;
         }
@@ -100,23 +107,45 @@ public class TwoFactorService {
         Instant expira = Instant.now().plusSeconds(600); // Válido por 10 minutos
         codigosCorreo.put(usuario.getRut(), new CodigoTemporal(codigo, expira));
 
-        log.info("Código 2FA generado para {}: {}", usuario.getRut(), codigo);
+        log.info("Código de seguridad generado para {} [motivo: {}]: {}", usuario.getRut(), motivo, codigo);
 
         if (mailSender != null) {
             try {
+                String asunto;
+                String mensaje;
+
+                if ("password".equalsIgnoreCase(motivo)) {
+                    asunto = "Código para cambio de contraseña - Prácticas UBB";
+                    mensaje = "Hola " + usuario.getNombre() + ",\n\n"
+                            + "Tu código para confirmar el cambio de tu contraseña institucional es:\n\n"
+                            + "   " + codigo + "\n\n"
+                            + "Este código es válido por 10 minutos. Si tú no solicitaste este cambio, ignora este mensaje o contacta a soporte.\n\n"
+                            + "Plataforma de Prácticas - Universidad del Bío-Bío";
+                } else if ("2fa".equalsIgnoreCase(motivo)) {
+                    asunto = "Código para activar autenticación de 2 pasos - Prácticas UBB";
+                    mensaje = "Hola " + usuario.getNombre() + ",\n\n"
+                            + "Tu código para activar la verificación en dos pasos en tu cuenta es:\n\n"
+                            + "   " + codigo + "\n\n"
+                            + "Este código es válido por 10 minutos.\n\n"
+                            + "Plataforma de Prácticas - Universidad del Bío-Bío";
+                } else {
+                    asunto = "Código de verificación - Prácticas UBB";
+                    mensaje = "Hola " + usuario.getNombre() + ",\n\n"
+                            + "Tu código de verificación de seguridad es:\n\n"
+                            + "   " + codigo + "\n\n"
+                            + "Este código es válido por 10 minutos.\n\n"
+                            + "Plataforma de Prácticas - Universidad del Bío-Bío";
+                }
+
                 SimpleMailMessage msg = new SimpleMailMessage();
                 msg.setFrom(remitente);
                 msg.setTo(usuario.getCorreo());
-                msg.setSubject("Código de verificación 2FA - Prácticas UBB");
-                msg.setText("Hola " + usuario.getNombre() + ",\n\n"
-                        + "Tu código de verificación de inicio de sesión en dos pasos es:\n\n"
-                        + "   " + codigo + "\n\n"
-                        + "Este código es válido por 10 minutos. Si no intentaste iniciar sesión, cambia tu contraseña de inmediato.\n\n"
-                        + "Plataforma de Prácticas - Universidad del Bío-Bío");
+                msg.setSubject(asunto);
+                msg.setText(mensaje);
                 mailSender.send(msg);
                 return true;
             } catch (Exception ex) {
-                log.warn("No se pudo enviar el correo de 2FA a {}: {}", usuario.getCorreo(), ex.getMessage());
+                log.warn("No se pudo enviar el correo a {}: {}", usuario.getCorreo(), ex.getMessage());
                 // Permite continuar si es en entorno local/desarrollo
                 return true;
             }

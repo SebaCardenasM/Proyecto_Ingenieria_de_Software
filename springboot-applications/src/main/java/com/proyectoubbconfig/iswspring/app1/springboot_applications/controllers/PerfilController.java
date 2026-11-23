@@ -2,6 +2,7 @@ package com.proyectoubbconfig.iswspring.app1.springboot_applications.controllers
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import jakarta.servlet.http.HttpSession;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Estudiante;
@@ -112,17 +114,49 @@ public class PerfilController {
             model.addAttribute("totalAlumnosTutor", practicasComoTutor != null ? practicasComoTutor.size() : 0);
         }
 
-        // Datos para activar 2FA si aún no está activo
-        if (!usuario.isTwoFactorEnabled()) {
-            String nuevoSecret = twoFactorService.generateSecret();
-            String qrUrl = twoFactorService.getQrImageUrl(usuario.getRut(), nuevoSecret);
-            String qrUri = twoFactorService.getQrCodeUri(usuario.getRut(), nuevoSecret);
-            model.addAttribute("secret2fa", nuevoSecret);
-            model.addAttribute("qrUrl2fa", qrUrl);
-            model.addAttribute("qrUri2fa", qrUri);
-        }
+        // Correo institucional ofuscado para visualización segura
+        model.addAttribute("correoOculto", ocultarCorreo(usuario.getCorreo()));
 
         return "Perfil/perfil";
+    }
+
+    private String ocultarCorreo(String correo) {
+        if (correo == null || !correo.contains("@")) return "tu correo institucional";
+        String[] partes = correo.split("@");
+        String nombre = partes[0];
+        String dominio = partes[1];
+        if (nombre.length() <= 2) {
+            return nombre.charAt(0) + "***@" + dominio;
+        }
+        return nombre.charAt(0) + "***" + nombre.charAt(nombre.length() - 1) + "@" + dominio;
+    }
+
+    /**
+     * Endpoint AJAX para enviar código al correo antes de cambiar contraseña.
+     */
+    @PostMapping("/perfil/enviar-codigo-password")
+    @ResponseBody
+    public Map<String, Object> enviarCodigoPassword(Authentication authentication) {
+        if (authentication == null) return Map.of("ok", false, "mensaje", "No autenticado.");
+        Optional<Usuario> uOpt = buscarUsuario(authentication.getName());
+        if (uOpt.isEmpty()) return Map.of("ok", false, "mensaje", "Usuario no encontrado.");
+        Usuario usuario = uOpt.get();
+        boolean enviado = twoFactorService.enviarCodigoCorreo(usuario, "password");
+        return Map.of("ok", enviado, "mensaje", "Se ha enviado un código de 6 dígitos a tu correo: " + ocultarCorreo(usuario.getCorreo()));
+    }
+
+    /**
+     * Endpoint AJAX para enviar código al correo antes de activar 2FA.
+     */
+    @PostMapping("/perfil/enviar-codigo-2fa")
+    @ResponseBody
+    public Map<String, Object> enviarCodigo2FA(Authentication authentication) {
+        if (authentication == null) return Map.of("ok", false, "mensaje", "No autenticado.");
+        Optional<Usuario> uOpt = buscarUsuario(authentication.getName());
+        if (uOpt.isEmpty()) return Map.of("ok", false, "mensaje", "Usuario no encontrado.");
+        Usuario usuario = uOpt.get();
+        boolean enviado = twoFactorService.enviarCodigoCorreo(usuario, "2fa");
+        return Map.of("ok", enviado, "mensaje", "Se ha enviado un código de 6 dígitos a tu correo: " + ocultarCorreo(usuario.getCorreo()));
     }
 
     /**
@@ -170,13 +204,14 @@ public class PerfilController {
     }
 
     /**
-     * Cambio de contraseña desde el perfil.
+     * Cambio de contraseña desde el perfil con confirmación de código por correo.
      */
     @PostMapping("/perfil/cambiar-password")
     public String cambiarPassword(
             @RequestParam("passwordActual") String passwordActual,
             @RequestParam("passwordNueva") String passwordNueva,
             @RequestParam("passwordConfirmar") String passwordConfirmar,
+            @RequestParam("codigo") String codigo,
             Authentication authentication,
             RedirectAttributes ra) {
 
@@ -184,6 +219,19 @@ public class PerfilController {
         if (uOpt.isEmpty()) return "redirect:/login";
 
         Usuario usuario = uOpt.get();
+
+        if (codigo == null || codigo.trim().length() != 6) {
+            ra.addFlashAttribute("errorMensaje", "Debes ingresar el código de 6 dígitos enviado a tu correo institucional.");
+            ra.addFlashAttribute("tituloError", "Código requerido");
+            return "redirect:/perfil#seguridad";
+        }
+
+        boolean codigoValido = twoFactorService.verificar(usuario, codigo);
+        if (!codigoValido) {
+            ra.addFlashAttribute("errorMensaje", "El código de verificación ingresado es incorrecto o ha expirado. Por favor solicita uno nuevo.");
+            ra.addFlashAttribute("tituloError", "Código no válido");
+            return "redirect:/perfil#seguridad";
+        }
 
         if (!passwordEncoder.matches(passwordActual, usuario.getPassword())) {
             ra.addFlashAttribute("errorMensaje", "La contraseña actual ingresada no es correcta.");
@@ -218,11 +266,10 @@ public class PerfilController {
     }
 
     /**
-     * Activa la autenticación en dos pasos (2FA) previa verificación del código de 6 dígitos.
+     * Activa la autenticación en dos pasos (2FA) por correo verificando el código de 6 dígitos.
      */
     @PostMapping("/perfil/2fa/activar")
     public String activar2FA(
-            @RequestParam("secret") String secret,
             @RequestParam("codigo") String codigo,
             Authentication authentication,
             HttpSession session,
@@ -233,22 +280,29 @@ public class PerfilController {
 
         Usuario usuario = uOpt.get();
 
-        boolean valido = twoFactorService.verifyTotp(secret, codigo);
+        if (codigo == null || codigo.trim().length() != 6) {
+            ra.addFlashAttribute("errorMensaje", "Debes ingresar el código de 6 dígitos enviado a tu correo institucional.");
+            ra.addFlashAttribute("tituloError", "Código requerido");
+            return "redirect:/perfil#seguridad";
+        }
+
+        boolean valido = twoFactorService.verificar(usuario, codigo);
         if (!valido) {
-            ra.addFlashAttribute("errorMensaje", "El código de 6 dígitos ingresado es incorrecto o expiró. Asegúrate de escanear el código QR con tu aplicación e ingresar el número actual.");
-            ra.addFlashAttribute("tituloError", "Código 2FA no válido");
+            ra.addFlashAttribute("errorMensaje", "El código de verificación de 6 dígitos ingresado es incorrecto o ha expirado. Por favor solicita uno nuevo.");
+            ra.addFlashAttribute("tituloError", "Código no válido");
             return "redirect:/perfil#seguridad";
         }
 
         usuario.setTwoFactorEnabled(true);
-        usuario.setTwoFactorSecret(secret);
         usuarioRepository.save(usuario);
 
-        session.setAttribute("2FA_VERIFIED", true);
-        session.removeAttribute("2FA_PENDING_RUT");
+        if (session != null) {
+            session.setAttribute("2FA_VERIFIED", true);
+            session.removeAttribute("2FA_PENDING_RUT");
+        }
 
-        ra.addFlashAttribute("mensajeExito", "¡La autenticación en dos pasos (2FA) ha sido activada! A partir de ahora tu cuenta cuenta con un nivel superior de seguridad.");
-        ra.addFlashAttribute("tituloExito", "¡2FA Activado con éxito!");
+        ra.addFlashAttribute("mensajeExito", "¡La autenticación en dos pasos (2FA) por correo ha sido activada en tu cuenta!");
+        ra.addFlashAttribute("tituloExito", "¡2FA Activado!");
         return "redirect:/perfil#seguridad";
     }
 

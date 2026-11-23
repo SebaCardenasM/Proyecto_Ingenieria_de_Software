@@ -13,29 +13,7 @@ public class TwoFactorInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        String uri = request.getRequestURI();
-        String contextPath = request.getContextPath();
-        String path = uri.substring(contextPath.length());
-
-        // Rutas excluidas de la verificación intermedia de 2FA
-        if (path.startsWith("/login-2fa") || path.startsWith("/logout") || path.equals("/login")
-                || path.startsWith("/css/") || path.startsWith("/js/") || path.startsWith("/images/")) {
-            return true;
-        }
-
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
-            HttpSession session = request.getSession(false);
-            if (session != null) {
-                Boolean verified = (Boolean) session.getAttribute("2FA_VERIFIED");
-                String pendingRut = (String) session.getAttribute("2FA_PENDING_RUT");
-                if (pendingRut != null && !Boolean.TRUE.equals(verified)) {
-                    response.sendRedirect(contextPath + "/login-2fa");
-                    return false;
-                }
-            }
-        }
-
+        // Acceso directo sin bloqueo de 2FA en login
         return true;
     }
 }

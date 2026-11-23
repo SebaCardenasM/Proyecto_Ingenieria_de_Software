@@ -37,16 +37,7 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
             usuarioOpt = usuarioRepository.findByRut(rut.replace(".", ""));
         }
 
-        // Si el usuario tiene 2FA activado, requiere el segundo factor antes de acceder a la plataforma
-        if (usuarioOpt.isPresent() && usuarioOpt.get().isTwoFactorEnabled()) {
-            log.info("Usuario {} requiere segundo factor 2FA", rut);
-            request.getSession().setAttribute("2FA_PENDING_RUT", usuarioOpt.get().getRut());
-            request.getSession().setAttribute("2FA_VERIFIED", false);
-            response.sendRedirect(request.getContextPath() + "/login-2fa");
-            return;
-        }
-
-        // Sin 2FA: acceso directo
+        // Acceso directo con RUT y contraseña sin requerir 2FA al login
         request.getSession().setAttribute("2FA_VERIFIED", true);
         request.getSession().removeAttribute("2FA_PENDING_RUT");
         response.sendRedirect(request.getContextPath() + "/");
