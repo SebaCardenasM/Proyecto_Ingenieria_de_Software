@@ -11,6 +11,11 @@ public class Profesor extends Usuario {
     @OneToMany(mappedBy = "profesorCoordinador")
     private List<Estudiante> estudiantesCoordinados;
 
+    private String departamento = "Departamento de Ciencias de la Educación";
+    private String gradoAcademico;
+    private String oficina;
+    private String horarioAtencion;
+
     public Profesor() {
         super(Rol.PROFESOR_ASIGNATURA);
     }
@@ -27,4 +32,16 @@ public class Profesor extends Usuario {
     // Getters y Setters
     public List<Estudiante> getEstudiantesCoordinados() { return estudiantesCoordinados; }
     public void setEstudiantesCoordinados(List<Estudiante> estudiantesCoordinados) { this.estudiantesCoordinados = estudiantesCoordinados; }
+
+    public String getDepartamento() { return departamento; }
+    public void setDepartamento(String departamento) { this.departamento = departamento; }
+
+    public String getGradoAcademico() { return gradoAcademico; }
+    public void setGradoAcademico(String gradoAcademico) { this.gradoAcademico = gradoAcademico; }
+
+    public String getOficina() { return oficina; }
+    public void setOficina(String oficina) { this.oficina = oficina; }
+
+    public String getHorarioAtencion() { return horarioAtencion; }
+    public void setHorarioAtencion(String horarioAtencion) { this.horarioAtencion = horarioAtencion; }
 }

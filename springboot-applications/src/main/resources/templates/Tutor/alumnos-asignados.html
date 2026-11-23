@@ -61,6 +61,9 @@
                                 <span th:text="${practica.centroPractica != null ? practica.centroPractica.nombre : 'No asignado'}">Colegio</span>
                             </td>
                             <td class="text-center">
+                                <a th:if="${practica.estudiante != null}" th:href="@{/perfil/estudiante/{rut}(rut=${practica.estudiante.rut})}" class="btn btn-outline-primary btn-sm me-1" title="Ver perfil">
+                                    <i class="bi bi-person-lines-fill me-1"></i> Perfil
+                                </a>
                                 <a th:href="@{/tutor/estudiante/{id}(id=${practica.id})}" class="btn btn-outline-success btn-sm">
                                     <i class="bi bi-folder2-open me-1"></i> Cargar Pautas
                                 </a>

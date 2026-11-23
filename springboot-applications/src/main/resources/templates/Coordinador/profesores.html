@@ -65,6 +65,10 @@
                                     </span>
                                 </td>
                                 <td class="text-center">
+                                    <a th:href="@{/perfil/profesor/{rut}(rut=${profesor.rut})}"
+                                       class="btn btn-sm btn-outline-primary me-1" title="Ver Perfil">
+                                        <i class="bi bi-person-lines-fill"></i>
+                                    </a>
                                     <a th:href="@{/profesores/editar/{rut}(rut=${profesor.rut})}"
                                     class="btn btn-sm btn-outline-secondary" title="Editar">
                                         <i class="bi bi-pencil"></i>

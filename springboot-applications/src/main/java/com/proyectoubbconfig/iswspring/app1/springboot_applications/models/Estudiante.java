@@ -10,6 +10,8 @@ public class Estudiante extends Usuario {
 
     private Integer anoIngreso;
     private Integer practicaActual;
+    private String carrera = "Pedagogía en Educación Matemática";
+    private String estadoAcademico = "Regular";
 
     @OneToMany(mappedBy = "estudiante", cascade = CascadeType.ALL)
     private List<Practica> practicas;
@@ -34,4 +36,10 @@ public class Estudiante extends Usuario {
 
     public Profesor getProfesorCoordinador() { return profesorCoordinador; }
     public void setProfesorCoordinador(Profesor profesorCoordinador) { this.profesorCoordinador = profesorCoordinador; }
+
+    public String getCarrera() { return carrera; }
+    public void setCarrera(String carrera) { this.carrera = carrera; }
+
+    public String getEstadoAcademico() { return estadoAcademico; }
+    public void setEstadoAcademico(String estadoAcademico) { this.estadoAcademico = estadoAcademico; }
 }
