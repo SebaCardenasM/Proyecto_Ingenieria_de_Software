@@ -152,9 +152,8 @@
                     + (d.revisadoIa ? '<span class="badge bg-info text-dark ms-1" title="Revisada por el asistente"><i class="bi bi-robot"></i> IA</span>' : '');
 
                 const ver = esOnline(d)
-                    ? `<a href="/planificacion-online/${d.id}" class="btn btn-sm btn-outline-secondary" title="Ver"><i class="bi bi-eye"></i></a>`
-                    : `<a href="${esc(rutaSegura(d.rutaServidor))}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-secondary" title="Ver"><i class="bi bi-eye"></i></a>`;
-                const editar = (esOnline(d) && borrador)
+                ? `<a href="/planificaciones/${d.id}" class="btn btn-sm btn-outline-secondary" title="Ver"><i class="bi bi-eye"></i></a>`
+                : `<a href="${esc(rutaSegura(d.rutaServidor))}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-secondary" title="Ver"><i class="bi bi-eye"></i></a>`;                const editar = (esOnline(d) && borrador)
                     ? `<a href="/estudiante/planificacion/${d.id}/editar" class="btn btn-sm btn-outline-warning" title="Editar"><i class="bi bi-pencil-square"></i></a>` : '';
                 const acciones = borrador
                     ? `${ver} ${editar}
