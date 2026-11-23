@@ -30,20 +30,39 @@ public class RevisionPlanificacionController {
     @GetMapping
     public String listar(Model model, Authentication authentication) {
         List<FilaPlanificacion> filas = revisionService.listar(authentication.getName());
+
         long pendientes = filas.stream().filter(f -> !f.revisada()).count();
+        long conPautas = filas.stream().filter(FilaPlanificacion::evaluaConPautas).count();
+        long soloRevisadas = filas.stream().filter(f -> f.revisada() && !f.evaluaConPautas()).count();
 
         model.addAttribute("filas", filas);
+        model.addAttribute("total", filas.size());
         model.addAttribute("pendientes", pendientes);
-        model.addAttribute("confirmadas", filas.size() - pendientes);
+        model.addAttribute("revisadas", soloRevisadas);
+        model.addAttribute("conPautas", conPautas);
         return "Profesor/planificaciones-revision";
     }
 
-    // El "tick": confirma la planificación, genera el enlace y avisa al estudiante
-    @PostMapping("/{id}/confirmar")
-    public String confirmar(@PathVariable Long id, Authentication authentication, RedirectAttributes ra) {
+    // TICK 1: ya revisada
+    @PostMapping("/{id}/revisar")
+    public String revisar(@PathVariable Long id, Authentication authentication, RedirectAttributes ra) {
         try {
-            EnlaceEvaluacion enlace = revisionService.confirmar(id, authentication.getName());
-            ra.addFlashAttribute("tituloExito", "¡Planificación confirmada!");
+            revisionService.marcarRevisada(id, authentication.getName());
+            ra.addFlashAttribute("tituloExito", "¡Planificación revisada!");
+            ra.addFlashAttribute("mensajeExito",
+                    "Quedó marcada como revisada. Cuando corresponda, usa el segundo tick para indicar que la clase se evaluará con pautas.");
+        } catch (Exception e) {
+            ra.addFlashAttribute("errorMensaje", e.getMessage());
+        }
+        return "redirect:/profesor/planificaciones";
+    }
+
+    // TICK 2: la clase se evaluará con pautas (genera el enlace del colaborador)
+    @PostMapping("/{id}/pautas")
+    public String evaluarConPautas(@PathVariable Long id, Authentication authentication, RedirectAttributes ra) {
+        try {
+            EnlaceEvaluacion enlace = revisionService.marcarEvaluaConPautas(id, authentication.getName());
+            ra.addFlashAttribute("tituloExito", "¡Clase marcada para evaluarse con pautas!");
             ra.addFlashAttribute("mensajeExito",
                     "Se avisó al estudiante con el enlace para su profesor colaborador (vigente hasta "
                             + FMT.format(enlace.getFechaExpiracion()) + ").");
@@ -52,6 +71,7 @@ public class RevisionPlanificacionController {
         }
         return "redirect:/profesor/planificaciones";
     }
+
 
     @PostMapping("/{id}/reenviar")
     public String reenviar(@PathVariable Long id, Authentication authentication, RedirectAttributes ra) {

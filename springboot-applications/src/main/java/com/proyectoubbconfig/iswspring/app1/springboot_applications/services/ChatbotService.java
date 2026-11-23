@@ -20,9 +20,11 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.dto.CamposPlanificacion;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Documento;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Estudiante;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.InteraccionIA;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Planificacion;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Practica;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.TipoDocumento;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.DocumentoRepository;
@@ -200,9 +202,17 @@ public class ChatbotService {
             throw new IllegalArgumentException("Este documento ya fue enviado al gestor; solo se revisan borradores.");
         }
 
-        String texto = extractor.extraer(doc.getRutaServidor()).orElseThrow(() -> new IllegalArgumentException(
-                "No pude leer el contenido de este archivo. El asistente revisa PDF y Word (.docx) con texto "
-                + "(no PDF escaneados). Si es de otro formato, puedes enviarlo al gestor sin esta revisión."));
+        String texto;
+        if (doc instanceof Planificacion pl && pl.isOnline()) {
+            texto = CamposPlanificacion.aTexto(pl.getCampos());
+            if (texto.length() > ExtractorTextoDocumento.MAX_CARACTERES) {
+                texto = texto.substring(0, ExtractorTextoDocumento.MAX_CARACTERES);
+            }
+        } else {
+            texto = extractor.extraer(doc.getRutaServidor()).orElseThrow(() -> new IllegalArgumentException(
+                    "No pude leer el contenido de este archivo. El asistente revisa PDF y Word (.docx) con texto "
+                    + "(no PDF escaneados). Si es de otro formato, puedes enviarlo al gestor sin esta revisión."));
+        }
 
         Integer nivel = doc.getNumeroPractica() != null ? doc.getNumeroPractica() : detectarNivelPractica(rutUsuario);
         String tipo = doc.getTipoDocumento() == TipoDocumento.INFORME_FINAL ? "Informe final" : "Planificación de clase";

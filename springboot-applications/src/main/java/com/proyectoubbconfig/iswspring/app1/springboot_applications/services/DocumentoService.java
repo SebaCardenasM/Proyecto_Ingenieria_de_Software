@@ -15,6 +15,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.Optional;
+
+// ===== CAMBIO 1: import nuevo =====
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.dto.CamposPlanificacion;
+
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Documento;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.EstadoDocumento;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Estudiante;
@@ -33,7 +37,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 
-@Service    
+@Service
 public class DocumentoService {
     private static final Set<String> EXTENSIONES_PERMITIDAS =
         Set.of("pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "jpg", "jpeg", "png");
@@ -41,7 +45,7 @@ public class DocumentoService {
     // true = el estudiante debe pasar su borrador por el asistente antes de enviarlo al gestor
     @Value("${documentos.revision-ia.obligatoria:false}")
     private boolean revisionIaObligatoria;
-        
+
     @Autowired
     private DocumentoRepository documentoRepository;
 
@@ -66,11 +70,11 @@ public class DocumentoService {
         // Coordinador: ve todo lo ENVIADO (los borradores son privados del estudiante)
         if (esCoordinador) {
             documentos = soloEnviados(documentoRepository.findAll());
-        } 
+        }
         // Profesor de asignatura o tutor: ve lo ENVIADO de sus estudiantes
         else if (esProfesorAsignatura || esTutor) {
             documentos = soloEnviados(documentoRepository.findByAcademicoRut(rut));
-        } 
+        }
         // Estudiante: solo lo suyo, borradores incluidos (excluyendo pautas, que van en su propia pestaña)
         else {
             List<Documento> docsEstudiante = usuarioRepository.findById(rut)
@@ -119,10 +123,12 @@ public class DocumentoService {
         return null;
     }
 
-    // El asistente solo puede leer PDF y DOCX; los demás formatos no quedan bloqueados por la revisión obligatoria
+    // ===== CAMBIO 2: esRevisable =====
+    // El asistente puede leer PDF, DOCX y las planificaciones en línea (se arman desde los campos del formulario).
+    // Los demás formatos no quedan bloqueados por la revisión obligatoria.
     private boolean esRevisable(Documento d) {
         String ruta = d.getRutaServidor() == null ? "" : d.getRutaServidor().toLowerCase();
-        return ruta.endsWith(".pdf") || ruta.endsWith(".docx");
+        return ruta.endsWith(".pdf") || ruta.endsWith(".docx") || ruta.equals("online_planificacion");
     }
 
     /** Paso 1 de la cadena: el archivo se sube y queda como BORRADOR (planificaciones e informes). */
@@ -214,6 +220,14 @@ public class DocumentoService {
             throw new Exception("Antes de enviarlo debes pasar el documento por la revisión del asistente.");
         }
 
+        // ===== CAMBIO 3: si es una planificación en línea, exige los campos obligatorios =====
+        if (documento instanceof Planificacion pl && pl.isOnline()) {
+            List<String> faltan = CamposPlanificacion.faltantes(pl.getCampos());
+            if (!faltan.isEmpty()) {
+                throw new Exception("Completa antes de enviar: " + String.join(", ", faltan) + ".");
+            }
+        }
+
         documento.setEstado(EstadoDocumento.ENVIADO);
         return documentoRepository.save(documento);
     }
@@ -230,7 +244,7 @@ public class DocumentoService {
         if (nombreVisible.length() > 150 || nombreVisible.matches(".*[<>\"'`].*")) {
             throw new Exception("El nombre del archivo contiene caracteres no permitidos");
         }
-        
+
         String extension = StringUtils.getFilenameExtension(nombreVisible);
         if (extension == null || !EXTENSIONES_PERMITIDAS.contains(extension.toLowerCase())) {
             throw new Exception("Tipo de archivo no permitido. Formatos aceptados: " + EXTENSIONES_PERMITIDAS);
@@ -251,7 +265,7 @@ public class DocumentoService {
                 .filter(d -> d instanceof Pauta || (d.getTipoDocumento() != null && d.getTipoDocumento().name().equals("PAUTA")))
                 .filter(d -> !(d instanceof Pauta pa && pa.getTipoEvaluador() == TipoEvaluador.PROFESOR_COLABORADOR))
                 .count();
-                
+
         if (cantidadPautas >= 4) {
             throw new Exception("No puedes subir más archivos. Se ha alcanzado el límite de 4 pautas.");
         }
@@ -262,7 +276,7 @@ public class DocumentoService {
 
         String nombreFisico = UUID.randomUUID() + "." + extension.toLowerCase();
         Path rutaFinal = directorio.resolve(nombreFisico).normalize();
-        
+
         try (var in = archivo.getInputStream()) {
             Files.copy(in, rutaFinal, StandardCopyOption.REPLACE_EXISTING);
         }
@@ -274,7 +288,7 @@ public class DocumentoService {
         nuevaPauta.setNumeroPractica(practica.getNumeroPractica());
         nuevaPauta.setPractica(practica);
         nuevaPauta.setEstudiante(practica.getEstudiante());
-        nuevaPauta.setTipoDocumento(TipoDocumento.PAUTA); 
+        nuevaPauta.setTipoDocumento(TipoDocumento.PAUTA);
         nuevaPauta.setTipoEvaluador(TipoEvaluador.TUTOR_UNIVERSIDAD);
 
         Usuario usuarioLogueado = usuarioRepository.findById(rutTutorLogueado).orElse(null);
@@ -289,11 +303,12 @@ public class DocumentoService {
         return soloEnviados(documentoRepository.findAll());
     }
 
+    // ===== CAMBIO 4a: puedeVerArchivo ahora delega en puedeVer(Documento) =====
+    // (la lógica de permisos que estaba aquí se movió al método de abajo, sin cambios de comportamiento)
     @Transactional(readOnly = true)
     public boolean puedeVerArchivo(String rutaRelativa) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null) return false;
-        String rutUsuario = auth.getName();
 
         Optional<Documento> docOpt = documentoRepository.findFirstByRutaServidor(rutaRelativa)
                 .or(() -> documentoRepository.findFirstByRutaServidor("/" + rutaRelativa));
@@ -303,7 +318,15 @@ public class DocumentoService {
             return tieneRol(auth, "ROLE_COORDINADOR");
         }
 
-        Documento doc = docOpt.get();
+        return puedeVer(docOpt.get());
+    }
+
+    // ===== CAMBIO 4b: método nuevo (lo usa PlanificacionOnlineController para la vista de solo lectura) =====
+    @Transactional(readOnly = true)
+    public boolean puedeVer(Documento doc) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null) return false;
+        String rutUsuario = auth.getName();
         boolean esDueno = rutUsuario.equals(rutDueno(doc));
 
         // Los borradores son privados: solo los ve su dueño
@@ -341,8 +364,9 @@ public class DocumentoService {
         }
 
         // 1. Borrar el archivo físico del disco si existe
+        // ===== CAMBIO 5: los documentos "ONLINE_..." (pautas y planificaciones en línea) no tienen archivo físico =====
         try {
-            if (documento.getRutaServidor() != null) {
+            if (documento.getRutaServidor() != null && !documento.getRutaServidor().startsWith("ONLINE_")) {
                 Path rutaFisica = Paths.get(documento.getRutaServidor()).toAbsolutePath().normalize();
                 Files.deleteIfExists(rutaFisica);
             }
@@ -369,7 +393,7 @@ public class DocumentoService {
     public List<Documento> obtenerPautasDeEstudiante() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String rut = auth.getName();
-        
+
         Optional<Usuario> usuarioOpt = usuarioRepository.findById(rut);
         if (usuarioOpt.isPresent() && usuarioOpt.get() instanceof Estudiante) {
             Estudiante estudiante = (Estudiante) usuarioOpt.get();
