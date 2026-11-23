@@ -54,6 +54,9 @@ public class SecurityConfig {
                 // Cualquier otro endpoint de la API queda bloqueado (debe ir DESPUÉS de definir las rutas de /api/ permitidas)
                 .requestMatchers("/api/**").denyAll()
 
+                // Evaluación ponderada por componentes (Coordinador y Profesor de Asignatura)
+                .requestMatchers("/evaluacion/**").hasAnyRole("COORDINADOR", "PROFESOR_ASIGNATURA")
+
                 // Paneles por rol (lo específico va antes que lo general)
                 .requestMatchers("/estudiante/**").hasRole("ESTUDIANTE")
                 .requestMatchers("/profesor/archivos").hasAnyRole("PROFESOR_ASIGNATURA", "TUTOR")

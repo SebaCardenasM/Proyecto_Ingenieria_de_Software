@@ -58,12 +58,7 @@ public class DocumentoController {
     public ResponseEntity<?> subirPautaTutor(
             @RequestParam("archivo") MultipartFile archivo,
             @RequestParam("idPractica") Long idPractica) {
-        try {
-            Documento guardado = documentoService.subirPautaTutor(archivo, idPractica);
-            return ResponseEntity.ok(DocumentoDTO.desde(guardado));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+        return ResponseEntity.badRequest().body("La subida de pautas en formato PDF/Word ha sido deshabilitada. Las evaluaciones deben registrarse exclusivamente a través del formulario digital en línea para automatizar el cálculo de notas.");
     }
 
     @PostMapping("/eliminar/{id}")

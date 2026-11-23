@@ -179,6 +179,8 @@
             
             <form id="formPautaOnline" th:action="@{/tutor/estudiante/{id}/pauta-interactiva/guardar(id=${practica.id})}" method="post">
                 <input type="hidden" name="idPauta" th:value="${pauta != null ? pauta.id : ''}">
+                <input type="hidden" name="tipoPauta" th:value="${tipoPauta != null ? tipoPauta : 'ESPECIALIDAD'}">
+                <input type="hidden" name="numObs" th:value="${numeroObservacion != null ? numeroObservacion : 1}">
 
                 <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
                     <div>
@@ -199,8 +201,8 @@
                 </div>
 
                 <div class="text-center my-4">
-                    <p class="fw-bold text-secondary mb-1">Investigación en el aula 2026</p>
-                    <h4 class="fw-bold mb-1">PAUTA DE EVALUACIÓN PARA LA OBSERVACIÓN DE CLASE DE MATEMÁTICA</h4>
+                    <p class="fw-bold text-secondary mb-1" th:text="${practica != null and practica.numeroPractica != null ? 'Práctica ' + practica.numeroPractica : 'Práctica Pedagógica'}">Práctica</p>
+                    <h4 class="fw-bold mb-1" th:text="${tituloPauta != null ? tituloPauta : 'PAUTA DE EVALUACIÓN PARA LA OBSERVACIÓN DE CLASE DE MATEMÁTICA'}">PAUTA DE EVALUACIÓN PARA LA OBSERVACIÓN DE CLASE DE MATEMÁTICA</h4>
                     <h5 class="fw-bold text-primary mb-0">ACADÉMICA(O) UBB</h5>
                 </div>
 
@@ -280,11 +282,11 @@
                 <div class="score-banner shadow-sm rounded p-3 mb-3 border d-flex flex-wrap justify-content-between align-items-center gap-3">
                     <div>
                         <span class="text-muted small d-block">Criterios Evaluados</span>
-                        <span class="fs-5 fw-bold text-dark"><span id="answeredCount">0</span> / 20</span>
+                        <span class="fs-5 fw-bold text-dark"><span id="answeredCount">0</span> / <span id="totalCriteriaLabel">20</span></span>
                     </div>
                     <div>
                         <span class="text-muted small d-block">Puntaje Total</span>
-                        <span class="fs-5 fw-bold text-primary"><span id="totalScore">0</span> / 140 pts</span>
+                        <span class="fs-5 fw-bold text-primary"><span id="totalScore">0</span> / <span id="maxScoreLabel">140</span> pts</span>
                     </div>
                     <div>
                         <span class="text-muted small d-block">Porcentaje de Logro</span>
@@ -385,6 +387,7 @@
     <script th:inline="javascript">
         const modoLectura = /*[[${modoLectura != null ? modoLectura : false}]]*/ false;
         const rawJsonObservaciones = /*[[${pauta != null ? pauta.observaciones : ''}]]*/ '';
+        const tipoPautaActual = /*[[${tipoPauta != null ? tipoPauta : 'ESPECIALIDAD'}]]*/ 'ESPECIALIDAD';
 
         let datosGuardados = {};
         if (rawJsonObservaciones) {
@@ -395,7 +398,7 @@
             }
         }
 
-        const sections = [
+        const sectionsEspecialidad = [
             {title: "ASPECTOS DE LA ESTRUCTURA DE LA CLASE", items: [
                 "El objetivo de la clase se presenta a los estudiantes. Es claro y pertinente al nivel.",
                 "El profesor/a desarrolla un inicio de la clase generando retroalimentación y/o activación de conocimientos previos.",
@@ -423,6 +426,46 @@
                 "El profesor/a realiza observación sistemática del proceso cognitivo de los estudiantes durante toda la clase."
             ]}
         ];
+
+        const sectionsOrientacion = [
+            {title: "DIMENSIÓN A: DISEÑO DE LA CLASE Y PLANIFICACIÓN DE LA ENSEÑANZA", items: [
+                "Comunica a las/os estudiantes los propósitos de la clase y los aprendizajes a lograr.",
+                "Utiliza el tiempo disponible para la enseñanza en función de los objetivos de la clase.",
+                "Especifica en las unidades pedagógicas de orientación, los tres momentos de la clase: inicio, desarrollo y cierre."
+            ]},
+            {title: "DIMENSIÓN B: GENERACIÓN DE AMBIENTE PROPICIO PARA EL APRENDIZAJE", items: [
+                "Formula preguntas y concede el tiempo necesario para resolverlos.",
+                "Posee la capacidad de empatía, de atención personalizada propiciada por la clase y escucha activamente a los y las estudiantes.",
+                "Establece un clima de relaciones interpersonales respetuosas y empáticas con sus estudiantes.",
+                "Establece normas de comportamiento que son conocidas y comprensibles para sus estudiantes."
+            ]},
+            {title: "DIMENSIÓN C: USO DE METODOLOGÍAS Y DIDÁCTICA PARA LA ENSEÑANZA", items: [
+                "Utiliza diferentes metodologías pedagógicas, que motiven el interés de los y las estudiantes durante las clases.",
+                "Ofrece oportunidades y desafíos de participación activas a los y las estudiantes del grupo curso, considerando su diversidad.",
+                "Demuestra conocer variadas estrategias de enseñanza y actividades congruentes con el proceso de enseñanza y aprendizaje."
+            ]},
+            {title: "DIMENSIÓN D: EVALUACIÓN DE LOS APRENDIZAJES", items: [
+                "Emplea instrumentos de evaluación, acorde a las temáticas desarrolladas en el grupo curso.",
+                "Utiliza criterios de evaluación coherentes con los objetivos de aprendizaje propuestos.",
+                "Evalúa el grado en que las/os estudiantes alcanzaron los aprendizajes esperados."
+            ]},
+            {title: "DIMENSIÓN E: EVALUACIÓN DE SU DESEMPEÑO", items: [
+                "Reflexiona sobre la propia práctica pedagógica, considerando la capacidad de preparar y gestionar curricularmente sus clases en el área de orientación.",
+                "Evalúa el nivel de logro de los objetivos de aprendizaje planteados, valorando los aciertos y analizando los errores.",
+                "Evidencia el cumplimiento de los compromisos contraídos, presentación personal, puntualidad y responsabilidad profesional.",
+                "Analiza críticamente su desempeño durante las clases, a partir de los resultados de aprendizaje de las y los estudiantes.",
+                "Presenta anticipadamente la planificación de la clase, de acuerdo a la unidad didáctica, para su debida retroalimentación."
+            ]}
+        ];
+
+        const sections = (tipoPautaActual === 'ORIENTACION') ? sectionsOrientacion : sectionsEspecialidad;
+        const totalCriterios = sections.reduce((acc, s) => acc + s.items.length, 0);
+        const maxPossible = totalCriterios * 7;
+
+        const elTotalCriteria = document.getElementById("totalCriteriaLabel");
+        if (elTotalCriteria) elTotalCriteria.textContent = totalCriterios;
+        const elMaxScore = document.getElementById("maxScoreLabel");
+        if (elMaxScore) elMaxScore.textContent = maxPossible;
 
         const respuestasArray = Array.isArray(datosGuardados.respuestas) ? datosGuardados.respuestas : [];
         const tbody = document.querySelector("#rubric tbody");
@@ -516,7 +559,6 @@
             checkedRadios.forEach(r => sum += parseInt(r.value, 10));
 
             const count = checkedRadios.length;
-            const maxPossible = 140;
             const percentage = Math.round((sum / maxPossible) * 100);
             const avg = count > 0 ? (sum / count).toFixed(1) : "-";
 
@@ -528,8 +570,8 @@
 
         function confirmarEnvioDefinitivo() {
             const respondidos = document.querySelectorAll('#rubric input[type="radio"]:checked').length;
-            if (respondidos < 20) {
-                alert(`Faltan criterios por evaluar (${respondidos}/20 respondidos). Si aún no terminas, usa el botón "Guardar como Borrador".`);
+            if (respondidos < totalCriterios) {
+                alert(`Faltan criterios por evaluar (${respondidos}/${totalCriterios} respondidos). Si aún no terminas, usa el botón "Guardar como Borrador".`);
                 return false;
             }
             return confirm("¿Estás seguro de ENVIAR la pauta definitiva? Una vez enviada quedará disponible para el estudiante y no podrá editarse.");
