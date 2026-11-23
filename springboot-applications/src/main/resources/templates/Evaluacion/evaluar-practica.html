@@ -111,7 +111,7 @@
                         <div class="alert alert-info py-2 px-3 small mb-3 border-0 bg-primary bg-opacity-10 text-primary-emphasis d-flex align-items-center">
                             <i class="bi bi-shield-lock-fill fs-5 me-2 text-primary"></i>
                             <div>
-                                <strong>Evaluación asistida:</strong> Las calificaciones con el distintivo <span class="badge bg-primary text-white"><i class="bi bi-lock-fill me-1"></i>Pauta en línea</span> provienen directamente de las pautas completadas y están protegidas contra modificaciones accidentales.
+                                <strong>Evaluación asistida:</strong> Las calificaciones con el distintivo <span class="badge bg-primary text-white"><i class="bi bi-lock-fill me-1"></i>Pauta en línea</span> o <span class="badge bg-primary text-white"><i class="bi bi-lock-fill me-1"></i>Informe evaluado</span> provienen directamente de las evaluaciones completadas y están protegidas contra modificaciones accidentales.
                             </div>
                         </div>
 
@@ -136,8 +136,8 @@
                                                 <input type="text" name="nombre" class="form-control form-control-sm input-nombre-eval bg-light"
                                                        th:value="${comp.nombre}" readonly required maxlength="160">
                                                 <span th:if="${comp.bloqueada}" class="badge bg-primary-subtle text-primary border border-primary-subtle text-nowrap"
-                                                      th:title="${comp.origen != null ? comp.origen : 'Nota calculada y bloqueada desde pauta en línea'}">
-                                                    <i class="bi bi-lock-fill me-1"></i>Pauta en línea
+                                                      th:title="${comp.origen != null ? comp.origen : 'Nota calculada y bloqueada'}">
+                                                    <i class="bi bi-lock-fill me-1"></i><span th:text="${comp.origen != null and comp.origen.startsWith('Informe') ? 'Informe evaluado' : 'Pauta en línea'}">Pauta en línea</span>
                                                 </span>
                                             </div>
                                             <small th:if="${comp.bloqueada and comp.origen != null}" class="text-muted d-block mt-1" style="font-size: 0.75rem;">

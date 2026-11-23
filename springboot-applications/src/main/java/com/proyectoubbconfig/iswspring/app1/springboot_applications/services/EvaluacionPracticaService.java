@@ -2,13 +2,16 @@ package com.proyectoubbconfig.iswspring.app1.springboot_applications.services;
 
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.dto.BloquePautasDTO;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.dto.PautaSlotDTO;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Documento;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.EstadoPractica;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.EvaluacionPractica;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.EvaluacionPractica.Componente;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Informe;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Pauta;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Practica;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.TipoEvaluador;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.TipoPauta;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.DocumentoRepository;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.EvaluacionPracticaRepository;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.PautaRepository;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.PracticaRepository;
@@ -40,6 +43,9 @@ public class EvaluacionPracticaService {
 
     @Autowired
     private PautaRepository pautaRepository;
+
+    @Autowired(required = false)
+    private DocumentoRepository documentoRepository;
 
     public String nombreAsignatura(int numeroPractica) {
         if (numeroPractica >= 1 && numeroPractica <= NOMBRES_PRACTICA.length) {
@@ -478,18 +484,36 @@ public class EvaluacionPracticaService {
         }
 
         List<Pauta> pautas = pautaRepository.findByPracticaId(practica.getId());
-        if (pautas == null || pautas.isEmpty()) {
-            return false;
-        }
-
-        // Solo pautas válidas no borrador con puntaje registrado
-        List<Pauta> pautasValidas = pautas.stream()
+        List<Pauta> pautasValidas = (pautas != null) ? pautas.stream()
                 .filter(p -> p.getPuntajeObtenido() != null && p.getPuntajeObtenido() > 0)
                 .filter(p -> p.getRutaServidor() == null || !"ONLINE_BORRADOR".equalsIgnoreCase(p.getRutaServidor()))
                 .sorted(Comparator.comparing(Pauta::getFechaSubida, Comparator.nullsLast(Comparator.naturalOrder())))
-                .toList();
+                .toList() : Collections.emptyList();
 
-        if (pautasValidas.isEmpty()) {
+        List<Informe> informesValidos = new ArrayList<>();
+        if (documentoRepository != null) {
+            List<Documento> docs = documentoRepository.findByPracticaId(practica.getId());
+            if (docs != null) {
+                informesValidos.addAll(docs.stream()
+                        .filter(d -> d instanceof Informe)
+                        .map(d -> (Informe) d)
+                        .filter(i -> i.getNota() != null && !i.isBorrador())
+                        .toList());
+            }
+            if (informesValidos.isEmpty() && practica.getEstudiante() != null) {
+                List<Documento> docsEst = documentoRepository.findByEstudiante(practica.getEstudiante());
+                if (docsEst != null) {
+                    informesValidos.addAll(docsEst.stream()
+                            .filter(d -> d instanceof Informe)
+                            .map(d -> (Informe) d)
+                            .filter(i -> i.getNota() != null && !i.isBorrador()
+                                    && (i.getNumeroPractica() == null || i.getNumeroPractica().equals(practica.getNumeroPractica())))
+                            .toList());
+                }
+            }
+        }
+
+        if (pautasValidas.isEmpty() && informesValidos.isEmpty()) {
             return false;
         }
 
@@ -643,6 +667,59 @@ public class EvaluacionPracticaService {
                         modificado = true;
                         continue;
                     }
+                }
+            }
+        }
+
+        // 5. Informes evaluados por el profesor
+        if (!informesValidos.isEmpty()) {
+            Set<Long> informesUsados = new HashSet<>();
+            for (Componente c : componentes) {
+                String nom = c.getNombre() != null ? c.getNombre().toLowerCase() : "";
+                String uid = c.getUid() != null ? c.getUid().toLowerCase() : "";
+
+                boolean esComponenteInforme = nom.contains("informe")
+                        || uid.contains("informe")
+                        || uid.equals("p1_c2") || uid.equals("p1_c3")
+                        || uid.equals("p2_c3") || uid.equals("p3_c4")
+                        || uid.equals("p4_c4") || uid.equals("p5_c8")
+                        || uid.equals("p6_c4");
+
+                if (!esComponenteInforme) {
+                    continue;
+                }
+
+                // Si ya está bloqueada por pauta, no sobreescribir
+                if (c.isBloqueada() && c.getOrigen() != null && !c.getOrigen().startsWith("Informe")) {
+                    continue;
+                }
+
+                Informe inf = null;
+                // Coincidencia más específica por nombre de archivo
+                if (nom.contains("reflexivo")) {
+                    inf = informesValidos.stream()
+                            .filter(i -> !informesUsados.contains(i.getId()))
+                            .filter(i -> i.getNombreArchivo().toLowerCase().contains("reflexivo"))
+                            .findFirst().orElse(null);
+                } else if (nom.contains("análisis") || nom.contains("analisis")) {
+                    inf = informesValidos.stream()
+                            .filter(i -> !informesUsados.contains(i.getId()))
+                            .filter(i -> i.getNombreArchivo().toLowerCase().contains("análisis") || i.getNombreArchivo().toLowerCase().contains("analisis"))
+                            .findFirst().orElse(null);
+                }
+
+                if (inf == null) {
+                    inf = informesValidos.stream()
+                            .filter(i -> !informesUsados.contains(i.getId()))
+                            .findFirst().orElse(null);
+                }
+
+                if (inf != null && inf.getNota() != null) {
+                    c.setNota(inf.getNota());
+                    c.setBloqueada(true);
+                    c.setOrigen("Informe evaluado (" + inf.getNombreArchivo() + ")");
+                    informesUsados.add(inf.getId());
+                    modificado = true;
                 }
             }
         }

@@ -410,7 +410,17 @@
                     body: JSON.stringify({ nota: nota, retroalimentacion: retro })
                 });
                 if (!res.ok) {
-                    err.textContent = (await res.text()) || 'No se pudo guardar la evaluación.';
+                    let errMsg = 'No se pudo guardar la evaluación.';
+                    try {
+                        const raw = await res.text();
+                        try {
+                            const parsed = JSON.parse(raw);
+                            errMsg = parsed.message || parsed.error || raw;
+                        } catch {
+                            errMsg = raw || errMsg;
+                        }
+                    } catch {}
+                    err.textContent = errMsg;
                     err.classList.remove('d-none');
                     return;
                 }

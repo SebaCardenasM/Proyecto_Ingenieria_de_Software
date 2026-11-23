@@ -45,8 +45,8 @@ public class SecurityConfig {
                     .hasAnyRole("PROFESOR_ASIGNATURA", "TUTOR", "COORDINADOR")
                 .requestMatchers("/api/documentos/todos").hasRole("COORDINADOR")
 
-                // Evaluar informes: solo el profesor de asignatura (el servicio valida además que sea el de ese estudiante)
-                .requestMatchers(HttpMethod.POST, "/api/documentos/evaluar-informe/**").hasRole("PROFESOR_ASIGNATURA")
+                // Evaluar informes: profesor de asignatura o coordinador (el servicio valida además que le corresponda el estudiante)
+                .requestMatchers(HttpMethod.POST, "/api/documentos/evaluar-informe/**").hasAnyRole("PROFESOR_ASIGNATURA", "COORDINADOR")
 
                 // Chatbot
                 .requestMatchers(HttpMethod.POST, "/api/chat/preguntar").authenticated()

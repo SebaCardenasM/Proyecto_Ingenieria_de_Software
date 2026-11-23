@@ -26,11 +26,15 @@ public class BloquePautasDTO {
     public TipoPauta getTipoPauta() { return tipoPauta; }
     public void setTipoPauta(TipoPauta tipoPauta) { this.tipoPauta = tipoPauta; }
 
-    public String getIcono() { return icono; }
-    public void setIcono(String icono) { this.icono = icono; }
-
     public String getBadgeClass() { return badgeClass; }
     public void setBadgeClass(String badgeClass) { this.badgeClass = badgeClass; }
+    public String getColorClase() { return badgeClass; }
+    public void setColorClase(String colorClase) { this.badgeClass = colorClase; }
+
+    public String getIcono() { return icono; }
+    public void setIcono(String icono) { this.icono = icono; }
+    public String getIconoClase() { return icono; }
+    public void setIconoClase(String iconoClase) { this.icono = iconoClase; }
 
     public List<PautaSlotDTO> getSlots() { return slots; }
     public void setSlots(List<PautaSlotDTO> slots) { this.slots = slots; }

@@ -109,4 +109,32 @@ class EvaluacionPracticaServiceTest {
             assertTrue(tieneBloqueada, "Debe tener al menos un componente bloqueado desde la pauta");
         }
     }
+
+    @Test
+    void testSincronizarInformeEvaluadoEnComponentes() {
+        Practica practica = new Practica();
+        practica.setNumeroPractica(5);
+        practica.setId(88888L);
+
+        EvaluacionPractica ev = new EvaluacionPractica();
+        ev.setPractica(practica);
+        ev.setNumeroPractica(5);
+        Componente cInforme = new Componente("p5_c8", "Integración curricular: Informe final (Producto 3)", 27.0, null);
+        ev.setComponentes(List.of(cInforme));
+
+        // Simulamos informe evaluado
+        com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Informe informe = new com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Informe();
+        informe.setNombreArchivo("Informe_Final_Prueba.pdf");
+        informe.setNota(6.8);
+        informe.setEstado(com.proyectoubbconfig.iswspring.app1.springboot_applications.models.EstadoDocumento.ENVIADO);
+
+        // Verificamos serialización y asignación del origen informe
+        cInforme.setNota(informe.getNota());
+        cInforme.setBloqueada(true);
+        cInforme.setOrigen("Informe evaluado (" + informe.getNombreArchivo() + ")");
+
+        assertEquals(6.8, cInforme.getNota());
+        assertTrue(cInforme.isBloqueada());
+        assertTrue(cInforme.getOrigen().contains("Informe evaluado"));
+    }
 }

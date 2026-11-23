@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -59,6 +60,8 @@ public class DocumentoService {
     // NUEVO: aviso al estudiante cuando se evalúa su informe
     @Autowired
     private NotificacionRepository notificacionRepository;
+    @Autowired(required = false)
+    private EvaluacionPracticaService evaluacionPracticaService;
 
     private final String CARPETA_SUBIDAS = "uploads/practicas/";
 
@@ -293,17 +296,48 @@ public class DocumentoService {
                             + (retro.isEmpty() ? "." : ". Incluyó retroalimentación."),
                     null));
         }
+
+        // Actualizar automáticamente la evaluación de la práctica si existe
+        if (evaluacionPracticaService != null && informe.getPractica() != null) {
+            try {
+                evaluacionPracticaService.obtenerOAsegurarEvaluacionPractica(informe.getPractica());
+            } catch (Exception ignored) {}
+        }
+
         return informe;
     }
 
     private boolean puedeEvaluar(Informe informe, String rut) {
+        if (rut == null) return false;
         Practica pr = informe.getPractica();
-        if (pr != null && pr.getProfesor() != null) {
-            return rut.equals(pr.getProfesor().getRut());
-        }
         Estudiante e = informe.getEstudiante();
-        return e != null && e.getProfesorCoordinador() != null
-                && rut.equals(e.getProfesorCoordinador().getRut());
+        if (pr == null && e != null && informe.getNumeroPractica() != null && e.getPracticas() != null) {
+            final Integer n = informe.getNumeroPractica();
+            pr = e.getPracticas().stream()
+                    .filter(p -> n.equals(p.getNumeroPractica()))
+                    .max(Comparator
+                            .comparing(Practica::getAno, Comparator.nullsFirst(Comparator.<Integer>naturalOrder()))
+                            .thenComparing(Practica::getSemestre, Comparator.nullsFirst(Comparator.<Integer>naturalOrder())))
+                    .orElse(null);
+            if (pr != null) {
+                informe.setPractica(pr);
+            }
+        }
+        if (pr != null && pr.getProfesor() != null && rut.equals(pr.getProfesor().getRut())) {
+            return true;
+        }
+        if (e != null && e.getProfesorCoordinador() != null && rut.equals(e.getProfesorCoordinador().getRut())) {
+            return true;
+        }
+        if (e != null && e.getPracticas() != null) {
+            boolean esProfesor = e.getPracticas().stream()
+                    .anyMatch(p -> p.getProfesor() != null && rut.equals(p.getProfesor().getRut())
+                            && (informe.getNumeroPractica() == null || informe.getNumeroPractica().equals(p.getNumeroPractica())));
+            if (esProfesor) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Transactional

@@ -91,8 +91,8 @@
                             <div th:each="bloque : ${bloquesPautas}" class="mb-4">
                                 <div class="d-flex align-items-center justify-content-between pb-2 mb-3 border-bottom">
                                     <div class="d-flex align-items-center gap-2">
-                                        <span class="badge rounded-pill px-3 py-2 text-white" th:classappend="${bloque.colorClase}">
-                                            <i class="bi me-1" th:classappend="${bloque.iconoClase}"></i>
+                                        <span class="badge rounded-pill px-3 py-2 text-white" th:classappend="${bloque.badgeClass != null ? bloque.badgeClass : bloque.colorClase}">
+                                            <i class="bi me-1" th:classappend="${bloque.icono != null ? bloque.icono : bloque.iconoClase}"></i>
                                             <span th:text="${bloque.nombreBloque}">Bloque</span>
                                         </span>
                                         <span class="text-muted small">
@@ -176,13 +176,13 @@
                         </div>
 
                         <!-- Sección de archivos históricos (solo si existen previamente cargados) -->
-                        <div th:if="${practica.archivos != null and practica.archivos.?[tipoDocumento != null and tipoDocumento.name() == 'PAUTA' and !#strings.startsWith(rutaServidor, 'ONLINE_')].size() > 0}">
+                        <div th:if="${practica.archivos != null and practica.archivos.?[tipoDocumento != null and tipoDocumento.name() == 'PAUTA' and (rutaServidor != null and !#strings.startsWith(rutaServidor, 'ONLINE_'))].size() > 0}">
                             <hr class="my-4">
                             <h6 class="fw-bold mb-3 text-secondary small text-uppercase">
                                 <i class="bi bi-archive me-1"></i> Documentos Históricos Anteriores:
                             </h6>
                             <div class="row g-3">
-                                <div class="col-sm-6 col-md-6" th:each="doc : ${practica.archivos}" th:if="${doc.tipoDocumento != null and doc.tipoDocumento.name() == 'PAUTA' and !#strings.startsWith(doc.rutaServidor, 'ONLINE_')}">
+                                <div class="col-sm-6 col-md-6" th:each="doc : ${practica.archivos}" th:if="${doc.tipoDocumento != null and doc.tipoDocumento.name() == 'PAUTA' and (doc.rutaServidor != null and !#strings.startsWith(doc.rutaServidor, 'ONLINE_'))}">
                                     <div class="card h-100 border shadow-sm doc-card">
                                         <div class="card-body text-center p-3">
                                             <i class="bi bi-file-earmark-pdf fs-1 text-danger mb-2"></i>
