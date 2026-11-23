@@ -23,14 +23,17 @@ public interface DocumentoRepository extends JpaRepository<Documento, Long> {
     Optional<Documento> findFirstByRutaServidor(String rutaServidor);
 
     // Documentos que le corresponden a un académico (por RUT):
-    // profesor de la práctica, tutor de la práctica o coordinador del estudiante
+    // profesor de la práctica, tutor de la práctica, coordinador del estudiante,
+    // o profesor de cualquier práctica del estudiante
     @Query("SELECT DISTINCT d FROM Documento d " +
         "LEFT JOIN d.practica p " +
         "LEFT JOIN p.profesor pp " +
         "LEFT JOIN p.tutor pt " +
         "LEFT JOIN d.estudiante e " +
         "LEFT JOIN e.profesorCoordinador pc " +
-        "WHERE pp.rut = :rut OR pt.rut = :rut OR pc.rut = :rut")
+        "LEFT JOIN e.practicas ep " +
+        "LEFT JOIN ep.profesor epp " +
+        "WHERE pp.rut = :rut OR pt.rut = :rut OR pc.rut = :rut OR epp.rut = :rut")
     List<Documento> findByAcademicoRut(@Param("rut") String rut);
 
 }
