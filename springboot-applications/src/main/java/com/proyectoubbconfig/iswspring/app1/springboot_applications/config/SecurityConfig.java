@@ -54,6 +54,9 @@ public class SecurityConfig {
                 // Cualquier otro endpoint de la API queda bloqueado (debe ir DESPUÉS de definir las rutas de /api/ permitidas)
                 .requestMatchers("/api/**").denyAll()
 
+                // Evaluar informes: solo el profesor de asignatura (el servicio valida además que sea el de ese estudiante)
+                .requestMatchers(HttpMethod.POST, "/api/documentos/evaluar-informe/**").hasRole("PROFESOR_ASIGNATURA")
+
                 // Paneles por rol (lo específico va antes que lo general)
                 .requestMatchers("/estudiante/**").hasRole("ESTUDIANTE")
                 .requestMatchers("/profesor/archivos").hasAnyRole("PROFESOR_ASIGNATURA", "TUTOR")

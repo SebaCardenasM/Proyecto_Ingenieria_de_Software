@@ -4,7 +4,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -13,16 +17,16 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
-import java.util.Optional;
 
-// ===== CAMBIO 1: import nuevo =====
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.dto.CamposPlanificacion;
-
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Documento;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.EstadoDocumento;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Estudiante;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Informe;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Notificacion;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Pauta;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Planificacion;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Practica;
@@ -31,10 +35,8 @@ import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.TipoD
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.TipoEvaluador;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Usuario;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.DocumentoRepository;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.NotificacionRepository;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.UsuarioRepository;
-import java.util.Set;
-import org.springframework.util.StringUtils;
-import org.springframework.transaction.annotation.Transactional;
 
 
 @Service
@@ -54,6 +56,9 @@ public class DocumentoService {
     private com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.PracticaRepository practicaRepository;
     @Autowired
     private PlanificacionPdfService planificacionPdfService;
+    // NUEVO: aviso al estudiante cuando se evalúa su informe
+    @Autowired
+    private NotificacionRepository notificacionRepository;
 
     private final String CARPETA_SUBIDAS = "uploads/practicas/";
 
@@ -231,6 +236,74 @@ public class DocumentoService {
 
         documento.setEstado(EstadoDocumento.ENVIADO);
         return documentoRepository.save(documento);
+    }
+
+    // =====================================================================
+    //  NUEVO: evaluación de informes por el profesor
+    // =====================================================================
+
+    /**
+     * El profesor de la práctica (o, si la práctica no tiene profesor, el coordinador del estudiante)
+     * pone la nota del informe y, opcionalmente, una retroalimentación.
+     */
+    @Transactional
+    public Informe evaluarInforme(Long idDocumento, Double nota, String retroalimentacion) throws Exception {
+        Documento doc = documentoRepository.findById(idDocumento)
+                .orElseThrow(() -> new Exception("No se encontró el documento."));
+        if (!(doc instanceof Informe informe)) {
+            throw new Exception("Solo se pueden evaluar informes.");
+        }
+        if (informe.isBorrador()) {
+            throw new Exception("El informe aún es un borrador del estudiante.");
+        }
+
+        String rut = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (!puedeEvaluar(informe, rut)) {
+            throw new Exception("No tienes permiso para evaluar este informe.");
+        }
+        if (nota == null || nota < 1.0 || nota > 7.0) {
+            throw new Exception("La nota debe estar entre 1,0 y 7,0.");
+        }
+        String retro = retroalimentacion == null ? "" : retroalimentacion.trim();
+        if (retro.length() > 2000) {
+            throw new Exception("La retroalimentación puede tener hasta 2000 caracteres.");
+        }
+        Profesor profesor = usuarioRepository.findById(rut)
+                .filter(u -> u instanceof Profesor)
+                .map(u -> (Profesor) u)
+                .orElseThrow(() -> new Exception("No se encontró al profesor."));
+
+        informe.setNota(Math.round(nota * 10) / 10.0);
+        informe.setRetroalimentacion(retro.isEmpty() ? null : retro);
+        informe.setFechaEvaluacion(LocalDateTime.now());
+        informe.setProfesorEvaluador(profesor);
+        documentoRepository.save(informe);
+
+        // Aviso al estudiante
+        Estudiante est = informe.getEstudiante() != null
+                ? informe.getEstudiante()
+                : (informe.getPractica() != null ? informe.getPractica().getEstudiante() : null);
+        if (est != null) {
+            String quien = (profesor.getNombre() + " " + profesor.getApellido()).trim();
+            String notaTxt = String.format(Locale.US, "%.1f", informe.getNota()).replace('.', ',');
+            notificacionRepository.save(new Notificacion(
+                    est,
+                    "Tu informe fue evaluado",
+                    "Tu profesor " + quien + " evaluó «" + informe.getNombreArchivo() + "» con nota " + notaTxt
+                            + (retro.isEmpty() ? "." : ". Incluyó retroalimentación."),
+                    null));
+        }
+        return informe;
+    }
+
+    private boolean puedeEvaluar(Informe informe, String rut) {
+        Practica pr = informe.getPractica();
+        if (pr != null && pr.getProfesor() != null) {
+            return rut.equals(pr.getProfesor().getRut());
+        }
+        Estudiante e = informe.getEstudiante();
+        return e != null && e.getProfesorCoordinador() != null
+                && rut.equals(e.getProfesorCoordinador().getRut());
     }
 
     @Transactional
