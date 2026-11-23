@@ -3,7 +3,7 @@ package com.proyectoubbconfig.iswspring.app1.springboot_applications.models;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-
+import org.springframework.format.annotation.DateTimeFormat;
 import jakarta.persistence.*;
 
 @Entity
@@ -24,7 +24,10 @@ public class Practica {
     
     private Double notaAprobacion;
     
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate fechaInicio;
+    
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate fechaFin;
 
     @ManyToOne

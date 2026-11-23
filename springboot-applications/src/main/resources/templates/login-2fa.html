@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Verificación en Dos Pasos (2FA) - Prácticas UBB</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link th:href="@{/css/ubb-index.css}" rel="stylesheet">
+
+    <style>
+        .code-input {
+            letter-spacing: 0.5em;
+            font-size: 1.8rem;
+            text-align: center;
+            font-weight: 700;
+            border: 2px solid #004b85;
+            border-radius: 0.75rem;
+        }
+        .code-input:focus {
+            box-shadow: 0 0 0 0.25rem rgba(0, 75, 133, 0.25);
+            border-color: #004b85;
+        }
+        .twofa-icon {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: #e8f1f8;
+            color: #004b85;
+            display: grid;
+            place-items: center;
+            margin: 0 auto 1.25rem;
+        }
+    </style>
+</head>
+<body class="ubb-auth d-flex align-items-center justify-content-center min-vh-100 py-4">
+
+    <main class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-7 col-lg-5 col-xl-4">
+
+                <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                    <div class="card-header ubb-bg text-white text-center py-4">
+                        <img th:src="@{/images/escudo-monocromatico-oscuro.png}" alt="Escudo Universidad del Bío-Bío" class="login-logo mb-2">
+                        <h4 class="fw-bold mb-0">Prácticas UBB</h4>
+                        <p class="mb-0 text-white-50 small">Verificación de Identidad</p>
+                    </div>
+
+                    <div class="card-body p-4 text-center">
+
+                        <div class="twofa-icon">
+                            <i class="bi bi-shield-lock-fill fs-1"></i>
+                        </div>
+
+                        <h5 class="fw-bold text-dark mb-2">Código de Seguridad (2FA)</h5>
+                        <p class="text-muted small mb-4">
+                            Ingresa el código de 6 dígitos que aparece en tu aplicación de autenticación (Google Authenticator, Authy o Microsoft Authenticator).
+                        </p>
+
+                        <!-- Mensaje de error si falla el código -->
+                        <div th:if="${param.error}" class="alert alert-danger text-center small py-2 mb-3 shadow-sm" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill me-1"></i> Código incorrecto o expirado.
+                        </div>
+
+                        <!-- Formulario de verificación de código -->
+                        <form th:action="@{/login-2fa/verificar}" method="post" class="mb-4">
+                            <div class="mb-3">
+                                <label for="codigo" class="form-label visually-hidden">Código de 6 dígitos</label>
+                                <input type="text"
+                                       class="form-control code-input"
+                                       id="codigo"
+                                       name="codigo"
+                                       maxlength="6"
+                                       pattern="[0-9]{6}"
+                                       inputmode="numeric"
+                                       autocomplete="one-time-code"
+                                       placeholder="······"
+                                       required
+                                       autofocus>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100 py-2 fw-bold shadow-sm">
+                                <i class="bi bi-check-circle-fill me-1"></i> Verificar y Entrar
+                            </button>
+                        </form>
+
+                        <hr class="my-3 text-muted">
+
+                        <!-- Alternativa: recibir por correo institucional -->
+                        <div class="mb-3">
+                            <p class="small text-muted mb-2">¿No tienes a mano tu aplicación de autenticación?</p>
+                            <form th:action="@{/login-2fa/enviar-correo}" method="post">
+                                <button type="submit" class="btn btn-outline-secondary btn-sm w-100">
+                                    <i class="bi bi-envelope-at-fill me-1"></i> Enviar código a mi correo institucional
+                                </button>
+                            </form>
+                            <small class="d-block text-muted mt-1" style="font-size: 0.75rem;" th:text="'Destino: ' + ${correoOculto}"></small>
+                        </div>
+
+                        <!-- Cancelar e irse -->
+                        <div class="pt-2">
+                            <form th:action="@{/logout}" method="post">
+                                <button type="submit" class="btn btn-link text-decoration-none text-muted btn-sm">
+                                    <i class="bi bi-arrow-left me-1"></i> Cancelar y volver al inicio
+                                </button>
+                            </form>
+                        </div>
+
+                    </div>
+                </div>
+
+                <p class="text-center text-white-50 mt-4 small">
+                    &copy; <span class="anio"></span> Universidad del Bío-Bío · Pedagogía en Educación Matemática
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Popups UBB -->
+    <div th:if="${mensajeExito}" data-ubb-flash hidden
+         th:attr="data-mensaje=${mensajeExito},data-titulo=${tituloExito}"></div>
+    <div th:if="${errorMensaje}" data-ubb-flash hidden data-tipo="error"
+         th:attr="data-mensaje=${errorMensaje},data-titulo=${tituloError}"></div>
+
+    <script th:src="@{/js/ubb-popup.js}"></script>
+    <script>
+        document.querySelectorAll('.anio').forEach(e => e.textContent = new Date().getFullYear());
+
+        // Auto-submit opcional al escribir los 6 dígitos
+        const input = document.getElementById('codigo');
+        if (input) {
+            input.addEventListener('input', function() {
+                this.value = this.value.replace(/[^0-9]/g, '');
+                if (this.value.length === 6) {
+                    this.form.submit();
+                }
+            });
+        }
+    </script>
+</body>
+</html>

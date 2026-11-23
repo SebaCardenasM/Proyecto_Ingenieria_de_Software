@@ -32,6 +32,9 @@ public interface PlanificacionRepository extends JpaRepository<Planificacion, Lo
            "LEFT JOIN e.profesorCoordinador pc " +
            "WHERE (pp.rut = :rut OR (pp IS NULL AND pc.rut = :rut)) " +
            "AND (p.estado IS NULL OR p.estado <> com.proyectoubbconfig.iswspring.app1.springboot_applications.models.EstadoDocumento.BORRADOR) " +
-           "AND (p.revisada IS NULL OR p.revisada = false)")
+           "AND (p.revisada IS NULL OR p.revisada = false) " +
+           "AND (p.estado IS NULL OR p.estado IN (" +
+           "com.proyectoubbconfig.iswspring.app1.springboot_applications.models.EstadoDocumento.EN_REVISION, " +
+           "com.proyectoubbconfig.iswspring.app1.springboot_applications.models.EstadoDocumento.ENVIADO))")
     long contarPendientes(@Param("rut") String rut);
 }

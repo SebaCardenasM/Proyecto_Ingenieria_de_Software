@@ -23,18 +23,22 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
             .authorizeHttpRequests(auth -> auth
-                // Públicas: estáticos, login, recuperación de contraseña y acceso por token del colaborador
+                // Públicas: estáticos, login, 2FA, recuperación de contraseña y acceso por token del colaborador
                 .requestMatchers("/css/**", "/js/**", "/images/**",
-                                "/login", "/recuperar/**", "/evaluacion-colaborador/**").permitAll()
+                                "/login", "/login-2fa/**", "/recuperar/**", "/evaluacion-colaborador/**").permitAll()
+
+                // Ver perfiles de estudiantes y profesores (coordinador, profesor de asignatura y tutor)
+                .requestMatchers("/perfil/estudiante/**", "/perfil/profesor/**").hasAnyRole("COORDINADOR", "PROFESOR_ASIGNATURA", "TUTOR")
 
                 // Cualquier usuario autenticado (el acceso fino a /uploads lo valida el interceptor)
-                .requestMatchers("/seleccionar-rol", "/uploads/**").authenticated()
+                .requestMatchers("/seleccionar-rol", "/uploads/**", "/perfil", "/perfil/**").authenticated()
 
                 // API de documentos: cada endpoint con su rol
                 .requestMatchers(HttpMethod.POST, "/api/documentos/subir", "/api/documentos/subir-tutor").hasAnyRole("ESTUDIANTE", "TUTOR", "PROFESOR_ASIGNATURA")
 
                 // Paso 3 de la cadena: solo el estudiante envía sus borradores al gestor
                 .requestMatchers(HttpMethod.POST, "/api/documentos/enviar/**").hasRole("ESTUDIANTE")
+                .requestMatchers(HttpMethod.POST, "/api/documentos/reemplazar/**").hasRole("ESTUDIANTE")
 
                 // PERMITE ELIMINAR
                 .requestMatchers(HttpMethod.POST, "/api/documentos/eliminar/**").hasAnyRole("ESTUDIANTE", "TUTOR", "PROFESOR_ASIGNATURA", "COORDINADOR")

@@ -10,25 +10,96 @@
         .ubb-bg { background-color: #004b85; }
         body { background-color: #f4f6f9; }
 
-        /* Ticks de revisión */
+        /* ---------- Encabezado: los dos pasos ---------- */
+        .pasos { list-style: none; margin: .6rem 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: .6rem; }
+        .pasos li {
+            display: flex; gap: .6rem; align-items: flex-start; flex: 1 1 280px; max-width: 460px;
+            background: rgba(255,255,255,.75); border: 1px solid rgba(0,75,133,.12);
+            border-radius: .8rem; padding: .55rem .8rem; font-size: .85rem; color: #4a5a6a;
+        }
+        .pasos .n {
+            width: 24px; height: 24px; border-radius: 50%; flex: none; margin-top: 1px;
+            display: grid; place-items: center; background: #004b85; color: #fff; font-weight: 700; font-size: .78rem;
+        }
+        .pasos strong { color: #1d2b3a; }
+
+        /* ---------- Chips de filtro ---------- */
+        .chip {
+            --c: #004b85;
+            display: inline-flex; align-items: center; gap: .4rem;
+            border: 1.5px solid var(--c); color: var(--c); background: #fff;
+            border-radius: 2rem; padding: .32rem .85rem; font-weight: 600; font-size: .85rem;
+            transition: all .15s ease; cursor: pointer;
+        }
+        .chip .badge { background: var(--c) !important; color: #fff !important; }
+        .chip:hover { background: color-mix(in srgb, var(--c) 10%, #fff); }
+        .chip.active { background: var(--c); color: #fff; box-shadow: 0 6px 14px -8px var(--c); }
+        .chip.active .badge { background: #fff !important; color: var(--c) !important; }
+        .chip-todas { --c: #004b85; }
+        .chip-rev   { --c: #b7791f; }
+        .chip-obs   { --c: #dc3545; }
+        .chip-aut   { --c: #198754; }
+        .chip-pau   { --c: #0891b2; }
+
+        /* ---------- Tabla ---------- */
+        .card-tabla { border-radius: 1rem; overflow: hidden; }
+        .tabla-rev thead th {
+            font-size: .72rem; text-transform: uppercase; letter-spacing: .05em;
+            color: #5b6b7c; background: #eef3f9; border-bottom: 0; padding-top: .9rem; padding-bottom: .9rem;
+            vertical-align: middle;
+        }
+        .tabla-rev > tbody > tr > td { padding-top: .8rem; padding-bottom: .8rem; }
+        .tabla-rev td:first-child, .tabla-rev th:first-child { border-left: 4px solid transparent; }
+        .tabla-rev tr[data-estado="AUTORIZADO"]        { --bs-table-bg: #f1f8f4; }
+        .tabla-rev tr[data-estado="AUTORIZADO"] td:first-child        { border-left-color: #198754; }
+        .tabla-rev tr[data-estado="CON_OBSERVACIONES"] td:first-child { border-left-color: #dc3545; }
+        .tabla-rev tr[data-estado="EN_REVISION"] td:first-child       { border-left-color: #f0ad00; }
+
+        .doc-nombre { overflow-wrap: anywhere; font-weight: 500; }
+        .col-doc    { min-width: 230px; max-width: 320px; }
+        .col-estado { min-width: 210px; max-width: 300px; }
+        .col-tick   { width: 150px; }
+
+        /* ---------- Comentario resumido (clic = ver completo) ---------- */
+        .coment-box {
+            display: flex; gap: .45rem; align-items: flex-start; width: 100%; text-align: left;
+            margin-top: .45rem; padding: .4rem .6rem;
+            background: #fff7e0; border: 1px solid #f6df9b; border-left: 4px solid #f0ad00; border-radius: .6rem;
+            color: #5c4a12; font-size: .8rem; line-height: 1.3; cursor: pointer; transition: background .15s;
+        }
+        .coment-box:hover { background: #fff0c2; }
+        .coment-box > i { margin-top: 2px; flex: none; }
+        .coment-box .cuerpo { min-width: 0; flex: 1; display: flex; flex-direction: column; }
+        .coment-box .txt {
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+            overflow: hidden; overflow-wrap: anywhere;
+        }
+        .coment-box .mas { font-size: .72rem; font-weight: 600; color: #9a6a00; margin-top: .15rem; }
+
+        /* ---------- Ticks: todos del mismo alto y en la misma línea ---------- */
+        .tick-fila { display: flex; justify-content: center; align-items: center; gap: .5rem; height: 46px; }
+        .tick-btn, .tick-ok, .tick-disabled, .tick-comentar {
+            width: 46px; height: 46px; border-radius: 50%; flex: none;
+            display: inline-grid; place-items: center; font-size: 1.5rem; padding: 0;
+        }
         .tick-btn {
-            width: 46px; height: 46px; border-radius: 50%;
-            display: inline-grid; place-items: center; font-size: 1.5rem;
             border: 2px solid #adb5bd; background: #fff; color: #adb5bd;
-            transition: all 0.2s ease; cursor: pointer;
+            transition: all .2s ease; cursor: pointer;
         }
-        .tick-btn:hover { border-color: #198754; color: #fff; background: #198754; transform: scale(1.12); box-shadow: 0 8px 16px -6px rgba(25, 135, 84, 0.7); }
-        .tick-ok {
-            width: 46px; height: 46px; border-radius: 50%;
-            display: inline-grid; place-items: center; font-size: 1.5rem;
-            background: #198754; color: #fff; box-shadow: 0 8px 16px -6px rgba(25, 135, 84, 0.6);
+        .tick-btn:hover { border-color: #198754; color: #fff; background: #198754; transform: scale(1.12); box-shadow: 0 8px 16px -6px rgba(25,135,84,.7); }
+        .tick-ok { background: #198754; color: #fff; box-shadow: 0 8px 16px -6px rgba(25,135,84,.6); }
+        .tick-disabled { border: 2px dashed #ced4da; color: #ced4da; background: #f8f9fa; cursor: not-allowed; }
+        .tick-comentar {
+            border: 2px solid #f1aeb5; background: #fff; color: #dc3545; font-size: 1.15rem;
+            transition: all .2s ease; cursor: pointer;
         }
-        .tick-disabled {
-            width: 46px; height: 46px; border-radius: 50%;
-            display: inline-grid; place-items: center; font-size: 1.5rem;
-            border: 2px dashed #ced4da; color: #ced4da; background: #f8f9fa; cursor: not-allowed;
-        }
-        .resumen-chip { border-radius: 2rem; padding: 0.35rem 0.9rem; font-weight: 600; }
+        .tick-comentar:hover { background: #dc3545; color: #fff; border-color: #dc3545; transform: scale(1.08); }
+        .espera { color: #6c757d; font-size: .82rem; line-height: 1.15; }
+
+        .btn-nuevo-enlace { font-size: .78rem; text-decoration: none; padding: 0; }
+
+        /* ---------- Modal de lectura ---------- */
+        #verComentarioTexto { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.5; }
     </style>
     <link th:href="@{/css/ubb-index.css}" rel="stylesheet">
 </head>
@@ -47,15 +118,15 @@
 
     <div class="container-fluid px-4 px-md-5 mb-5">
 
-        <div class="row mb-4 align-items-center">
-            <div class="col-lg-7">
+        <div class="row mb-4 align-items-start">
+            <div class="col-lg-8">
                 <h2 class="fw-bold text-dark mb-0"><i class="bi bi-clipboard2-check-fill text-success me-2"></i>Revisión de Planificaciones</h2>
-                <p class="text-muted mt-1 mb-0">
-                    <strong>Tick 1:</strong> marca la planificación como revisada.
-                    <strong>Tick 2:</strong> indica que la clase se evaluará con pautas; el estudiante recibe un aviso con el enlace temporal para su profesor colaborador.
-                </p>
+                <ol class="pasos">
+                    <li><span class="n">1</span><div><strong>Autorizar clase:</strong> bloquea y congela la planificación en PDF permanente, autorizando al estudiante a dar su clase.</div></li>
+                    <li><span class="n">2</span><div><strong>Evaluar con pautas:</strong> indica que la clase se evaluará con pautas y genera el enlace temporal para su profesor colaborador.</div></li>
+                </ol>
             </div>
-            <div class="col-lg-5 mt-3 mt-lg-0">
+            <div class="col-lg-4 mt-3 mt-lg-0">
                 <div class="input-group shadow-sm">
                     <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
                     <input type="text" id="inputBuscar" class="form-control border-start-0" placeholder="Buscar por estudiante, RUT o archivo...">
@@ -64,25 +135,28 @@
         </div>
 
         <div class="d-flex flex-wrap gap-2 mb-3">
-            <button type="button" class="btn btn-sm btn-primary resumen-chip" data-filtro="TODAS">
-                Todas <span class="badge bg-light text-dark ms-1" th:text="${total}">0</span>
+            <button type="button" class="chip chip-todas active" data-filtro="TODAS">
+                Todas <span class="badge ms-1" th:text="${pendientes + conObservaciones + confirmadas}">0</span>
             </button>
-            <button type="button" class="btn btn-sm btn-outline-warning text-dark resumen-chip" data-filtro="PENDIENTE">
-                <i class="bi bi-hourglass-split me-1"></i>Pendientes <span class="badge bg-warning text-dark ms-1" th:text="${pendientes}">0</span>
+            <button type="button" class="chip chip-rev" data-filtro="EN_REVISION">
+                <i class="bi bi-hourglass-split"></i>Por revisar <span class="badge ms-1" th:text="${pendientes}">0</span>
             </button>
-            <button type="button" class="btn btn-sm btn-outline-info text-dark resumen-chip" data-filtro="REVISADA">
-                <i class="bi bi-check-circle me-1"></i>Solo revisadas <span class="badge bg-info text-dark ms-1" th:text="${revisadas}">0</span>
+            <button type="button" class="chip chip-obs" data-filtro="CON_OBSERVACIONES">
+                <i class="bi bi-chat-left-text"></i>Con observaciones <span class="badge ms-1" th:text="${conObservaciones}">0</span>
             </button>
-            <button type="button" class="btn btn-sm btn-outline-success resumen-chip" data-filtro="CON_PAUTAS">
-                <i class="bi bi-clipboard2-check me-1"></i>Con pautas <span class="badge bg-success ms-1" th:text="${conPautas}">0</span>
+            <button type="button" class="chip chip-aut" data-filtro="AUTORIZADO">
+                <i class="bi bi-lock"></i>Autorizadas <span class="badge ms-1" th:text="${confirmadas}">0</span>
+            </button>
+            <button type="button" class="chip chip-pau" data-filtro="CON_PAUTAS">
+                <i class="bi bi-clipboard2-check"></i>Con pautas <span class="badge ms-1" th:text="${conPautas}">0</span>
             </button>
         </div>
 
-        <div class="card shadow-sm border-0">
+        <div class="card shadow-sm border-0 card-tabla">
             <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover mb-0 align-middle" id="tablaPlanificaciones">
-                        <thead class="table-light">
+                    <table class="table table-hover mb-0 align-middle tabla-rev" id="tablaPlanificaciones">
+                        <thead>
                             <tr>
                                 <th class="ps-4">Estudiante</th>
                                 <th>Planificación</th>
@@ -90,27 +164,33 @@
                                 <th>Subida</th>
                                 <th>Estado</th>
                                 <th>Enlace colaborador</th>
-                                <th class="text-center">1. Revisada</th>
-                                <th class="text-center pe-4">2. Evaluar con pautas</th>
+                                <th class="text-center col-tick">1. Autorizar clase</th>
+                                <th class="text-center pe-4 col-tick">2. Evaluar con pautas</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr th:each="f : ${filas}"
-                                th:attr="data-estado=${f.evaluaConPautas} ? 'CON_PAUTAS' : (${f.revisada} ? 'REVISADA' : 'PENDIENTE')"
-                                th:classappend="${f.evaluaConPautas} ? 'table-success' : (${f.revisada} ? 'table-info' : '')">
+                                th:attr="data-estado=${f.estadoEnvio},data-pautas=${f.evaluaConPautas}">
 
                                 <!-- Estudiante -->
-                                <td class="ps-4">
+                                <td class="ps-3">
                                     <span class="fw-semibold" th:text="${f.estudianteNombre}">Estudiante</span>
                                     <small class="d-block text-muted" th:text="${f.estudianteRut}">RUT</small>
                                 </td>
 
                                 <!-- Planificación -->
-                                <td>
-                                    <i class="bi bi-file-earmark-text text-primary me-1"></i>
-                                    <span th:text="${f.nombreArchivo}">archivo.pdf</span>
-                                    <a th:if="${f.rutaServidor != null}" th:href="@{'/' + ${f.rutaServidor}}" target="_blank" rel="noopener noreferrer"
-                                       class="btn btn-sm btn-outline-primary ms-2" title="Abrir el archivo para revisarlo">
+                                <td class="col-doc">
+                                    <div class="doc-nombre">
+                                        <i class="bi bi-file-earmark-text text-primary me-1"></i><span th:text="${f.nombreArchivo}">archivo.pdf</span>
+                                    </div>
+                                    <a th:if="${f.rutaServidor != null and #strings.startsWith(f.rutaServidor, 'ONLINE_')}"
+                                       th:href="@{'/planificaciones/' + ${f.id}}" target="_blank" rel="noopener noreferrer"
+                                       class="btn btn-sm btn-outline-primary mt-1" title="Abrir planificación para revisarla">
+                                        <i class="bi bi-eye"></i> Revisar
+                                    </a>
+                                    <a th:if="${f.rutaServidor != null and !#strings.startsWith(f.rutaServidor, 'ONLINE_')}"
+                                       th:href="@{'/' + ${f.rutaServidor}}" target="_blank" rel="noopener noreferrer"
+                                       class="btn btn-sm btn-outline-primary mt-1" title="Abrir el archivo para revisarlo">
                                         <i class="bi bi-eye"></i> Revisar
                                     </a>
                                 </td>
@@ -124,61 +204,112 @@
                                 <!-- Subida -->
                                 <td class="text-nowrap" th:text="${f.fechaSubida != null ? #temporals.format(f.fechaSubida, 'dd/MM/yyyy HH:mm') : '—'}">fecha</td>
 
-                                <!-- Estado -->
+                                <!-- Estado + comentario (resumen; clic = popup con el texto completo) -->
+                                <td class="col-estado">
+                                    <span th:if="${f.estadoEnvio == 'EN_REVISION'}" class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>Por revisar</span>
+                                    <span th:if="${f.estadoEnvio == 'CON_OBSERVACIONES'}" class="badge bg-danger"><i class="bi bi-chat-left-text me-1"></i>Esperando corrección</span>
+                                    <span th:if="${f.estadoEnvio == 'AUTORIZADO'}" class="badge bg-success"><i class="bi bi-lock-fill me-1"></i>Autorizada</span>
+
+                                    <button type="button" class="coment-box"
+                                            th:if="${f.comentario != null and !#strings.isEmpty(f.comentario)}"
+                                            data-bs-toggle="modal" data-bs-target="#modalVerComentario"
+                                            th:attr="data-comentario=${f.comentario},data-estudiante=${f.estudianteNombre},data-archivo=${f.nombreArchivo}"
+                                            title="Ver comentario completo">
+                                        <i class="bi bi-chat-left-text-fill"></i>
+                                        <span class="cuerpo">
+                                            <span class="txt" th:text="${f.comentario}">comentario</span>
+                                            <span class="mas">Ver completo <i class="bi bi-arrows-angle-expand"></i></span>
+                                        </span>
+                                    </button>
+                                </td>
+
+
+                                <!-- Enlace colaborador (aquí vive también «Nuevo enlace») -->
                                 <td>
-                                    <span th:if="${!f.revisada}" class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>Pendiente</span>
-                                    <span th:if="${f.revisada and !f.evaluaConPautas}" class="badge bg-info text-dark"><i class="bi bi-check-circle me-1"></i>Revisada</span>
-                                    <span th:if="${f.evaluaConPautas}" class="badge bg-success"><i class="bi bi-clipboard2-check me-1"></i>Se evalúa con pautas</span>
-                                    <small class="d-block text-muted" th:if="${f.revisada and f.fechaRevision != null}"
-                                           th:text="${#temporals.format(f.fechaRevision, 'dd/MM/yyyy HH:mm')}">fecha</small>
-                                </td>
+                                    <div th:switch="${f.estadoEnlace}">
+                                        <span th:case="'NINGUNO'" class="text-muted">—</span>
+                                        <span th:case="'VIGENTE'">
+                                            <span class="badge bg-primary"><i class="bi bi-link-45deg me-1"></i>Vigente</span>
+                                            <small class="d-block text-muted">hasta <span th:text="${#temporals.format(f.enlaceExpira, 'dd/MM/yyyy HH:mm')}">fecha</span></small>
+                                        </span>
+                                        <span th:case="'EXPIRADO'">
+                                            <span class="badge bg-secondary"><i class="bi bi-hourglass-bottom me-1"></i>Expirado</span>
+                                            <small class="d-block text-muted" th:text="${#temporals.format(f.enlaceExpira, 'dd/MM/yyyy HH:mm')}">fecha</small>
+                                        </span>
+                                        <span th:case="'USADO'" class="badge bg-success"><i class="bi bi-clipboard-check me-1"></i>Pauta recibida</span>
+                                    </div>
+                                    <form th:if="${f.evaluaConPautas and f.puedeReenviar}"
+                                          th:action="@{/profesor/planificaciones/{id}/reenviar(id=${f.id})}" method="post" class="mt-1"
+                                          onsubmit="return confirm('Se generará un enlace nuevo y el anterior dejará de funcionar. ¿Continuar?');">
+                                        <button type="submit" class="btn btn-link btn-nuevo-enlace" title="Generar un enlace nuevo">
+                                            <i class="bi bi-arrow-repeat"></i> Nuevo enlace
+                                        </button>
 
-                                <!-- Enlace colaborador -->
-                                <td th:switch="${f.estadoEnlace}">
-                                    <span th:case="'NINGUNO'" class="text-muted">—</span>
-                                    <span th:case="'VIGENTE'">
-                                        <span class="badge bg-primary"><i class="bi bi-link-45deg me-1"></i>Vigente</span>
-                                        <small class="d-block text-muted">hasta <span th:text="${#temporals.format(f.enlaceExpira, 'dd/MM/yyyy HH:mm')}">fecha</span></small>
-                                    </span>
-                                    <span th:case="'EXPIRADO'">
-                                        <span class="badge bg-secondary"><i class="bi bi-hourglass-bottom me-1"></i>Expirado</span>
-                                        <small class="d-block text-muted" th:text="${#temporals.format(f.enlaceExpira, 'dd/MM/yyyy HH:mm')}">fecha</small>
-                                    </span>
-                                    <span th:case="'USADO'" class="badge bg-success"><i class="bi bi-clipboard-check me-1"></i>Pauta recibida</span>
-                                </td>
-
-                                <!-- TICK 1: revisada -->
-                                <td class="text-center">
-                                    <form th:if="${!f.revisada}" th:action="@{/profesor/planificaciones/{id}/revisar(id=${f.id})}" method="post" class="d-inline"
-                                          onsubmit="return confirm('¿Marcar esta planificación como revisada?');">
-                                        <button type="submit" class="tick-btn" title="Marcar como revisada"><i class="bi bi-check-lg"></i></button>
                                     </form>
-                                    <span th:if="${f.revisada}" class="tick-ok" title="Planificación revisada"><i class="bi bi-check-lg"></i></span>
                                 </td>
 
-                                <!-- TICK 2: se evaluará con pautas -->
-                                <td class="text-center pe-4">
-                                    <!-- Bloqueado hasta que esté revisada -->
-                                    <span th:if="${!f.revisada}" class="tick-disabled" title="Primero marca la planificación como revisada">
-                                        <i class="bi bi-check-lg"></i>
-                                    </span>
 
-                                    <!-- Habilitado -->
-                                    <form th:if="${f.revisada and !f.evaluaConPautas}"
-                                          th:action="@{/profesor/planificaciones/{id}/pautas(id=${f.id})}" method="post" class="d-inline"
-                                          onsubmit="return confirm('¿Esta clase se evaluará con pautas?\n\nSe avisará al estudiante y se generará un enlace temporal para su profesor colaborador.');">
-                                        <button type="submit" class="tick-btn" title="Indicar que la clase se evaluará con pautas"><i class="bi bi-check-lg"></i></button>
-                                    </form>
-
-                                    <!-- Marcado -->
-                                    <div th:if="${f.evaluaConPautas}" class="d-flex flex-column align-items-center gap-1">
-                                        <span class="tick-ok" title="La clase se evaluará con pautas"><i class="bi bi-check-lg"></i></span>
-                                        <form th:if="${f.puedeReenviar}" th:action="@{/profesor/planificaciones/{id}/reenviar(id=${f.id})}" method="post"
-                                              onsubmit="return confirm('Se generará un enlace nuevo y el anterior dejará de funcionar. ¿Continuar?');">
-                                            <button type="submit" class="btn btn-sm btn-link text-decoration-none p-0" title="Generar un enlace nuevo">
-                                                <i class="bi bi-arrow-repeat"></i> Nuevo enlace
-                                            </button>
+                                <!-- TICK 1: Autorizar clase -->
+                                <td class="text-center col-tick">
+                                    <div th:if="${f.puedeAutorizar}" class="tick-fila">
+                                        <button type="button" class="tick-comentar" title="Comentar y devolver al estudiante"
+                                                data-bs-toggle="modal" th:attr="data-bs-target='#modalComentar' + ${f.id}">
+                                            <i class="bi bi-chat-left-text"></i>
+                                        </button>
+                                        <form th:action="@{/profesor/planificaciones/{id}/autorizar(id=${f.id})}" method="post" class="d-inline"
+                                            onsubmit="return confirm('¿Autorizar esta planificación?\n\nQuedará bloqueada y se guardará como PDF permanente. Se avisará al estudiante que ya puede dar su clase.');">
+                                            <button type="submit" class="tick-btn" title="Autorizar planificación"><i class="bi bi-check-lg"></i></button>
                                         </form>
+
+                                        <div class="modal fade" th:id="'modalComentar' + ${f.id}" tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog modal-dialog-centered"><div class="modal-content text-start">
+                                                <form th:action="@{/profesor/planificaciones/{id}/comentar(id=${f.id})}" method="post">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">Comentar planificación</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <p class="small text-muted mb-2" th:text="${f.estudianteNombre + ' · ' + f.nombreArchivo}"></p>
+                                                        <textarea name="comentario" class="form-control" rows="5" maxlength="2000" required
+                                                                placeholder="¿Qué debe corregir el estudiante?"></textarea>
+                                                        <div class="form-text">El estudiante verá tus observaciones y podrá corregir y reenviar su planificación.</div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                        <button type="submit" class="btn btn-danger">Devolver con comentario</button>
+                                                    </div>
+                                                </form>
+                                            </div></div>
+                                        </div>
+                                    </div>
+
+                                    <div th:if="${f.revisada}" class="tick-fila">
+                                        <span class="tick-ok" title="Planificación autorizada"><i class="bi bi-lock-fill"></i></span>
+                                    </div>
+
+                                    <div th:if="${f.estadoEnvio == 'CON_OBSERVACIONES' and !f.revisada}" class="tick-fila espera">
+                                        <span><i class="bi bi-clock-history me-1"></i>Esperando<br>corrección</span>
+                                    </div>
+                                </td>
+
+                                <!-- TICK 2: Evaluar con pautas -->
+                                <td class="text-center pe-4 col-tick">
+                                    <div class="tick-fila">
+                                        <!-- Deshabilitado hasta que esté autorizada -->
+                                        <span th:if="${!f.revisada}" class="tick-disabled" title="Primero debes autorizar la planificación">
+                                            <i class="bi bi-check-lg"></i>
+                                        </span>
+
+                                        <!-- Habilitado: autorizada pero no marcada para pautas -->
+                                        <form th:if="${f.revisada and !f.evaluaConPautas}"
+                                              th:action="@{/profesor/planificaciones/{id}/pautas(id=${f.id})}" method="post" class="d-inline"
+                                              onsubmit="return confirm('¿Esta clase se evaluará con pautas?\n\nSe avisará al estudiante y se generará un enlace temporal para su profesor colaborador.');">
+                                            <button type="submit" class="tick-btn" title="Indicar que la clase se evaluará con pautas"><i class="bi bi-check-lg"></i></button>
+
+                                        </form>
+
+                                        <!-- Marcada -->
+                                        <span th:if="${f.evaluaConPautas}" class="tick-ok" title="La clase se evaluará con pautas"><i class="bi bi-check-lg"></i></span>
                                     </div>
                                 </td>
                             </tr>
@@ -198,6 +329,27 @@
         </div>
     </div>
 
+    <!-- Popup: comentario completo -->
+    <div class="modal fade" id="modalVerComentario" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header">
+                    <div>
+                        <h5 class="modal-title mb-0"><i class="bi bi-chat-left-text-fill text-warning me-2"></i>Comentario</h5>
+                        <small class="text-muted d-block" id="verComentarioMeta" style="overflow-wrap:anywhere"></small>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="verComentarioTexto"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         let filtroEstado = 'TODAS';
@@ -207,7 +359,14 @@
             const texto = document.getElementById('inputBuscar').value.toLowerCase().trim();
             let visibles = 0;
             filas.forEach(tr => {
-                const coincideEstado = filtroEstado === 'TODAS' || tr.dataset.estado === filtroEstado;
+                let coincideEstado = false;
+                if (filtroEstado === 'TODAS') {
+                    coincideEstado = true;
+                } else if (filtroEstado === 'CON_PAUTAS') {
+                    coincideEstado = tr.dataset.pautas === 'true';
+                } else {
+                    coincideEstado = tr.dataset.estado === filtroEstado;
+                }
                 const coincideTexto = !texto || tr.textContent.toLowerCase().includes(texto);
                 const mostrar = coincideEstado && coincideTexto;
                 tr.classList.toggle('d-none', !mostrar);
@@ -220,11 +379,18 @@
         document.querySelectorAll('[data-filtro]').forEach(btn => {
             btn.addEventListener('click', () => {
                 filtroEstado = btn.dataset.filtro;
-                document.querySelectorAll('[data-filtro]').forEach(b => {
-                    b.classList.toggle('active', b === btn);
-                });
+                document.querySelectorAll('[data-filtro]').forEach(b => b.classList.toggle('active', b === btn));
                 aplicarFiltros();
             });
+        });
+
+        // Popup con el comentario completo (se llena con el botón que lo abrió)
+        document.getElementById('modalVerComentario').addEventListener('show.bs.modal', ev => {
+            const b = ev.relatedTarget;
+            if (!b) return;
+            document.getElementById('verComentarioTexto').textContent = b.dataset.comentario || '';
+            document.getElementById('verComentarioMeta').textContent =
+                [b.dataset.estudiante, b.dataset.archivo].filter(Boolean).join(' · ');
         });
 
         const rutFiltro = new URLSearchParams(window.location.search).get('rut');

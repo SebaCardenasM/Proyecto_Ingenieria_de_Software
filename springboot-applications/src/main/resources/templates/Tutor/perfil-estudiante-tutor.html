@@ -212,23 +212,66 @@
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        function eliminarDocumento(idDocumento) {
-            if (confirm('¿Estás seguro de que deseas eliminar esta pauta? Esta acción no se puede deshacer.')) {
-                fetch('/api/documentos/eliminar/' + idDocumento, {
-                    method: 'POST'
+        const formSubir = document.getElementById('formSubirPauta');
+        if (formSubir) {
+            formSubir.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const btn = document.getElementById('btnSubmit');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Subiendo archivo...';
+                }
+                
+                const formData = new FormData(this);
+                
+                fetch('/api/documentos/subir-tutor', {
+                    method: 'POST',
+                    body: formData
                 })
                 .then(async response => {
                     if (response.ok) {
-                        ubbPopup.exito('La pauta fue eliminada exitosamente.',
-                            { titulo: '¡Pauta eliminada!', onClose: () => window.location.reload() });
+                        ubbPopup.exito('La pauta fue cargada exitosamente.',
+                            { titulo: '¡Pauta cargada!', onClose: () => window.location.reload() });
                     } else {
                         const errorText = await response.text();
-                        alert('Error al eliminar: ' + errorText);
+                        ubbPopup.error(errorText || 'Error del servidor al subir la pauta.', { titulo: 'No se pudo cargar' });
+                        if (btn) {
+                            btn.disabled = false;
+                            btn.innerHTML = '<i class="bi bi-cloud-upload me-1"></i> Cargar Nueva Pauta';
+                        }
                     }
                 })
                 .catch(() => {
-                    alert('Error de red o conexión al intentar eliminar.');
+                    ubbPopup.error('Error crítico de red o de conexión.', { titulo: 'Error de conexión' });
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="bi bi-cloud-upload me-1"></i> Cargar Nueva Pauta';
+                    }
                 });
+            });
+        }
+
+        async function eliminarDocumento(idDocumento) {
+            const ok = await ubbPopup.confirmar('¿Estás seguro de que deseas eliminar esta pauta? Esta acción no se puede deshacer.', {
+                titulo: 'Eliminar pauta',
+                boton: 'Sí, eliminar'
+            });
+            if (!ok) return;
+
+            try {
+                const response = await fetch('/api/documentos/eliminar/' + idDocumento, {
+                    method: 'POST'
+                });
+                if (response.ok) {
+                    ubbPopup.exito('La pauta fue eliminada exitosamente.',
+                        { titulo: '¡Pauta eliminada!', onClose: () => window.location.reload() });
+                } else {
+                    const errorText = await response.text();
+                    ubbPopup.error(errorText || 'Error al eliminar la pauta.', { titulo: 'No se pudo eliminar' });
+                }
+            } catch (err) {
+                ubbPopup.error('Error de red o conexión al intentar eliminar.', { titulo: 'Error de conexión' });
             }
         }
     </script>

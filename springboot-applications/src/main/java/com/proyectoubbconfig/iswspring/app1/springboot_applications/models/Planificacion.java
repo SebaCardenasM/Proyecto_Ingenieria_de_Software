@@ -13,7 +13,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-
+import jakarta.persistence.Column;  
 
 @Entity
 @Table(name = "Planificacion")
@@ -27,9 +27,27 @@ public class Planificacion extends Documento {
     private Map<String, String> campos = new HashMap<>();
 
     public Map<String, String> getCampos() { return campos; }
-    public boolean isOnline() { return RUTA_ONLINE.equals(getRutaServidor()); }
+    public boolean isOnline() {
+        return RUTA_ONLINE.equals(getRutaServidor())
+                || (campos != null && !campos.isEmpty() && (getRutaServidor() == null || getRutaServidor().startsWith("ONLINE_")));
+    }
     // Boolean (no boolean): las planificaciones ya existentes quedan en null = "pendiente"
     private Boolean revisada = false;
+
+    @Column(columnDefinition = "TEXT")
+    private String comentarioProfesor;
+
+    private LocalDateTime fechaComentario;
+
+    @Column(length = 64)
+    private String hashSha256;   // huella del PDF autorizado
+
+    public String getComentarioProfesor() { return comentarioProfesor; }
+    public void setComentarioProfesor(String c) { this.comentarioProfesor = c; }
+    public LocalDateTime getFechaComentario() { return fechaComentario; }
+    public void setFechaComentario(LocalDateTime f) { this.fechaComentario = f; }
+    public String getHashSha256() { return hashSha256; }
+    public void setHashSha256(String h) { this.hashSha256 = h; }
 
     private LocalDateTime fechaRevision;
 

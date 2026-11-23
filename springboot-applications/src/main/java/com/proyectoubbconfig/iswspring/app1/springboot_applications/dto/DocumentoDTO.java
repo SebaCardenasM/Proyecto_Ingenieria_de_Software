@@ -21,9 +21,11 @@ public record DocumentoDTO(
         Integer anoPractica,
         Integer semestrePractica,
         String tipoEvaluador,
+
         String estado,              // BORRADOR | ENVIADO
         boolean revisadoIa,         // pasó por el asistente
-        String estadoRevision,      // PENDIENTE | REVISADA | CON_PAUTAS | EVALUADO (null en otros tipos)
+        String estadoRevision ,   // PENDIENTE | REVISADA | CON_PAUTAS | EVALUADO (null en otros tipos)
+        String comentarioProfesor,   
         Double nota,                // solo informes evaluados
         String retroalimentacion,   // solo informes evaluados (opcional)
         EstudianteResumen estudiante
@@ -90,6 +92,7 @@ public record DocumentoDTO(
                 evaluadorStr,
                 d.getEstado().name(),
                 d.isRevisadoIa(),
+                d instanceof Planificacion pl ? pl.getComentarioProfesor() : null,
                 estadoRevision,
                 nota,
                 retroalimentacion,

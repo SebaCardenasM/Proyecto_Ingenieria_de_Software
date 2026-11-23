@@ -129,8 +129,18 @@ public class DocumentoController {
         }
         return ResponseEntity.ok(documentos.stream().map(DocumentoDTO::desde).toList());
     }
-
    
+    @PostMapping("/reemplazar/{id}")
+    @Transactional
+    public ResponseEntity<?> reemplazarArchivo(@PathVariable Long id,
+                                            @RequestParam("archivo") MultipartFile archivo) {
+        try {
+            return ResponseEntity.ok(DocumentoDTO.desde(documentoService.reemplazarArchivo(id, archivo)));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
     @GetMapping("/pautas-estudiante")
     @Transactional(readOnly = true)
     public ResponseEntity<List<DocumentoDTO>> obtenerPautasEstudiante() {

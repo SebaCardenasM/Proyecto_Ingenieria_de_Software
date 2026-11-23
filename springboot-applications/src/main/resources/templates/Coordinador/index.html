@@ -34,10 +34,15 @@
                     <small class="text-white-50 mt-1" style="font-size: 0.75rem;" th:text="${#strings.arrayJoin(rolesUsuario, ', ')}">COORDINADOR</small>
                 </div>
 
+                <!-- Mi Perfil -->
+                <a th:href="@{/perfil}" class="btn btn-outline-light btn-sm me-2" title="Mi Perfil">
+                    <i class="bi bi-person-gear"></i> Mi Perfil
+                </a>
+
                 <!-- Botón de cambio de rol si posee más de uno -->
                 <div th:if="${rolesUsuario != null and rolesUsuario.size() > 1}" class="me-2">
-                    <a th:href="@{/seleccionar-rol}" class="btn btn-outline-light btn-sm" title="Cambiar de perfil">
-                        <i class="bi bi-person-gear"></i> Cambiar Perfil
+                    <a th:href="@{/seleccionar-rol}" class="btn btn-outline-light btn-sm" title="Cambiar de rol">
+                        <i class="bi bi-arrow-repeat"></i> Cambiar Rol
                     </a>
                 </div>
 
