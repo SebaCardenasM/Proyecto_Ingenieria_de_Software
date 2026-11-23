@@ -1,5 +1,6 @@
 package com.proyectoubbconfig.iswspring.app1.springboot_applications.controllers;
 
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Estudiante;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Usuario;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.NotificacionRepository;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.PlanificacionRepository;
@@ -117,6 +118,11 @@ public class InicioController {
         cargarDatosUsuario(model, authentication);
         // Avisos sin leer (campana y banner del panel)
         model.addAttribute("avisosNuevos", notificacionRepository.contarNoLeidas(authentication.getName()));
+        usuarioRepository.findByRut(authentication.getName()).ifPresent(u -> {
+            if (u instanceof Estudiante est) {
+                model.addAttribute("practicaActual", est.getPracticaActual());
+            }
+        });
         return "Estudiante/indexEstudiante";
     }
 

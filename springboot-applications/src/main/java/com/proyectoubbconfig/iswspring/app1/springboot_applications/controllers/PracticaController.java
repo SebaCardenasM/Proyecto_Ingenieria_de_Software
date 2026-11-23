@@ -150,8 +150,11 @@ public class PracticaController {
     }
 
     @PostMapping("/practicas/actualizar/{id}")
-    public String actualizarPractica(@PathVariable Long id, @ModelAttribute("practica") Practica practica, Model model, RedirectAttributes redirectAttributes) {
-        practica.setId(id);
+    public String actualizarPractica(@PathVariable Long id,
+                                 @ModelAttribute("practica") Practica form,
+                                 Model model, RedirectAttributes redirectAttributes) {
+        Practica practica = practicaRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("ID de práctica inválido: " + id));
         
         // 1. VALIDACIONES ESTRICTAS DE CAMPOS VACÍOS
         if (practica.getEstudiante() == null || practica.getEstudiante().getRut() == null || practica.getEstudiante().getRut().isBlank()) {
@@ -214,6 +217,16 @@ public class PracticaController {
         } else {
             practica.setColaborador(null);
         }
+        practica.setEstudiante(estudianteRepository.findById(form.getEstudiante().getRut()).orElse(null));
+        practica.setNumeroPractica(form.getNumeroPractica());
+        practica.setAno(form.getAno());
+        practica.setSemestre(form.getSemestre());
+        practica.setFechaInicio(form.getFechaInicio());
+        practica.setFechaFin(form.getFechaFin());
+        practica.setProfesor(resolverProfesor(form.getProfesor()));
+        practica.setTutor(resolverProfesor(form.getTutor()));
+        practica.setCentroPractica(resolverCentro(form.getCentroPractica()));
+        practica.setColaborador(resolverColaborador(form.getColaborador()));
 
         practicaRepository.save(practica);
         redirectAttributes.addFlashAttribute("tituloExito", "¡Práctica actualizada!");
@@ -293,5 +306,20 @@ public class PracticaController {
         model.addAttribute("profesores", profesorRepository.findAll());
         model.addAttribute("centros", centroPracticaRepository.findAll());
         model.addAttribute("colaboradores", colaboradorRepository.findAll());
+    }
+    
+    private Profesor resolverProfesor(Profesor ref) {
+        if (ref == null || ref.getRut() == null || ref.getRut().isBlank()) return null;
+        return profesorRepository.findById(ref.getRut()).orElse(null);
+    }
+
+    private CentroPractica resolverCentro(CentroPractica ref) {
+        if (ref == null || ref.getId() == null) return null;
+        return centroPracticaRepository.findById(ref.getId()).orElse(null);
+    }
+
+    private Colaborador resolverColaborador(Colaborador ref) {
+        if (ref == null || ref.getRut() == null || ref.getRut().isBlank()) return null;
+        return colaboradorRepository.findById(ref.getRut()).orElse(null);
     }
 }

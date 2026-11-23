@@ -6,6 +6,7 @@ import java.util.Comparator;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Documento;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Estudiante;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Pauta;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Planificacion;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Practica;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.TipoDocumento;
 
@@ -21,6 +22,7 @@ public record DocumentoDTO(
         String tipoEvaluador,
         String estado,          // BORRADOR | ENVIADO
         boolean revisadoIa,     // pasó por el asistente
+        String comentarioProfesor,
         EstudianteResumen estudiante
 ) {
 
@@ -72,6 +74,7 @@ public record DocumentoDTO(
                 evaluadorStr,
                 d.getEstado().name(),
                 d.isRevisadoIa(),
+                d instanceof Planificacion pl ? pl.getComentarioProfesor() : null,
                 e == null ? null : new EstudianteResumen(e.getRut(), e.getNombre(), e.getApellido(), e.getAnoIngreso())
         );
     }

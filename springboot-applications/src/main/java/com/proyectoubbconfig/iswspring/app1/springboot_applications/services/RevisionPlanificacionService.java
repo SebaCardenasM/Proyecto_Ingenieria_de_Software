@@ -7,6 +7,15 @@ import java.util.Base64;
 import java.util.Comparator;
 import java.util.List;
 
+import java.io.IOException;
+import java.nio.file.*;
+import java.security.MessageDigest;
+import java.util.HexFormat;
+import java.util.UUID;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.EstadoDocumento;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -45,6 +54,9 @@ public class RevisionPlanificacionService {
     private PlanificacionRepository planificacionRepository;
 
     @Autowired
+    private PlanificacionPdfService planificacionPdfService;
+
+    @Autowired
     private EnlaceEvaluacionRepository enlaceRepository;
 
     @Autowired
@@ -69,6 +81,11 @@ public class RevisionPlanificacionService {
     private FilaPlanificacion aFila(Planificacion p, LocalDateTime ahora) {
         Practica pr = practicaDe(p);
         Estudiante e = estudianteDe(p, pr);
+        EstadoDocumento est = p.getEstado();
+        String estadoEnvio = p.isRevisada() ? "AUTORIZADO"
+                : (est == EstadoDocumento.CON_OBSERVACIONES ? "CON_OBSERVACIONES" : "EN_REVISION");
+        boolean puedeAutorizar = "EN_REVISION".equals(estadoEnvio);
+
 
         String estado = "NINGUNO";
         LocalDateTime expira = null;
@@ -111,13 +128,18 @@ public class RevisionPlanificacionService {
                 p.isEvaluaConPautas(),
                 estado,
                 expira,
-                puedeReenviar);
+                puedeReenviar,
+                estadoEnvio,
+                p.getComentarioProfesor(),
+                puedeAutorizar
+            );
     }
 
-    // ------------------------------------------------------------------ TICK 1: planificación revisada
+    // ------------------------------------------------------------------ TICK 1: AUTORIZAR PLANIFICACIÓN
+    // Bloquea la planificación, la guarda permanentemente como PDF y avisa al estudiante.
 
     @Transactional(rollbackFor = Exception.class)
-    public void marcarRevisada(Long idPlanificacion, String rutProfesor) throws Exception {
+    public void autorizar(Long idPlanificacion, String rutProfesor) throws Exception {
         Planificacion p = planificacionRepository.findById(idPlanificacion)
                 .orElseThrow(() -> new Exception("No se encontró la planificación."));
 
@@ -125,26 +147,65 @@ public class RevisionPlanificacionService {
             throw new Exception("No tienes permiso para revisar esta planificación.");
         }
         if (p.isRevisada()) {
-            throw new Exception("Esta planificación ya fue marcada como revisada.");
+            throw new Exception("Esta planificación ya fue autorizada y no admite cambios.");
         }
+        if (p.getEstado() == EstadoDocumento.CON_OBSERVACIONES) {
+            throw new Exception("Esta planificación tiene observaciones pendientes de corrección del estudiante.");
+        }
+        if (p.isBorrador()) {
+            throw new Exception("El estudiante aún no ha enviado esta planificación a revisión.");
+        }
+
+        Practica pr = practicaDe(p);
         Profesor profesor = profesorRepository.findById(rutProfesor)
                 .orElseThrow(() -> new Exception("No se encontró al profesor."));
 
+        // 1. Guardar permanentemente como PDF:
+        boolean esOnline = p.isOnline()
+                || Planificacion.RUTA_ONLINE.equals(p.getRutaServidor())
+                || (p.getRutaServidor() != null && p.getRutaServidor().startsWith("ONLINE_"))
+                || (p.getCampos() != null && !p.getCampos().isEmpty());
+
+        if (esOnline) {
+            // Se genera el PDF directamente en uploads/autorizadas/ a partir de los datos ingresados
+            String rutaAutorizada = planificacionPdfService.generarEn(p, "uploads/autorizadas");
+            Path archivoDestino = Paths.get(rutaAutorizada).toAbsolutePath().normalize();
+            byte[] bytes = Files.readAllBytes(archivoDestino);
+            String hash = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes));
+            archivoDestino.toFile().setReadOnly();
+
+            p.setRutaServidor("uploads/autorizadas/" + archivoDestino.getFileName());
+            p.setHashSha256(hash);
+        } else {
+            // Es un archivo PDF subido por el estudiante: se congela moviéndolo a uploads/autorizadas/
+            congelarPdf(p);
+        }
+
+        // 2. Marcar como autorizada (revisada)
+        p.setPractica(pr);
         p.setRevisada(true);
+        p.setEstado(EstadoDocumento.AUTORIZADO);
         p.setFechaRevision(LocalDateTime.now());
         p.setProfesorRevisor(profesor);
         planificacionRepository.save(p);
 
-        // Aviso simple al estudiante (sin enlace)
-        Estudiante e = estudianteDe(p, practicaDe(p));
+        // 3. Aviso simple al estudiante (sin enlace)
+        Estudiante e = estudianteDe(p, pr);
         if (e != null) {
             String quien = (profesor.getNombre() + " " + profesor.getApellido()).trim();
             notificacionRepository.save(new Notificacion(
                     e,
-                    "Tu planificación fue revisada",
-                    "Tu profesor " + quien + " revisó la planificación «" + p.getNombreArchivo() + "».",
+                    "Tu planificación fue autorizada",
+                    "Tu profesor " + quien + " autorizó la planificación «" + p.getNombreArchivo() + "»"
+                            + (pr != null && pr.getNumeroPractica() != null ? " (Práctica N° " + pr.getNumeroPractica() + ")" : "")
+                            + ". Ya puedes dar tu clase.",
                     null));
         }
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void marcarRevisada(Long idPlanificacion, String rutProfesor) throws Exception {
+        autorizar(idPlanificacion, rutProfesor);
     }
 
     // ------------------------------------------------------------------ TICK 2: la clase se evaluará con pautas
@@ -158,7 +219,7 @@ public class RevisionPlanificacionService {
             throw new Exception("No tienes permiso para revisar esta planificación.");
         }
         if (!p.isRevisada()) {
-            throw new Exception("Primero debes marcar la planificación como revisada.");
+            throw new Exception("Primero debes autorizar la planificación.");
         }
         if (p.isEvaluaConPautas()) {
             throw new Exception("Esta clase ya fue marcada para evaluarse con pautas.");
@@ -233,11 +294,12 @@ public class RevisionPlanificacionService {
         String quien = (profesor.getNombre() + " " + profesor.getApellido()).trim();
         String titulo = reenvio
                 ? "Nuevo enlace para tu profesor colaborador"
-                : "Tu clase será evaluada con pautas";
+                : "Tu clase se evaluará con pautas";
         String mensaje = (reenvio
                 ? "Tu profesor " + quien + " generó un nuevo enlace para la planificación «" + p.getNombreArchivo() + "». El enlace anterior ya no funciona. "
                 : "Tu profesor " + quien + " indicó que la clase de la planificación «" + p.getNombreArchivo()
-                    + "» (Práctica N° " + pr.getNumeroPractica() + ") se evaluará con pautas. Ya puedes dar tu clase. ")
+                    + "»" + (pr != null && pr.getNumeroPractica() != null ? " (Práctica N° " + pr.getNumeroPractica() + ")" : "")
+                    + " se evaluará con pautas. ")
                 + "Entrega el enlace de abajo a tu profesor colaborador para que complete su pauta de evaluación en línea. "
                 + "Es de un solo uso y vence el " + FMT.format(enlace.getFechaExpiracion()) + ".";
 
@@ -246,7 +308,7 @@ public class RevisionPlanificacionService {
     }
 
     // Solo el profesor de la práctica (o, si la práctica no tiene, el coordinador del estudiante)
-    private boolean puedeRevisar(Planificacion p, String rut) {
+    public boolean puedeRevisar(Planificacion p, String rut) {
         Practica pr = p.getPractica();
         if (pr != null && pr.getProfesor() != null) {
             return rut.equals(pr.getProfesor().getRut());
@@ -278,5 +340,63 @@ public class RevisionPlanificacionService {
         byte[] bytes = new byte[32];
         RANDOM.nextBytes(bytes);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+    }
+
+    /** El profesor devuelve la planificación con un comentario; el estudiante la corrige y reenvía. */
+    @Transactional(rollbackFor = Exception.class)
+    public void comentar(Long idPlanificacion, String rutProfesor, String texto) throws Exception {
+        Planificacion p = planificacionRepository.findById(idPlanificacion)
+                .orElseThrow(() -> new Exception("No se encontró la planificación."));
+        if (!puedeRevisar(p, rutProfesor)) throw new Exception("No tienes permiso para revisar esta planificación.");
+        if (p.isRevisada()) throw new Exception("La planificación ya fue autorizada y no admite cambios.");
+        if (p.isBorrador()) throw new Exception("El estudiante aún no ha enviado esta planificación.");
+
+        String limpio = texto == null ? "" : texto.trim();
+        if (limpio.isEmpty()) throw new Exception("Escribe un comentario para el estudiante.");
+        if (limpio.length() > 2000) throw new Exception("El comentario puede tener hasta 2000 caracteres.");
+
+        Estudiante e = estudianteDe(p, practicaDe(p));
+        Profesor profesor = profesorRepository.findById(rutProfesor)
+                .orElseThrow(() -> new Exception("No se encontró al profesor."));
+        if (e == null) throw new Exception("La planificación no está asociada a un estudiante.");
+
+        p.setComentarioProfesor(limpio);
+        p.setFechaComentario(LocalDateTime.now());
+        p.setEstado(EstadoDocumento.CON_OBSERVACIONES);
+        planificacionRepository.save(p);
+
+        notificacionRepository.save(new Notificacion(e,
+                "Tu profesor comentó tu planificación",
+                "Tu profesor " + (profesor.getNombre() + " " + profesor.getApellido()).trim()
+                        + " dejó observaciones sobre «" + p.getNombreArchivo()
+                        + "». Corrige el archivo y vuelve a enviarlo desde «Mis Evidencias».",
+                null));
+    }
+
+    /** Copia el PDF a uploads/autorizadas/, guarda su huella SHA-256 y lo deja de solo lectura. */
+    private void congelarPdf(Planificacion p) throws Exception {
+        Path raiz = Paths.get("uploads").toAbsolutePath().normalize();
+        Path origen = Paths.get(p.getRutaServidor()).toAbsolutePath().normalize();
+        if (!origen.startsWith(raiz) || !Files.isRegularFile(origen)) {
+            throw new Exception("No se encontró el archivo de la planificación en el servidor.");
+        }
+        Path dir = raiz.resolve("autorizadas");
+        Files.createDirectories(dir);
+        Path destino = dir.resolve(UUID.randomUUID() + ".pdf");
+        Files.copy(origen, destino);
+
+        byte[] bytes = Files.readAllBytes(destino);
+        String hash = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes));
+        destino.toFile().setReadOnly();
+
+        p.setRutaServidor("uploads/autorizadas/" + destino.getFileName());
+        p.setHashSha256(hash);
+
+        // El original se borra solo si la transacción termina bien
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override public void afterCommit() {
+                try { Files.deleteIfExists(origen); } catch (IOException ignorado) { }
+            }
+        });
     }
 }

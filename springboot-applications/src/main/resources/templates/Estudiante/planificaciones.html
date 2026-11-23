@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="_csrf" th:content="${_csrf?.token}"/>
     <meta name="_csrf_header" th:content="${_csrf?.headerName}"/>
-    <title>Mis Planificaciones - Prácticas UBB</title>
+    <title>Subir Documentos - Prácticas UBB</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <style>
@@ -17,6 +17,77 @@
         .cadena .paso .num { width: 34px; height: 34px; border-radius: 50%; flex: none; display: grid;
             place-items: center; background: #004b85; color: #fff; font-weight: 700; }
         .cadena .paso small { display: block; color: #6b7c8d; }
+
+        /* Estilos diferenciados por ciclo/práctica inscrita */
+        .practica-banner {
+            border-radius: 1rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+            border: 1px solid rgba(0,0,0,0.06);
+        }
+        .tema-inicial {
+            border-left: 6px solid #0284c7 !important;
+            background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 100%);
+        }
+        .tema-intermedio {
+            border-left: 6px solid #d97706 !important;
+            background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%);
+        }
+        .tema-avanzado-p5 {
+            border-left: 6px solid #059669 !important;
+            background: linear-gradient(135deg, #ecfdf5 0%, #ffffff 100%);
+        }
+        .tema-avanzado-p6 {
+            border-left: 6px solid #4f46e5 !important;
+            background: linear-gradient(135deg, #eef2ff 0%, #ffffff 100%);
+        }
+        .tema-generica {
+            border-left: 6px solid #64748b !important;
+            background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+        }
+
+        .filter-btn.active {
+            background-color: #004b85;
+            color: white;
+            border-color: #004b85;
+        }
+
+        /* ---------- Rediseño de la tabla ---------- */
+        .card-tabla { border-radius: 1rem; overflow: hidden; }
+        .tabla-docs thead th {
+            font-size: .72rem; text-transform: uppercase; letter-spacing: .05em;
+            color: #5b6b7c; background: #eef3f9; border-bottom: 0; padding-top: .9rem; padding-bottom: .9rem;
+        }
+        .tabla-docs > tbody > tr > td { padding-top: .8rem; padding-bottom: .8rem; }
+        .tabla-docs td:first-child, .tabla-docs th:first-child { border-left: 4px solid transparent; }
+        .tabla-docs tr.est-CON_OBSERVACIONES td:first-child { border-left-color: #dc3545; }
+        .tabla-docs tr.est-AUTORIZADO td:first-child        { border-left-color: #198754; }
+        .tabla-docs tr.est-EN_REVISION td:first-child       { border-left-color: #0d6efd; }
+        .tabla-docs tr.est-BORRADOR td:first-child          { border-left-color: #f0ad00; }
+        .tabla-docs tr.est-ENVIADO td:first-child           { border-left-color: #198754; }
+
+        /* Columna del documento: el texto largo baja de línea, nunca ensancha la tabla */
+        .col-doc { min-width: 260px; max-width: 480px; }
+        .doc-nombre { overflow-wrap: anywhere; }
+
+        /* ---------- Comentario del profesor: resumen + popup ---------- */
+        .coment-box {
+            display: flex; gap: .5rem; align-items: flex-start; width: 100%; text-align: left;
+            margin-top: .5rem; padding: .45rem .7rem; font-weight: 400; font-size: .82rem; line-height: 1.3;
+            background: #fff7e0; border: 1px solid #f6df9b; border-left: 4px solid #f0ad00; border-radius: .6rem;
+            color: #5c4a12; cursor: pointer; transition: background .15s;
+        }
+        .coment-box:hover { background: #fff0c2; }
+        .coment-box > i { margin-top: 2px; flex: none; }
+        .coment-box .cuerpo { min-width: 0; flex: 1; display: flex; flex-direction: column; }
+        .coment-box .etiqueta { font-weight: 700; }
+        .coment-box .txt {
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+            overflow: hidden; overflow-wrap: anywhere;
+        }
+        .coment-box .mas { font-size: .72rem; font-weight: 600; color: #9a6a00; margin-top: .15rem; }
+        #verComentarioTexto { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.5; }
     </style>
     <link th:href="@{/css/ubb-index.css}" rel="stylesheet">
 </head>
@@ -28,41 +99,131 @@
                 <img th:src="@{/images/escudo-monocromatico-oscuro.png}" alt="Escudo Universidad del Bío-Bío" class="nav-logo">
                 <a class="navbar-brand fw-bold" th:href="@{/estudiante/index}"><i class="bi bi-arrow-left-circle me-2"></i>Volver al Panel</a>
             </div>
-            <div class="d-flex text-white align-items-center"><i class="bi bi-clipboard2-check fs-5 me-2"></i> Mis Planificaciones</div>
+            <div class="d-flex text-white align-items-center">
+                <i class="bi bi-cloud-arrow-up-fill fs-5 me-2"></i> Subir Documentos
+            </div>
         </div>
     </nav>
 
     <div class="container-fluid px-4 px-md-5 mb-5">
 
-        <div class="row mb-3 align-items-center">
-            <div class="col-lg-6">
-                <h2 class="fw-bold text-dark mb-0"><i class="bi bi-clipboard2-check text-success me-2"></i>Mis Planificaciones</h2>
-                <p class="text-muted mt-1 mb-0">Completa el formato en línea o sube tu archivo. Primero queda como borrador.</p>
+        <!-- Encabezado y Botones de Acción -->
+        <div class="row mb-4 align-items-center">
+            <div class="col-lg-5">
+                <h2 class="fw-bold text-dark mb-1">
+                    <i class="bi bi-cloud-arrow-up-fill text-success me-2"></i>Subir Documentos
+                </h2>
+                <p class="text-muted mb-0">Sube tus planificaciones de clases y tu informe final correspondientes a tu práctica actual.</p>
             </div>
-            <div class="col-lg-6 text-lg-end mt-3 mt-lg-0">
-                <a th:href="@{/estudiante/planificacion/nueva}" class="btn btn-success shadow-sm me-1">
-                    <i class="bi bi-pencil-square me-1"></i> Completar en línea
+            <div class="col-lg-7 text-lg-end mt-3 mt-lg-0 d-flex flex-wrap gap-2 justify-content-lg-end">
+                <a th:href="@{/estudiante/planificacion/nueva}" class="btn btn-success shadow-sm">
+                    <i class="bi bi-pencil-square me-1"></i> Planificación en línea
                 </a>
-                <button type="button" class="btn btn-outline-danger shadow-sm" data-bs-toggle="modal" data-bs-target="#modalSubir">
-                    <i class="bi bi-cloud-upload me-1"></i> Subir archivo
+                <button type="button" class="btn btn-outline-success shadow-sm" data-bs-toggle="modal" data-bs-target="#modalSubir">
+                    <i class="bi bi-file-earmark-arrow-up me-1"></i> Subir Planificación
+                </button>
+                <button type="button" class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#modalSubirInforme">
+                    <i class="bi bi-file-earmark-check-fill me-1"></i> Subir Informe Final
                 </button>
             </div>
         </div>
 
-        <div class="cadena mb-4">
-            <div class="paso"><span class="num">1</span><div><strong>Crea tu planificación</strong><small>En línea o con archivo; queda como borrador</small></div></div>
-            <div class="paso"><span class="num">2</span><div><strong>Revisión con el asistente</strong>
-                <small th:text="${revisionIaObligatoria} ? 'Obligatoria antes de enviar' : 'Opcional, recomendada'">Opcional</small></div></div>
-            <div class="paso"><span class="num">3</span><div><strong>Envía al gestor</strong><small>Tu profesor la revisa y confirma</small></div></div>
+        <!-- Banner Dinámico según la Práctica Inscrita -->
+        <div th:if="${infoPractica != null}" class="card practica-banner mb-4"
+             th:classappend="'tema-' + ${infoPractica.temaColor}">
+            <div class="card-body p-4">
+                <div class="row align-items-center gy-3">
+                    <div class="col-lg-8">
+                        <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                            <span class="badge" th:classappend="${infoPractica.cicloBadgeClass}" th:text="${infoPractica.ciclo}">Ciclo</span>
+                            <span class="badge bg-secondary-subtle text-secondary border" th:text="${infoPractica.duracion}">Duración</span>
+                            <span class="badge bg-light text-dark border">
+                                <i class="bi bi-geo-alt me-1"></i><span th:text="${infoPractica.modalidad}">Modalidad</span>
+                            </span>
+                        </div>
+                        <h3 class="fw-bold mb-2 d-flex align-items-center gap-2" style="font-size: 1.35rem;">
+                            <i class="bi" th:classappend="${infoPractica.icono}"></i>
+                            <span th:text="'Práctica N° ' + ${infoPractica.numero} + ': ' + ${infoPractica.nombre}">Práctica Actual</span>
+                        </h3>
+                        <p class="text-secondary mb-2 small" th:text="${infoPractica.descripcionPedagogica}">
+                            Descripción pedagógica de la práctica inscrita.
+                        </p>
+                        
+                        <div class="d-flex flex-wrap gap-3 small text-secondary mt-3 pt-2 border-top">
+                            <span th:if="${infoPractica.centroNombre != null}">
+                                <i class="bi bi-building me-1 text-primary"></i><strong>Centro:</strong> <span th:text="${infoPractica.centroNombre}">Centro de práctica</span>
+                            </span>
+                            <span th:if="${infoPractica.colaboradorNombre != null}">
+                                <i class="bi bi-person-check me-1 text-success"></i><strong>Profesor Guía:</strong> <span th:text="${infoPractica.colaboradorNombre}">Colaborador</span>
+                            </span>
+                            <span th:if="${infoPractica.tutorNombre != null}">
+                                <i class="bi bi-person-badge me-1 text-info"></i><strong>Tutor UBB:</strong> <span th:text="${infoPractica.tutorNombre}">Tutor</span>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="p-3 bg-white bg-opacity-80 rounded-3 border">
+                            <div class="fw-bold small text-dark mb-1">
+                                <i class="bi bi-check2-circle text-primary me-1"></i>Requisitos de entrega
+                            </div>
+                            <p class="text-secondary mb-0 small" th:text="${infoPractica.requisitoEspecial}">
+                                Requisitos y pautas específicas de esta etapa.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="card shadow-sm border-0">
+        <!-- Flujo de Trabajo / Cadena -->
+        <div class="cadena mb-4">
+            <div class="paso">
+                <span class="num">1</span>
+                <div>
+                    <strong>Sube tu documento</strong>
+                    <small>Planificación o Informe Final (queda como borrador)</small>
+                </div>
+            </div>
+            <div class="paso">
+                <span class="num">2</span>
+                <div>
+                    <strong>Revisión con el asistente</strong>
+                    <small th:text="${revisionIaObligatoria} ? 'Obligatoria antes de enviar' : 'Opcional, recomendada'">Opcional</small>
+                </div>
+            </div>
+            <div class="paso">
+                <span class="num">3</span>
+                <div>
+                    <strong>Envía a revisión</strong>
+                    <small>Planificación → tu profesor · Informe → gestor</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filtros y Tabla de Documentos -->
+        <div class="card shadow-sm border-0 card-tabla">
+            <div class="card-header bg-white py-3 border-0 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+                <h5 class="fw-bold mb-0 text-dark">
+                    <i class="bi bi-folder2-open text-primary me-2"></i>Mis Documentos Subidos
+                </h5>
+                <div class="btn-group btn-group-sm flex-wrap" role="group" id="grupoFiltros">
+                    <button type="button" class="btn btn-outline-secondary filter-btn active" data-filtro="TODOS">Todos</button>
+                    <button type="button" class="btn btn-outline-secondary filter-btn" data-filtro="PLANIFICACION">Planificaciones</button>
+                    <button type="button" class="btn btn-outline-secondary filter-btn" data-filtro="INFORME_FINAL">Informes Finales</button>
+                    <button type="button" class="btn btn-outline-secondary filter-btn" data-filtro="BORRADOR">Borradores</button>
+                    <button type="button" class="btn btn-outline-secondary filter-btn" data-filtro="EN_REVISION">En revisión</button>
+                    <button type="button" class="btn btn-outline-secondary filter-btn" data-filtro="CON_OBSERVACIONES">Con observaciones</button>
+                    <button type="button" class="btn btn-outline-secondary filter-btn" data-filtro="AUTORIZADO">Autorizadas</button>
+                    <button type="button" class="btn btn-outline-secondary filter-btn" data-filtro="ENVIADO">Enviados</button>
+                </div>
+            </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover table-striped mb-0 align-middle">
-                        <thead class="table-light">
+                    <table class="table table-hover mb-0 align-middle tabla-docs">
+                        <thead>
                             <tr>
-                                <th class="ps-4">Planificación</th>
+                                <th class="ps-3">Documento</th>
+                                <th>Tipo</th>
                                 <th>Formato</th>
                                 <th>Estado</th>
                                 <th>Fecha</th>
@@ -71,8 +232,11 @@
                             </tr>
                         </thead>
                         <tbody id="tabla">
-                            <tr><td colspan="6" class="text-center text-muted py-5">
-                                <div class="spinner-border spinner-border-sm me-2"></div>Cargando...</td></tr>
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-5">
+                                    <div class="spinner-border spinner-border-sm me-2"></div>Cargando documentos...
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -80,41 +244,111 @@
         </div>
     </div>
 
-    <!-- Modal: subir archivo -->
+    <!-- Modal 1: Subir Planificación (Archivo) -->
     <div class="modal fade" id="modalSubir" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog"><div class="modal-content border-0 shadow">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title"><i class="bi bi-cloud-arrow-up-fill me-2"></i>Subir planificación</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body p-4">
-                <div class="alert alert-info small py-2"><i class="bi bi-info-circle me-1"></i>El archivo se guardará como <strong>borrador</strong>.</div>
-                <form id="formSubida">
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold text-secondary" for="practicaSel">¿A qué práctica corresponde?</label>
-                        <select class="form-select" id="practicaSel" required>
-                            <option value="" selected disabled>Seleccione su práctica...</option>
-                            <option th:each="p : ${misPracticas}" th:value="${p.numeroPractica}"
-                                    th:text="'Práctica N° ' + ${p.numeroPractica} + ' (' + ${p.ano} + '-' + ${p.semestre} + ')'"></option>
-                        </select>
+        <div class="modal-dialog">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title"><i class="bi bi-cloud-arrow-up-fill me-2"></i>Subir planificación</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="alert alert-info small py-2">
+                        <i class="bi bi-info-circle me-1"></i>El archivo se guardará como <strong>borrador</strong>. Podrás revisarlo con el asistente y enviarlo a tu <strong>profesor</strong> para su revisión. Debe ser <strong>PDF</strong>.
                     </div>
-                    <div class="mb-4">
-                        <label class="form-label fw-semibold text-secondary" for="archivoInput">Archivo (PDF o Word recomendado)</label>
-                        <input type="file" class="form-control" id="archivoInput" required>
-                    </div>
-                    <div id="alerta" class="alert d-none"></div>
-                    <div class="d-grid"><button class="btn btn-danger btn-lg" type="submit">Guardar como borrador</button></div>
-                </form>
+                    <form id="formSubida">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-secondary" for="practicaSel">¿A qué práctica corresponde?</label>
+                            <select class="form-select" id="practicaSel" required>
+                                <option value="" disabled>Seleccione su práctica...</option>
+                                <option th:each="p : ${misPracticas}" th:value="${p.numeroPractica}"
+                                        th:selected="${p.numeroPractica == practicaActual}"
+                                        th:text="'Práctica N° ' + ${p.numeroPractica} + ' (' + ${p.ano} + '-' + ${p.semestre} + ')'"></option>
+                            </select>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold text-secondary" for="archivoInput">Archivo (PDF)</label>
+                            <input type="file" class="form-control" id="archivoInput" accept=".pdf,application/pdf" required>
+                        </div>
+                        <div id="alerta" class="alert d-none"></div>
+                        <div class="d-grid">
+                            <button class="btn btn-success btn-lg" type="submit">Guardar planificación como borrador</button>
+                        </div>
+                    </form>
+                </div>
             </div>
-        </div></div>
+        </div>
     </div>
 
+    <!-- Modal 2: Subir Informe Final (Archivo) -->
+    <div class="modal fade" id="modalSubirInforme" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="bi bi-file-earmark-check-fill me-2"></i>Subir Informe Final</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="alert alert-primary small py-2">
+                        <i class="bi bi-info-circle me-1"></i>Tu <strong>Informe Final</strong> se guardará inicialmente como borrador para que puedas revisarlo o actualizarlo antes de la entrega definitiva al gestor.
+                    </div>
+                    <form id="formSubidaInforme">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-secondary" for="practicaSelInforme">Práctica correspondiente</label>
+                            <select class="form-select" id="practicaSelInforme" required>
+                                <option value="" disabled>Seleccione su práctica...</option>
+                                <option th:each="p : ${misPracticas}" th:value="${p.numeroPractica}"
+                                        th:selected="${p.numeroPractica == practicaActual}"
+                                        th:text="'Práctica N° ' + ${p.numeroPractica} + ' (' + ${p.ano} + '-' + ${p.semestre} + ')'"></option>
+                            </select>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold text-secondary" for="archivoInputInforme">Archivo del Informe (PDF o Word)</label>
+                            <input type="file" class="form-control" id="archivoInputInforme" required>
+                        </div>
+                        <div id="alertaInforme" class="alert d-none"></div>
+                        <div class="d-grid">
+                            <button class="btn btn-primary btn-lg" type="submit">Guardar Informe como borrador</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Popup: comentario completo del profesor -->
+    <div class="modal fade" id="modalVerComentario" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header">
+                    <div>
+                        <h5 class="modal-title mb-0"><i class="bi bi-chat-left-text-fill text-warning me-2"></i>Comentario del profesor</h5>
+                        <small class="text-muted d-block" id="verComentarioDoc" style="overflow-wrap:anywhere"></small>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body"><div id="verComentarioTexto"></div></div>
+                <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button></div>
+            </div>
+        </div>
+    </div>
+
+    <input type="file" id="inputReemplazo" accept=".pdf,application/pdf" class="d-none">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         let docs = [];
+        let filtroActual = 'TODOS';
         const esc = v => String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
         const rutaSegura = r => !r ? '#' : (r.startsWith('/') ? r : '/' + r);
         const esOnline = d => (d.rutaServidor || '').startsWith('ONLINE_');
+
+        const BADGES = {
+            BORRADOR: '<span class="badge bg-warning text-dark"><i class="bi bi-pencil-fill me-1"></i>Borrador</span>',
+            EN_REVISION: '<span class="badge bg-primary"><i class="bi bi-hourglass-split me-1"></i>En revisión</span>',
+            CON_OBSERVACIONES: '<span class="badge bg-danger"><i class="bi bi-chat-left-text-fill me-1"></i>Con observaciones</span>',
+            ENVIADO: '<span class="badge bg-success"><i class="bi bi-check-circle-fill me-1"></i>Enviado</span>',
+            AUTORIZADO: '<span class="badge bg-success"><i class="bi bi-lock-fill me-1"></i>Autorizada</span>'
+        };
 
         function avisar(msg, titulo, cb) {
             if (window.ubbPopup) ubbPopup.exito(msg, { titulo, onClose: cb }); else { alert(msg); if (cb) cb(); }
@@ -125,61 +359,126 @@
             try {
                 const r = await fetch('/api/documentos/mis-documentos', { headers: { 'Accept': 'application/json' } });
                 docs = (r.status === 204 || r.status === 404) ? [] : await r.json();
-                docs = docs.filter(d => d.tipoDocumento === 'PLANIFICACION');
+                // Permitir planificaciones e informes finales
+                docs = docs.filter(d => d.tipoDocumento === 'PLANIFICACION' || d.tipoDocumento === 'INFORME_FINAL');
                 pintar();
             } catch (e) {
-                t.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">Error al cargar las planificaciones.</td></tr>';
+                t.innerHTML = '<tr><td colspan="7" class="text-center text-danger py-4">Error al cargar los documentos.</td></tr>';
             }
         }
 
         function pintar() {
             const t = document.getElementById('tabla');
-            if (!docs.length) {
-                t.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-5"><i class="bi bi-inbox fs-3 d-block mb-2"></i>Aún no tienes planificaciones.</td></tr>';
+            let filtrados = docs.slice();
+
+            if (filtroActual === 'PLANIFICACION' || filtroActual === 'INFORME_FINAL') {
+                filtrados = filtrados.filter(d => d.tipoDocumento === filtroActual);
+            } else if (filtroActual !== 'TODOS') {
+                filtrados = filtrados.filter(d => d.estado === filtroActual);   // BORRADOR, EN_REVISION, CON_OBSERVACIONES, AUTORIZADO, ENVIADO
+            }
+
+            if (!filtrados.length) {
+                t.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-5"><i class="bi bi-inbox fs-3 d-block mb-2"></i>No hay documentos registrados para este filtro.</td></tr>';
                 return;
             }
             t.innerHTML = '';
-            docs.forEach(d => {
-                const borrador = d.estado === 'BORRADOR';
+            filtrados.forEach(d => {
+                const online = esOnline(d);
+                const esPlan = d.tipoDocumento === 'PLANIFICACION';
                 const fecha = d.fechaSubida ? new Date(d.fechaSubida).toLocaleDateString('es-CL',
                     {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'}) : '—';
-                const formato = esOnline(d)
-                    ? '<span class="badge bg-success"><i class="bi bi-ui-radios me-1"></i>En línea</span>'
+
+                const tipoBadge = d.tipoDocumento === 'INFORME_FINAL'
+                    ? '<span class="badge bg-primary text-white"><i class="bi bi-file-earmark-check-fill me-1"></i>Informe Final</span>'
+                    : '<span class="badge bg-success bg-opacity-75 text-white"><i class="bi bi-clipboard2-check me-1"></i>Planificación</span>';
+
+                const formato = online
+                    ? '<span class="badge bg-info text-dark"><i class="bi bi-ui-radios me-1"></i>En línea</span>'
                     : '<span class="badge bg-secondary"><i class="bi bi-file-earmark me-1"></i>Archivo</span>';
-                const estado = (borrador
-                    ? '<span class="badge bg-warning text-dark"><i class="bi bi-pencil-fill me-1"></i>Borrador</span>'
-                    : '<span class="badge bg-success"><i class="bi bi-check-circle-fill me-1"></i>Enviada</span>')
+
+                const estado = (BADGES[d.estado] || esc(d.estado))
                     + (d.revisadoIa ? '<span class="badge bg-info text-dark ms-1" title="Revisada por el asistente"><i class="bi bi-robot"></i> IA</span>' : '');
 
-                const ver = esOnline(d)
-                ? `<a href="/planificaciones/${d.id}" class="btn btn-sm btn-outline-secondary" title="Ver"><i class="bi bi-eye"></i></a>`
-                : `<a href="${esc(rutaSegura(d.rutaServidor))}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-secondary" title="Ver"><i class="bi bi-eye"></i></a>`;                const editar = (esOnline(d) && borrador)
-                    ? `<a href="/estudiante/planificacion/${d.id}/editar" class="btn btn-sm btn-outline-warning" title="Editar"><i class="bi bi-pencil-square"></i></a>` : '';
-                const acciones = borrador
-                    ? `${ver} ${editar}
-                       <button class="btn btn-sm btn-outline-primary" data-accion="revisar" data-id="${d.id}" title="Revisar con el asistente"><i class="bi bi-robot"></i></button>
-                       <button class="btn btn-sm btn-success" data-accion="enviar" data-id="${d.id}" title="Enviar al gestor"><i class="bi bi-send-check"></i></button>
-                       <button class="btn btn-sm btn-outline-danger" data-accion="descartar" data-id="${d.id}" title="Descartar"><i class="bi bi-trash"></i></button>`
-                    : ver;
+                const ver = online
+                    ? `<a href="/planificaciones/${d.id}" class="btn btn-sm btn-outline-secondary" title="Ver"><i class="bi bi-eye"></i></a>`
+                    : `<a href="${esc(rutaSegura(d.rutaServidor))}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-secondary" title="Ver"><i class="bi bi-eye"></i></a>`;
 
-                t.insertAdjacentHTML('beforeend', `<tr>
-                    <td class="ps-4 fw-semibold">${esc(d.nombreArchivo)}</td>
-                    <td>${formato}</td><td>${estado}</td><td>${esc(fecha)}</td>
+                const editar = online
+                    ? `<a href="/estudiante/planificacion/${d.id}/editar" class="btn btn-sm btn-outline-warning" title="Editar"><i class="bi bi-pencil-square"></i></a>` : '';
+                const bRevisar = `<button class="btn btn-sm btn-outline-primary" data-accion="revisar" data-id="${d.id}" title="Revisar con el asistente"><i class="bi bi-robot"></i></button>`;
+                const bEnviar = `<button class="btn btn-sm btn-success" data-accion="enviar" data-id="${d.id}" title="${esPlan ? 'Enviar al profesor' : 'Enviar al gestor'}"><i class="bi bi-send-check"></i></button>`;
+                const bDescartar = `<button class="btn btn-sm btn-outline-danger" data-accion="descartar" data-id="${d.id}" title="Descartar"><i class="bi bi-trash"></i></button>`;
+                const bReemplazar = `<button class="btn btn-sm btn-outline-warning text-dark" data-accion="reemplazar" data-id="${d.id}" title="Reemplazar archivo (PDF)"><i class="bi bi-arrow-repeat"></i></button>`;
+
+                // BORRADOR: todo. CON_OBSERVACIONES: corregir y reenviar. EN_REVISION / ENVIADO / AUTORIZADO: solo ver.
+                let acciones = ver;
+                if (d.estado === 'BORRADOR') acciones += ' ' + editar + ' ' + bRevisar + ' ' + bEnviar + ' ' + bDescartar;
+                if (d.estado === 'CON_OBSERVACIONES') acciones += ' ' + (online ? editar : bReemplazar) + ' ' + bEnviar;
+
+                const comentario = d.comentarioProfesor
+                    ? `<button type="button" class="coment-box" data-accion="ver-comentario" data-id="${d.id}" title="Ver comentario completo">
+                           <i class="bi bi-chat-left-text-fill"></i>
+                           <span class="cuerpo">
+                               <span class="etiqueta">Comentario del profesor</span>
+                               <span class="txt">${esc(d.comentarioProfesor)}</span>
+                               <span class="mas">Ver completo <i class="bi bi-arrows-angle-expand"></i></span>
+                           </span>
+                       </button>`
+                    : '';
+
+                t.insertAdjacentHTML('beforeend', `<tr class="est-${esc(d.estado)}">
+                    <td class="ps-3 fw-semibold col-doc"><div class="doc-nombre">${esc(d.nombreArchivo)}</div>${comentario}</td>
+                    <td>${tipoBadge}</td>
+                    <td>${formato}</td>
+                    <td>${estado}</td>
+                    <td>${esc(fecha)}</td>
                     <td class="text-center"><span class="badge bg-danger bg-opacity-75">Práctica ${esc(d.numeroPractica ?? 'N/A')}</span></td>
                     <td class="text-center text-nowrap">${acciones}</td></tr>`);
             });
         }
 
+        // Filtros de tabla
+        document.getElementById('grupoFiltros').addEventListener('click', e => {
+            const btn = e.target.closest('.filter-btn');
+            if (!btn) return;
+            document.querySelectorAll('#grupoFiltros .filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            filtroActual = btn.dataset.filtro;
+            pintar();
+        });
+
+        // Acciones en la tabla
         document.getElementById('tabla').addEventListener('click', async e => {
             const b = e.target.closest('[data-accion]'); if (!b) return;
             const id = b.dataset.id, d = docs.find(x => String(x.id) === id);
+            if (b.dataset.accion === 'ver-comentario') {
+                if (d) {
+                    document.getElementById('verComentarioDoc').textContent = d.nombreArchivo || '';
+                    document.getElementById('verComentarioTexto').textContent = d.comentarioProfesor || '';
+                    bootstrap.Modal.getOrCreateInstance(document.getElementById('modalVerComentario')).show();
+                }
+                return;
+            }
+            const nombre = d ? d.nombreArchivo : 'el documento';
+            const esInforme = d && d.tipoDocumento === 'INFORME_FINAL';
+            const etiquetaTipo = esInforme ? 'el informe final' : 'la planificación';
+
             if (b.dataset.accion === 'revisar') window.ubbChatbot?.abrirRevision(Number(id));
             if (b.dataset.accion === 'enviar') {
-                if (!await ubbPopup.confirmar('¿Enviar «' + (d ? d.nombreArchivo : 'la planificación') + '» al gestor?\nTu profesor podrá verla y ya no podrás editarla.',
-                    { titulo: 'Enviar al gestor', boton: 'Sí, enviar' })) return;
+                const esPlan = !esInforme;
+                if (!await ubbPopup.confirmar(
+                    esPlan ? '¿Enviar «' + nombre + '» a tu profesor para revisión?\nNo podrás modificarla mientras la revisa.'
+                           : '¿Enviar «' + nombre + '» al gestor?\nTu profesor podrá verlo y ya no podrás modificarlo.',
+                    { titulo: esPlan ? 'Enviar al profesor' : 'Enviar al gestor', boton: 'Sí, enviar' })) return;
                 const r = await fetch('/api/documentos/enviar/' + id, { method: 'POST' });
-                if (r.ok) { await cargar(); avisar('Tu planificación fue enviada al gestor.', '¡Planificación enviada!'); }
-                else ubbPopup.error(await r.text());
+                if (r.ok) {
+                    await cargar();
+                    avisar(esPlan ? 'Tu planificación fue enviada a tu profesor.' : 'Tu informe final fue enviado al gestor.', '¡Documento enviado!');
+                } else ubbPopup.error(await r.text());
+            }
+            if (b.dataset.accion === 'reemplazar') {
+                const inp = document.getElementById('inputReemplazo');
+                inp.dataset.id = id; inp.value = ''; inp.click();
             }
             if (b.dataset.accion === 'descartar') {
                 if (!await ubbPopup.confirmar('¿Descartar este borrador? Se eliminará definitivamente.',
@@ -189,6 +488,7 @@
             }
         });
 
+        // Formulario 1: Subir Planificación
         document.getElementById('formSubida').addEventListener('submit', async e => {
             e.preventDefault();
             const fd = new FormData();
@@ -213,11 +513,48 @@
             }
         });
 
+        // Formulario 2: Subir Informe Final
+        document.getElementById('formSubidaInforme').addEventListener('submit', async e => {
+            e.preventDefault();
+            const fd = new FormData();
+            fd.append('archivo', document.getElementById('archivoInputInforme').files[0]);
+            fd.append('tipoDocumento', 'INFORME_FINAL');
+            fd.append('numeroPractica', document.getElementById('practicaSelInforme').value);
+            const al = document.getElementById('alertaInforme');
+            try {
+                const r = await fetch('/api/documentos/subir', { method: 'POST', body: fd });
+                if (r.ok) {
+                    const doc = await r.json();
+                    e.target.reset();
+                    bootstrap.Modal.getInstance(document.getElementById('modalSubirInforme'))?.hide();
+                    await cargar();
+                    avisar('Tu Informe Final quedó guardado como borrador. Puedes revisarlo con el asistente antes de enviarlo al gestor.',
+                           '¡Informe guardado!', () => window.ubbChatbot?.abrirRevision(doc.id));
+                } else {
+                    al.className = 'alert alert-danger mt-3'; al.textContent = 'Error: ' + await r.text();
+                }
+            } catch (err) {
+                al.className = 'alert alert-danger mt-3'; al.textContent = 'Error de conexión con el servidor.';
+            }
+        });
+
+        // Reemplazo del PDF tras las observaciones del profesor
+        document.getElementById('inputReemplazo').addEventListener('change', async e => {
+            const f = e.target.files[0];
+            if (!f) return;
+            const fd = new FormData(); fd.append('archivo', f);
+            try {
+                const r = await fetch('/api/documentos/reemplazar/' + e.target.dataset.id, { method: 'POST', body: fd });
+                if (r.ok) { await cargar(); avisar('Archivo reemplazado. Ahora reenvíalo a tu profesor.', '¡Archivo actualizado!'); }
+                else ubbPopup.error(await r.text());
+            } catch (err) { ubbPopup.error('Error de conexión con el servidor.'); }
+        });
+
         document.addEventListener('ubb:documentos-cambiaron', cargar);
         document.addEventListener('DOMContentLoaded', cargar);
     </script>
 
-    <!-- Popup de éxito (mensaje del controlador al guardar el formulario) -->
+    <!-- Popup de éxito -->
     <div th:if="${mensajeExito}" data-ubb-flash hidden
          th:attr="data-mensaje=${mensajeExito},data-titulo=${tituloExito}"></div>
     <script th:src="@{/js/ubb-popup.js}"></script>

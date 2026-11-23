@@ -35,6 +35,8 @@ import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories
 import java.util.Set;
 import org.springframework.util.StringUtils;
 import org.springframework.transaction.annotation.Transactional;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 
 
 @Service
@@ -54,6 +56,8 @@ public class DocumentoService {
     private com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.PracticaRepository practicaRepository;
     @Autowired
     private PlanificacionPdfService planificacionPdfService;
+    @Autowired 
+    private RevisionPlanificacionService revisionService;
 
     private final String CARPETA_SUBIDAS = "uploads/practicas/";
 
@@ -106,8 +110,19 @@ public class DocumentoService {
         return documentos;
     }
 
+    private void exigirPdf(MultipartFile archivo, String extension) throws Exception {
+        boolean esPdf = "pdf".equalsIgnoreCase(extension);
+        if (esPdf) {
+            try (var in = archivo.getInputStream()) {
+                byte[] cab = in.readNBytes(5);
+                esPdf = cab.length == 5 && new String(cab, StandardCharsets.ISO_8859_1).equals("%PDF-");
+            }
+        }
+        if (!esPdf) throw new Exception("Las planificaciones deben subirse en formato PDF.");
+    }
+
     private List<Documento> soloEnviados(List<Documento> docs) {
-        return docs.stream().filter(d -> !d.isBorrador()).collect(Collectors.toList());
+        return docs.stream().filter(Documento::isEnGestor).collect(Collectors.toList());
     }
 
     private boolean tieneRol(Authentication auth, String rol) {
@@ -150,6 +165,7 @@ public class DocumentoService {
         if (extension == null || !EXTENSIONES_PERMITIDAS.contains(extension.toLowerCase())) {
             throw new Exception("Tipo de archivo no permitido. Formatos aceptados: " + EXTENSIONES_PERMITIDAS);
         }
+        if (tipoDocumento == TipoDocumento.PLANIFICACION) exigirPdf(archivo, extension);
 
         String identificador = SecurityContextHolder.getContext().getAuthentication().getName();
         Usuario usuario = usuarioRepository.findById(identificador)
@@ -213,23 +229,20 @@ public class DocumentoService {
         if (!rutUsuario.equals(rutDueno(documento))) {
             throw new Exception("Acceso denegado: este documento no es tuyo.");
         }
-        if (!documento.isBorrador()) {
-            throw new Exception("Este documento ya fue enviado al gestor.");
+
+        boolean esPlanificacion = documento instanceof Planificacion;
+        boolean reenvio = esPlanificacion && documento.getEstado() == EstadoDocumento.CON_OBSERVACIONES;
+        if (!documento.isBorrador() && !reenvio) {
+            throw new Exception(esPlanificacion
+                    ? "Esta planificación ya está en revisión o fue autorizada."
+                    : "Este documento ya fue enviado al gestor.");
         }
         if (revisionIaObligatoria && esRevisable(documento) && !documento.isRevisadoIa()) {
             throw new Exception("Antes de enviarlo debes pasar el documento por la revisión del asistente.");
         }
 
-
-        if (documento instanceof Planificacion pl && pl.isOnline()) {
-            List<String> faltan = CamposPlanificacion.faltantes(pl.getCampos());
-            if (!faltan.isEmpty()) {
-                throw new Exception("Completa antes de enviar: " + String.join(", ", faltan) + ".");
-            }
-            pl.setRutaServidor(planificacionPdfService.generar(pl));   // ← nuevo
-        }
-
-        documento.setEstado(EstadoDocumento.ENVIADO);
+        // Planificación -> profesor de la asignatura; informe -> gestor
+        documento.setEstado(esPlanificacion ? EstadoDocumento.EN_REVISION : EstadoDocumento.ENVIADO);
         return documentoRepository.save(documento);
     }
 
@@ -332,6 +345,9 @@ public class DocumentoService {
 
         // Los borradores son privados: solo los ve su dueño
         if (doc.isBorrador()) return esDueno;
+        if (!doc.isEnGestor()) {   // EN_REVISION o CON_OBSERVACIONES
+            return esDueno || (doc instanceof Planificacion p && revisionService.puedeRevisar(p, rutUsuario));
+        }
 
         if (tieneRol(auth, "ROLE_COORDINADOR") || esDueno) return true;
 
@@ -354,6 +370,9 @@ public class DocumentoService {
         // el tutor puede borrar documentos de su práctica
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         boolean esCoordinador = tieneRol(auth, "ROLE_COORDINADOR");
+        if (documento.getEstado() == EstadoDocumento.AUTORIZADO && !esCoordinador) {
+            throw new Exception("Una planificación autorizada se conserva de forma permanente y no puede eliminarse.");
+        }
         String rutUsuario = auth.getName();
         boolean esDuenoDeBorrador = documento.isBorrador() && rutUsuario.equals(rutDueno(documento));
 
@@ -408,4 +427,45 @@ public class DocumentoService {
         return List.of();
     }
 
+    @Transactional
+    public Documento reemplazarArchivo(Long idDocumento, MultipartFile archivo) throws Exception {
+        if (archivo == null || archivo.isEmpty()) throw new Exception("El archivo está vacío");
+        Documento d = documentoRepository.findById(idDocumento)
+                .orElseThrow(() -> new Exception("No se encontró el documento con ID: " + idDocumento));
+
+        String rut = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (!rut.equals(rutDueno(d))) throw new Exception("Acceso denegado: este documento no es tuyo.");
+        if (!(d instanceof Planificacion) || !(d.isBorrador() || d.getEstado() == EstadoDocumento.CON_OBSERVACIONES)) {
+            throw new Exception("Solo puedes reemplazar una planificación en borrador o con observaciones.");
+        }
+        if (d instanceof Planificacion p && p.isOnline()) {
+            throw new Exception("Las planificaciones en línea se corrigen con el botón Editar.");
+        }
+
+        String limpio = StringUtils.cleanPath(archivo.getOriginalFilename() == null ? "" : archivo.getOriginalFilename());
+        String nombreVisible = limpio.substring(limpio.lastIndexOf('/') + 1);
+        if (nombreVisible.isBlank() || nombreVisible.length() > 150 || nombreVisible.matches(".*[<>\"'`].*")) {
+            throw new Exception("El nombre del archivo no es válido");
+        }
+        exigirPdf(archivo, StringUtils.getFilenameExtension(nombreVisible));
+
+        Path directorio = Paths.get(CARPETA_SUBIDAS).toAbsolutePath().normalize();
+        Files.createDirectories(directorio);
+        String nombreFisico = UUID.randomUUID() + ".pdf";
+        try (var in = archivo.getInputStream()) {
+            Files.copy(in, directorio.resolve(nombreFisico));
+        }
+
+        String anterior = d.getRutaServidor();
+        d.setNombreArchivo(nombreVisible);
+        d.setRutaServidor(CARPETA_SUBIDAS + nombreFisico);
+        d.setFechaSubida(LocalDateTime.now());
+        d.setRevisadoIa(false);            // la versión nueva debe volver a pasar por el asistente
+        d.setRevisionIa(null);
+        d.setFechaRevisionIa(null);
+        Documento guardado = documentoRepository.save(d);
+
+        try { Files.deleteIfExists(Paths.get(anterior).toAbsolutePath().normalize()); } catch (Exception ignorado) { }
+        return guardado;
+    }
 }

@@ -97,6 +97,11 @@ public abstract class Documento {
     }
     public void setEstado(EstadoDocumento estado) { this.estado = estado; }
     public boolean isBorrador() { return getEstado() == EstadoDocumento.BORRADOR; }
+    
+    public boolean isEnGestor() {
+        EstadoDocumento e = getEstado();
+        return e == EstadoDocumento.ENVIADO || e == EstadoDocumento.AUTORIZADO;
+    }   
 
     public boolean isRevisadoIa() { return Boolean.TRUE.equals(revisadoIa); }
     public void setRevisadoIa(Boolean revisadoIa) { this.revisadoIa = revisadoIa; }

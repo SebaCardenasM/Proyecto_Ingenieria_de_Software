@@ -34,6 +34,22 @@
             <p class="text-muted" th:if="${modoLectura}">Estudiante: <strong th:text="${estudianteNombre}"></strong></p>
             <p class="text-muted" th:unless="${modoLectura}">Completa el formato. Puedes guardar como borrador en cualquier momento; los campos con * se exigen al enviar.</p>
 
+            <div th:if="${modoLectura}" class="alert alert-info d-flex align-items-center mb-4">
+                <i class="bi bi-info-circle-fill fs-5 me-2"></i>
+                <div>
+                    <strong>Modo solo lectura:</strong>
+                    <span th:if="${estadoPlanificacion == 'EN_REVISION'}"> Esta planificación está actualmente en revisión por tu profesor y no puede ser modificada.</span>
+                    <span th:if="${estadoPlanificacion == 'AUTORIZADO'}"> Esta planificación ya fue autorizada y se encuentra guardada permanentemente.</span>
+                    <span th:if="${estadoPlanificacion != 'EN_REVISION' and estadoPlanificacion != 'AUTORIZADO'}"> Estás visualizando esta planificación en modo solo lectura.</span>
+                </div>
+            </div>
+
+            <div th:if="${comentarioProfesor != null and !#strings.isEmpty(comentarioProfesor)}" class="alert alert-warning mb-4">
+                <div class="fw-bold"><i class="bi bi-chat-left-text-fill me-2"></i>Observaciones del profesor:</div>
+                <div class="mt-1" th:text="${comentarioProfesor}"></div>
+                <div th:unless="${modoLectura}" class="small text-muted mt-2">Corrige los campos solicitados y vuelve a enviarla a tu profesor con el botón «Enviar a revisión».</div>
+            </div>
+
             <div th:if="${error}" class="alert alert-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${error}"></span></div>
 
             <form th:action="@{/estudiante/planificacion/guardar}" method="post">
@@ -61,13 +77,15 @@
                                    th:text="${c.etiqueta} + (${c.requerido} ? ' *' : '')">Campo</label>
 
                             <textarea th:if="${c.tipo == 'textarea'}" class="form-control"
+                                      th:classappend="${modoLectura} ? 'bg-light text-dark' : ''"
                                       th:id="${c.clave}" th:name="${c.clave}" th:rows="${c.filas}" th:maxlength="${c.max}"
-                                      th:required="${c.requerido}" th:readonly="${modoLectura}"
+                                      th:required="${c.requerido}" th:readonly="${modoLectura}" th:disabled="${modoLectura}"
                                       th:text="${valores[c.clave]}"></textarea>
 
                             <input th:unless="${c.tipo == 'textarea'}" class="form-control"
+                                   th:classappend="${modoLectura} ? 'bg-light text-dark' : ''"
                                    th:type="${c.tipo}" th:id="${c.clave}" th:name="${c.clave}" th:maxlength="${c.max}"
-                                   th:required="${c.requerido}" th:readonly="${modoLectura}"
+                                   th:required="${c.requerido}" th:readonly="${modoLectura}" th:disabled="${modoLectura}"
                                    th:value="${valores[c.clave]}">
 
                             <div class="form-text" th:if="${c.ayuda != ''}" th:text="${c.ayuda}"></div>
@@ -84,8 +102,8 @@
                         </button>
                         <button th:unless="${revisionIaObligatoria}" type="submit" name="accion" value="ENVIAR"
                                 class="btn btn-success fw-semibold"
-                                onclick="return confirm('¿Enviar la planificación al gestor? Tus profesores podrán verla y ya no podrás editarla.')">
-                            <i class="bi bi-send-check me-1"></i>Enviar al gestor
+                                onclick="return confirm('¿Enviar la planificación a tu profesor para revisión?\nNo podrás modificarla mientras la revisa.')">
+                            <i class="bi bi-send-check me-1"></i>Enviar a revisión
                         </button>
                     </th:block>
                 </div>

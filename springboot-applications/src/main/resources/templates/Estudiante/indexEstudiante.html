@@ -99,18 +99,42 @@
                 </div>
             </div>
 
-            <!-- Mis Planificaciones -->
+            <!-- Subir Documentos (Antes Mis Planificaciones) -->
             <div class="col-md-6 col-xl-4">
-                <div class="card ubb-card accent-green" style="--i:1">
+                <!-- Estudiante CON práctica inscrita -->
+                <div th:if="${practicaActual != null}" class="card ubb-card accent-green" style="--i:1">
                     <div class="card-body">
                         <div class="d-flex align-items-center mb-3">
-                            <div class="icon-bubble"><i class="bi bi-clipboard2-check"></i></div>
-                            <h4 class="card-title mb-0">Mis Planificaciones</h4>
+                            <div class="icon-bubble"><i class="bi bi-cloud-arrow-up-fill"></i></div>
+                            <div>
+                                <h4 class="card-title mb-0">Subir Documentos</h4>
+                                <span class="badge bg-success-subtle text-success border border-success-subtle small mt-1"
+                                      th:text="'Práctica N° ' + ${practicaActual} + ' en curso'">Práctica en curso</span>
+                            </div>
                         </div>
-                        <p class="card-text text-muted mb-4">Completa tu planificación en un formulario o sube tu archivo, revísala con el asistente y envíala a tu profesor.</p>
+                        <p class="card-text text-muted mb-4">Sube tus planificaciones de clases y tu informe final correspondientes a tu práctica actual.</p>
                         <div class="d-grid gap-2">
                             <a th:href="@{/estudiante/planificaciones}" class="btn btn-outline-success">
-                                <i class="bi bi-pencil-square me-1"></i> Crear / Ver Planificaciones
+                                <i class="bi bi-cloud-arrow-up me-1"></i> Subir Documentos
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Estudiante SIN práctica inscrita actualmente -->
+                <div th:unless="${practicaActual != null}" class="card ubb-card accent-gray" style="--i:1; opacity: 0.9; background-color: #f8fafc; border: 1px dashed #cbd5e1;">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="icon-bubble" style="background: #e2e8f0; color: #64748b;"><i class="bi bi-lock-fill"></i></div>
+                            <div>
+                                <h4 class="card-title mb-0 text-muted">Subir Documentos</h4>
+                                <span class="badge bg-secondary-subtle text-secondary border small mt-1">Sin práctica inscrita</span>
+                            </div>
+                        </div>
+                        <p class="card-text text-muted mb-4 small">No tienes una práctica inscrita actualmente para subir documentos. Puedes consultar tus planificaciones e informes anteriores en el gestor.</p>
+                        <div class="d-grid gap-2">
+                            <a th:href="@{/estudiante/archivos}" class="btn btn-outline-secondary">
+                                <i class="bi bi-folder2-open me-1"></i> Ir al Gestor de Documentos
                             </a>
                         </div>
                     </div>
