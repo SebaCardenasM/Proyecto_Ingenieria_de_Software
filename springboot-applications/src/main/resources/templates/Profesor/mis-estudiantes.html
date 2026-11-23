@@ -165,6 +165,10 @@
                                 <!-- Acciones -->
                                 <td class="text-center pe-4">
                                     <th:block th:if="${p.estudiante != null}">
+                                        <a th:href="@{/perfil/estudiante/{rut}(rut=${p.estudiante.rut})}" class="btn btn-sm btn-outline-primary me-1"
+                                           title="Ver perfil completo del estudiante">
+                                            <i class="bi bi-person-lines-fill"></i>
+                                        </a>
                                         <a th:href="@{/profesor/archivos(rut=${p.estudiante.rut})}" class="btn btn-sm btn-outline-danger me-1"
                                            title="Revisar los documentos de este estudiante">
                                             <i class="bi bi-folder-check"></i>

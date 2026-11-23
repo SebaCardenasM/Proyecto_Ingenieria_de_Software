@@ -499,7 +499,7 @@
             }
 
             const form = document.getElementById('formPauta');
-            form.addEventListener('submit', function (e) {
+            form.addEventListener('submit', async function (e) {
                 if (modoLectura) { e.preventDefault(); return; }
 
                 if (selectPauta && !selectPauta.value) {
@@ -518,14 +518,18 @@
                 const respondidos = document.querySelectorAll('#rubric input[type="radio"]:checked').length;
                 if (respondidos < currentTotalCriterios) {
                     e.preventDefault();
-                    alert(`Faltan criterios por evaluar (${respondidos}/${currentTotalCriterios} respondidos).`);
+                    ubbPopup.aviso(`Faltan criterios por evaluar (${respondidos}/${currentTotalCriterios} respondidos).`, { titulo: 'Evaluación incompleta' });
                     return;
                 }
-                if (!confirm("¿Enviar la pauta definitiva? Una vez enviada no podrá modificarse y este enlace dejará de funcionar.")) {
-                    e.preventDefault();
-                    return;
+                e.preventDefault();
+                const ok = await ubbPopup.confirmar("¿Enviar la pauta definitiva? Una vez enviada no podrá modificarse y este enlace dejará de funcionar.", {
+                    titulo: 'Enviar evaluación',
+                    boton: 'Sí, enviar'
+                });
+                if (ok) {
+                    document.getElementById('btnEnviar').disabled = true;   // evita doble envío
+                    form.submit();
                 }
-                document.getElementById('btnEnviar').disabled = true;   // evita doble envío
             });
 
             updateScoreSummary();
@@ -571,6 +575,7 @@
             <small>Plataforma de Prácticas · &copy; <span class="anio"></span></small>
         </div>
     </footer>
+    <script th:src="@{/js/ubb-popup.js}"></script>
     <script>document.querySelectorAll('.anio').forEach(e => e.textContent = new Date().getFullYear());</script>
 </body>
 </html>
