@@ -38,6 +38,7 @@ public class SecurityConfig {
 
                 // Paso 3 de la cadena: solo el estudiante envía sus borradores al gestor
                 .requestMatchers(HttpMethod.POST, "/api/documentos/enviar/**").hasRole("ESTUDIANTE")
+                .requestMatchers(HttpMethod.POST, "/api/documentos/reemplazar/**").hasRole("ESTUDIANTE")
 
                 // PERMITE ELIMINAR
                 .requestMatchers(HttpMethod.POST, "/api/documentos/eliminar/**").hasAnyRole("ESTUDIANTE", "TUTOR", "PROFESOR_ASIGNATURA", "COORDINADOR")

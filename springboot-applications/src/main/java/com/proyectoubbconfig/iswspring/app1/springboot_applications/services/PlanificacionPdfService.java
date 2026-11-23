@@ -26,6 +26,10 @@ public class PlanificacionPdfService {
 
     /** Genera el PDF con el formato de planificación diversificada y devuelve la ruta para rutaServidor. */
     public String generar(Planificacion p) {
+        return generarEn(p, CARPETA);
+    }
+
+    public String generarEn(Planificacion p, String carpetaDestino) {
         Map<String, String> v = p.getCampos();
 
         // El formulario no pide año ni período: se deducen de la fecha de la clase
@@ -80,11 +84,12 @@ public class PlanificacionPdfService {
             }
             w.cerrar();
 
-            Path dir = Paths.get(CARPETA).toAbsolutePath().normalize();
+            Path dir = Paths.get(carpetaDestino).toAbsolutePath().normalize();
             Files.createDirectories(dir);
             String nombre = UUID.randomUUID() + ".pdf";
             doc.save(dir.resolve(nombre).toFile());
-            return CARPETA + nombre;
+            String prefijo = carpetaDestino.endsWith("/") ? carpetaDestino : carpetaDestino + "/";
+            return prefijo + nombre;
         } catch (IOException ex) {
             throw new UncheckedIOException(ex);
         }

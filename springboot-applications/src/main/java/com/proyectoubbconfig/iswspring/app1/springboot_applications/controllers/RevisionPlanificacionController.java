@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.dto.FilaPlanificacion;
@@ -30,34 +31,43 @@ public class RevisionPlanificacionController {
     @GetMapping
     public String listar(Model model, Authentication authentication) {
         List<FilaPlanificacion> filas = revisionService.listar(authentication.getName());
-
-        long pendientes = filas.stream().filter(f -> !f.revisada()).count();
-        long conPautas = filas.stream().filter(FilaPlanificacion::evaluaConPautas).count();
-        long soloRevisadas = filas.stream().filter(f -> f.revisada() && !f.evaluaConPautas()).count();
-
         model.addAttribute("filas", filas);
         model.addAttribute("total", filas.size());
-        model.addAttribute("pendientes", pendientes);
-        model.addAttribute("revisadas", soloRevisadas);
-        model.addAttribute("conPautas", conPautas);
+        model.addAttribute("pendientes", filas.stream().filter(f -> "EN_REVISION".equals(f.estadoEnvio())).count());
+        model.addAttribute("conObservaciones", filas.stream().filter(f -> "CON_OBSERVACIONES".equals(f.estadoEnvio())).count());
+        model.addAttribute("confirmadas", filas.stream().filter(f -> "AUTORIZADO".equals(f.estadoEnvio())).count());
+        model.addAttribute("conPautas", filas.stream().filter(FilaPlanificacion::evaluaConPautas).count());
         return "Profesor/planificaciones-revision";
     }
 
-    // TICK 1: ya revisada
-    @PostMapping("/{id}/revisar")
-    public String revisar(@PathVariable Long id, Authentication authentication, RedirectAttributes ra) {
+    @PostMapping("/{id}/comentar")
+    public String comentar(@PathVariable Long id, @RequestParam String comentario,
+                        Authentication authentication, RedirectAttributes ra) {
         try {
-            revisionService.marcarRevisada(id, authentication.getName());
-            ra.addFlashAttribute("tituloExito", "¡Planificación revisada!");
-            ra.addFlashAttribute("mensajeExito",
-                    "Quedó marcada como revisada. Cuando corresponda, usa el segundo tick para indicar que la clase se evaluará con pautas.");
+            revisionService.comentar(id, authentication.getName(), comentario);
+            ra.addFlashAttribute("tituloExito", "¡Comentario enviado!");
+            ra.addFlashAttribute("mensajeExito", "El estudiante verá tu comentario y podrá corregir y reenviar su planificación.");
         } catch (Exception e) {
             ra.addFlashAttribute("errorMensaje", e.getMessage());
         }
         return "redirect:/profesor/planificaciones";
     }
 
-    // TICK 2: la clase se evaluará con pautas (genera el enlace del colaborador)
+    // TICK 1: Autorizar planificación (bloquea, congela como PDF permanente y avisa al estudiante)
+    @PostMapping({"/{id}/autorizar", "/{id}/revisar", "/{id}/confirmar"})
+    public String autorizar(@PathVariable Long id, Authentication authentication, RedirectAttributes ra) {
+        try {
+            revisionService.autorizar(id, authentication.getName());
+            ra.addFlashAttribute("tituloExito", "¡Planificación autorizada!");
+            ra.addFlashAttribute("mensajeExito",
+                    "La planificación quedó bloqueada y guardada como PDF permanente. Se avisó al estudiante que ya puede dar su clase.");
+        } catch (Exception e) {
+            ra.addFlashAttribute("errorMensaje", e.getMessage());
+        }
+        return "redirect:/profesor/planificaciones";
+    }
+
+    // TICK 2: Marcar que la clase se evaluará con pautas (genera enlace de evaluación para el colaborador)
     @PostMapping("/{id}/pautas")
     public String evaluarConPautas(@PathVariable Long id, Authentication authentication, RedirectAttributes ra) {
         try {
