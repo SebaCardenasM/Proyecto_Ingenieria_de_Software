@@ -57,6 +57,7 @@ public class PlanificacionOnlineService {
             }
         } else {
             p = new Planificacion();
+            p.setTipoDocumento(TipoDocumento.PLANIFICACION);
             p.setEstudiante(estudiante);
             p.setRutaServidor(Planificacion.RUTA_ONLINE);
         }

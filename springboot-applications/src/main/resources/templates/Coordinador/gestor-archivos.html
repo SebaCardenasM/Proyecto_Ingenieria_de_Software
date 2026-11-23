@@ -198,9 +198,12 @@
                 .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
         }
 
-        function rutaSegura(ruta) {
-            if (!ruta) return '#';
-            const r = ruta.startsWith('/') ? ruta : '/' + ruta;
+        function rutaSegura(archivo) {
+            if (!archivo || !archivo.rutaServidor) return '#';
+            if (archivo.rutaServidor.startsWith('ONLINE_')) {
+                return '/planificaciones/' + archivo.id;
+            }
+            const r = archivo.rutaServidor.startsWith('/') ? archivo.rutaServidor : '/' + archivo.rutaServidor;
             return r.startsWith('/uploads/') ? r : '#';
         }
 
@@ -341,6 +344,10 @@
                     })
                     : 'Sin fecha';
 
+                const esOnline = archivo.rutaServidor && archivo.rutaServidor.startsWith('ONLINE_');
+                const iconoAccion = esOnline ? 'bi bi-eye' : 'bi bi-download';
+                const tituloAccion = esOnline ? 'Ver planificación' : 'Descargar/Ver';
+
                 const fila = `
                     <tr>
                         <td class="ps-4 fw-semibold text-primary">
@@ -355,9 +362,9 @@
                         <td>${escapeHtml(fecha)}</td>
                         <td class="text-center"><span class="badge bg-info text-dark">Práctica ${escapeHtml(archivo.numeroPractica ?? 'N/A')}</span></td>
                         <td class="text-center">
-                            <a href="${escapeHtml(rutaSegura(archivo.rutaServidor))}" target="_blank" rel="noopener noreferrer"
-                               class="btn btn-sm btn-outline-primary" title="Descargar/Ver">
-                                <i class="bi bi-download"></i>
+                            <a href="${escapeHtml(rutaSegura(archivo))}" target="_blank" rel="noopener noreferrer"
+                               class="btn btn-sm btn-outline-primary" title="${tituloAccion}">
+                                <i class="${iconoAccion}"></i>
                             </a>
                         </td>
                     </tr>

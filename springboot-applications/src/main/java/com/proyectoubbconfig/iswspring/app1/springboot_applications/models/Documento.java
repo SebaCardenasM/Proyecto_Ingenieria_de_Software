@@ -100,7 +100,7 @@ public abstract class Documento {
     
     public boolean isEnGestor() {
         EstadoDocumento e = getEstado();
-        return e == EstadoDocumento.ENVIADO || e == EstadoDocumento.AUTORIZADO;
+        return e != EstadoDocumento.BORRADOR;
     }   
 
     public boolean isRevisadoIa() { return Boolean.TRUE.equals(revisadoIa); }

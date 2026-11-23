@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -62,6 +63,8 @@ public class DocumentoService {
     @Autowired
     private com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.PracticaRepository practicaRepository;
     @Autowired
+    private com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.PlanificacionRepository planificacionRepository;
+    @Autowired
     private PlanificacionPdfService planificacionPdfService;
     @Autowired 
     private RevisionPlanificacionService revisionService;
@@ -88,9 +91,31 @@ public class DocumentoService {
         if (esCoordinador) {
             documentos = soloEnviados(documentoRepository.findAll());
         }
-        // Profesor de asignatura o tutor: ve lo ENVIADO de sus estudiantes
+        // Profesor de asignatura o tutor: ve lo ENVIADO de sus estudiantes, para revisar y planificaciones que revisó
         else if (esProfesorAsignatura || esTutor) {
-            documentos = soloEnviados(documentoRepository.findByAcademicoRut(rut));
+            List<Documento> docs = new java.util.ArrayList<>(documentoRepository.findByAcademicoRut(rut));
+            Set<Long> idsExistentes = docs.stream().map(Documento::getId).filter(Objects::nonNull).collect(Collectors.toSet());
+
+            List<Planificacion> paraRevisar = planificacionRepository.findParaRevisar(rut);
+            if (paraRevisar != null) {
+                for (Planificacion p : paraRevisar) {
+                    if (p.getId() != null && !idsExistentes.contains(p.getId())) {
+                        docs.add(p);
+                        idsExistentes.add(p.getId());
+                    }
+                }
+            }
+
+            List<Planificacion> revisadas = planificacionRepository.findByProfesorRevisorRut(rut);
+            if (revisadas != null) {
+                for (Planificacion pRev : revisadas) {
+                    if (pRev.getId() != null && !idsExistentes.contains(pRev.getId())) {
+                        docs.add(pRev);
+                        idsExistentes.add(pRev.getId());
+                    }
+                }
+            }
+            documentos = soloEnviados(docs);
         }
         // Estudiante: solo lo suyo, borradores incluidos (excluyendo pautas, que van en su propia pestaña)
         else {

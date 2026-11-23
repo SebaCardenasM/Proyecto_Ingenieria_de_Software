@@ -12,6 +12,8 @@ import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Plani
 @Repository
 public interface PlanificacionRepository extends JpaRepository<Planificacion, Long> {
 
+    List<Planificacion> findByProfesorRevisorRut(String rut);
+
     // Planificaciones que le corresponde revisar a un profesor UBB (sin borradores):
     // las de las prácticas donde es el profesor asignado; si la práctica no tiene profesor,
     // las de los estudiantes que coordina.

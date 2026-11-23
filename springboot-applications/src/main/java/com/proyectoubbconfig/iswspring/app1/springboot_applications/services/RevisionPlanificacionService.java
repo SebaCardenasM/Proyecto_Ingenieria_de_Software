@@ -176,13 +176,27 @@ public class RevisionPlanificacionService {
 
             p.setRutaServidor("uploads/autorizadas/" + archivoDestino.getFileName());
             p.setHashSha256(hash);
+            String nom = p.getNombreArchivo();
+            if (nom != null && !nom.toLowerCase().endsWith(".pdf")) {
+                p.setNombreArchivo(nom + ".pdf");
+            }
         } else {
             // Es un archivo PDF subido por el estudiante: se congela moviéndolo a uploads/autorizadas/
             congelarPdf(p);
         }
 
-        // 2. Marcar como autorizada (revisada)
-        p.setPractica(pr);
+        // 2. Marcar como autorizada (revisada) y asegurar campos de Documento
+        Estudiante e = estudianteDe(p, pr);
+        if (p.getEstudiante() == null && e != null) {
+            p.setEstudiante(e);
+        }
+        if (pr != null) {
+            p.setPractica(pr);
+            if (p.getNumeroPractica() == null && pr.getNumeroPractica() != null) {
+                p.setNumeroPractica(pr.getNumeroPractica());
+            }
+        }
+        p.setTipoDocumento(com.proyectoubbconfig.iswspring.app1.springboot_applications.models.TipoDocumento.PLANIFICACION);
         p.setRevisada(true);
         p.setEstado(EstadoDocumento.AUTORIZADO);
         p.setFechaRevision(LocalDateTime.now());
@@ -190,7 +204,6 @@ public class RevisionPlanificacionService {
         planificacionRepository.save(p);
 
         // 3. Aviso simple al estudiante (sin enlace)
-        Estudiante e = estudianteDe(p, pr);
         if (e != null) {
             String quien = (profesor.getNombre() + " " + profesor.getApellido()).trim();
             notificacionRepository.save(new Notificacion(

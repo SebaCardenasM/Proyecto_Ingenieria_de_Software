@@ -92,8 +92,8 @@ public record DocumentoDTO(
                 evaluadorStr,
                 d.getEstado().name(),
                 d.isRevisadoIa(),
-                d instanceof Planificacion pl ? pl.getComentarioProfesor() : null,
                 estadoRevision,
+                d instanceof Planificacion pl ? pl.getComentarioProfesor() : null,
                 nota,
                 retroalimentacion,
                 e == null ? null : new EstudianteResumen(e.getRut(), e.getNombre(), e.getApellido(), e.getAnoIngreso())
