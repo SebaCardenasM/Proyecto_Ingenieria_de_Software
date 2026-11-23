@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.dto.DatosPautaColaborador;
@@ -202,6 +203,108 @@ public class EstudianteController {
     @GetMapping("/estudiante/pautas")
     public String mostrarPautasEstudiante() {
         return "Estudiante/pautas-estudiante";
+    }
+
+    // Página "Mis Calificaciones y Progreso Ponderado": visualización en vivo de componentes, notas y promedios
+    @GetMapping({"/estudiante/calificaciones", "/estudiante/notas"})
+    @Transactional(readOnly = true)
+    public String verMisCalificaciones(
+            @RequestParam(required = false) Long idPractica,
+            Model model,
+            Principal principal,
+            RedirectAttributes redirectAttributes) {
+
+        Estudiante estudiante = estudianteRepository.findById(principal.getName())
+                .orElseThrow(() -> new IllegalArgumentException("Estudiante no encontrado: " + principal.getName()));
+
+        List<Practica> portafolio = practicaRepository.findPortafolioByRut(estudiante.getRut());
+        if (portafolio == null || portafolio.isEmpty()) {
+            redirectAttributes.addFlashAttribute("errorMensaje",
+                    "Aún no tienes asignaturas de práctica registradas en el sistema.");
+            return "redirect:/estudiante/index";
+        }
+
+        // Orden cronológico por número de práctica y periodo
+        List<Practica> practicasOrdenadas = portafolio.stream()
+                .filter(p -> p.getNumeroPractica() != null)
+                .sorted(Comparator.comparing(Practica::getNumeroPractica, Comparator.nullsLast(Comparator.naturalOrder()))
+                        .thenComparing(Practica::getAno, Comparator.nullsLast(Comparator.naturalOrder()))
+                        .thenComparing(Practica::getSemestre, Comparator.nullsLast(Comparator.naturalOrder())))
+                .toList();
+
+        // Determinar la práctica seleccionada
+        Practica practicaSeleccionada = null;
+        if (idPractica != null) {
+            practicaSeleccionada = practicasOrdenadas.stream()
+                    .filter(p -> idPractica.equals(p.getId()))
+                    .findFirst()
+                    .orElse(null);
+        }
+
+        if (practicaSeleccionada == null) {
+            Integer actual = estudiante.getPracticaActual();
+            if (actual != null) {
+                practicaSeleccionada = practicasOrdenadas.stream()
+                        .filter(p -> actual.equals(p.getNumeroPractica()))
+                        .findFirst()
+                        .orElse(null);
+            }
+        }
+
+        if (practicaSeleccionada == null && !practicasOrdenadas.isEmpty()) {
+            practicaSeleccionada = practicasOrdenadas.get(practicasOrdenadas.size() - 1);
+        }
+
+        // Obtener la evaluación con pautas e informes sincronizados en modo lectura
+        EvaluacionPractica evaluacion = evaluacionPracticaService.obtenerVistaParaPractica(practicaSeleccionada);
+
+        // Resumen para selector de prácticas pasadas y actual
+        record PracticaItemDTO(
+                Long id,
+                Integer numeroPractica,
+                String nombreAsignatura,
+                Integer ano,
+                Integer semestre,
+                String centroNombre,
+                String estado,
+                Double notaFinal,
+                Double porcentajeEvaluado
+        ) {}
+
+        List<PracticaItemDTO> todasPracticas = new ArrayList<>();
+        for (Practica p : practicasOrdenadas) {
+            EvaluacionPractica ev = evaluacionPracticaService.obtenerVistaParaPractica(p);
+            String nomAsig = evaluacionPracticaService.nombreAsignatura(
+                    p.getNumeroPractica() != null ? p.getNumeroPractica() : 1);
+            String centro = (p.getCentroPractica() != null) ? p.getCentroPractica().getNombre() : "Sin centro asignado";
+            String est = (p.getEstado() != null) ? p.getEstado().name() : "PENDIENTE";
+            Double nota = (ev != null && ev.getNotaFinal() != null) ? ev.getNotaFinal() : p.getNotaAprobacion();
+            Double porc = (ev != null) ? ev.getPorcentajeEvaluado() : 0.0;
+
+            todasPracticas.add(new PracticaItemDTO(
+                    p.getId(),
+                    p.getNumeroPractica(),
+                    nomAsig,
+                    p.getAno(),
+                    p.getSemestre(),
+                    centro,
+                    est,
+                    nota,
+                    porc
+            ));
+        }
+
+        model.addAttribute("practica", practicaSeleccionada);
+        model.addAttribute("evaluacion", evaluacion);
+        model.addAttribute("componentes", evaluacion != null ? evaluacion.getComponentes() : Collections.emptyList());
+        model.addAttribute("nombreAsignatura", evaluacionPracticaService.nombreAsignatura(
+                practicaSeleccionada.getNumeroPractica() != null ? practicaSeleccionada.getNumeroPractica() : 1));
+        model.addAttribute("todasPracticas", todasPracticas);
+        model.addAttribute("estudiante", estudiante);
+        model.addAttribute("usuarioActivo", estudiante);
+        model.addAttribute("rolesUsuario", estudiante.getRoles().stream().map(Enum::name).toList());
+
+        return "Estudiante/notas-estudiante";
     }
 
     // El estudiante ve la pauta web que le envió su tutor, siempre bloqueada

@@ -203,9 +203,6 @@
                                 <div class="d-flex align-items-center gap-2 small">
                                     <span class="badge bg-light text-dark border"
                                           th:text="${#numbers.formatDecimal(eval.porcentajeEvaluado != null ? eval.porcentajeEvaluado : 0, 1, 'POINT', 0, 'COMMA') + '% evaluado'}">0% evaluado</span>
-                                    <span th:if="${eval.notaNecesariaAprobacion != null and eval.porcentajeEvaluado > 0 and eval.notaNecesariaAprobacion > 1.0 and eval.notaNecesariaAprobacion <= 7.0}"
-                                          class="badge bg-info-subtle text-dark border border-info-subtle"
-                                          th:text="${'Necesitas ' + #numbers.formatDecimal(eval.notaNecesariaAprobacion, 1, 'POINT', 1, 'COMMA') + ' en lo restante para aprobar'}">Info</span>
                                 </div>
                             </div>
 

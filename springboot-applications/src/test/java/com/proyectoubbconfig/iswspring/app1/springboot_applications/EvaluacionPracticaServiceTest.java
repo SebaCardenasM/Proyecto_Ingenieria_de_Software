@@ -137,4 +137,31 @@ class EvaluacionPracticaServiceTest {
         assertTrue(cInforme.isBloqueada());
         assertTrue(cInforme.getOrigen().contains("Informe evaluado"));
     }
+
+    @Test
+    void testCalculosVistaEstudianteCalificaciones() {
+        Practica practica = new Practica();
+        practica.setNumeroPractica(5);
+        practica.setId(77777L);
+
+        EvaluacionPractica ev = new EvaluacionPractica();
+        ev.setPractica(practica);
+        ev.setNumeroPractica(5);
+
+        Componente c1 = new Componente("c1", "Pauta Especialidad 1", 20.0, 6.0);
+        Componente c2 = new Componente("c2", "Pauta Especialidad 2", 20.0, 5.0);
+        Componente c3 = new Componente("c3", "Informe Final", 60.0, null);
+
+        ev.setComponentes(List.of(c1, c2, c3));
+
+        // 40% evaluado
+        assertEquals(40.0, ev.getPorcentajeEvaluado());
+        // Promedio de lo evaluado: (6.0*20 + 5.0*20) / 40 = 220 / 40 = 5.5
+        assertEquals(5.5, ev.getNotaFinal());
+        // Nota acumulada: 6.0*0.2 + 5.0*0.2 = 2.2
+        assertEquals(2.2, ev.getNotaAcumulada());
+        // Nota necesaria en el 60% restante para aprobar con 4.0: (4.0 - 2.2) / 0.6 = 1.8 / 0.6 = 3.0
+        assertEquals(3.0, ev.getNotaNecesariaAprobacion());
+        assertFalse(ev.isCompleta());
+    }
 }
