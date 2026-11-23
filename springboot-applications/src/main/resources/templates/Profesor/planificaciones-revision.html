@@ -150,7 +150,9 @@
                                 <!-- TICK 1: revisada -->
                                 <td class="text-center">
                                     <form th:if="${!f.revisada}" th:action="@{/profesor/planificaciones/{id}/revisar(id=${f.id})}" method="post" class="d-inline"
-                                          onsubmit="return confirm('¿Marcar esta planificación como revisada?');">
+                                          data-ubb-confirm="¿Marcar esta planificación como revisada?"
+                                          data-ubb-titulo="Confirmar revisión"
+                                          data-ubb-boton="Sí, marcar">
                                         <button type="submit" class="tick-btn" title="Marcar como revisada"><i class="bi bi-check-lg"></i></button>
                                     </form>
                                     <span th:if="${f.revisada}" class="tick-ok" title="Planificación revisada"><i class="bi bi-check-lg"></i></span>
@@ -166,7 +168,9 @@
                                     <!-- Habilitado -->
                                     <form th:if="${f.revisada and !f.evaluaConPautas}"
                                           th:action="@{/profesor/planificaciones/{id}/pautas(id=${f.id})}" method="post" class="d-inline"
-                                          onsubmit="return confirm('¿Esta clase se evaluará con pautas?\n\nSe avisará al estudiante y se generará un enlace temporal para su profesor colaborador.');">
+                                          data-ubb-confirm="¿Esta clase se evaluará con pautas?&#10;&#10;Se avisará al estudiante y se generará un enlace temporal para su profesor colaborador."
+                                          data-ubb-titulo="Evaluar con pautas"
+                                          data-ubb-boton="Sí, evaluar">
                                         <button type="submit" class="tick-btn" title="Indicar que la clase se evaluará con pautas"><i class="bi bi-check-lg"></i></button>
                                     </form>
 
@@ -174,7 +178,9 @@
                                     <div th:if="${f.evaluaConPautas}" class="d-flex flex-column align-items-center gap-1">
                                         <span class="tick-ok" title="La clase se evaluará con pautas"><i class="bi bi-check-lg"></i></span>
                                         <form th:if="${f.puedeReenviar}" th:action="@{/profesor/planificaciones/{id}/reenviar(id=${f.id})}" method="post"
-                                              onsubmit="return confirm('Se generará un enlace nuevo y el anterior dejará de funcionar. ¿Continuar?');">
+                                              data-ubb-confirm="Se generará un enlace nuevo y el anterior dejará de funcionar. ¿Continuar?"
+                                              data-ubb-titulo="Generar nuevo enlace"
+                                              data-ubb-boton="Sí, generar">
                                             <button type="submit" class="btn btn-sm btn-link text-decoration-none p-0" title="Generar un enlace nuevo">
                                                 <i class="bi bi-arrow-repeat"></i> Nuevo enlace
                                             </button>

@@ -84,7 +84,9 @@
                         </button>
                         <button th:unless="${revisionIaObligatoria}" type="submit" name="accion" value="ENVIAR"
                                 class="btn btn-success fw-semibold"
-                                onclick="return confirm('¿Enviar la planificación al gestor? Tus profesores podrán verla y ya no podrás editarla.')">
+                                data-ubb-confirm="¿Enviar la planificación al gestor?&#10;Tus profesores podrán verla y ya no podrás editarla."
+                                data-ubb-titulo="Enviar al gestor"
+                                data-ubb-boton="Sí, enviar">
                             <i class="bi bi-send-check me-1"></i>Enviar al gestor
                         </button>
                     </th:block>
@@ -95,5 +97,6 @@
             </form>
         </div></div>
     </div>
+    <script th:src="@{/js/ubb-popup.js}"></script>
 </body>
 </html>

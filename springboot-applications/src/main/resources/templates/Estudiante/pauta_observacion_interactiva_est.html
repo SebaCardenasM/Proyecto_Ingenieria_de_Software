@@ -373,7 +373,7 @@
                         </button>
 
                         <!-- Botón 2: Enviar Pauta Definitiva -->
-                        <button th:if="${!modoLectura}" type="submit" name="accion" value="ENVIAR" class="btn btn-success px-4 fw-semibold" onclick="return confirmarEnvioDefinitivo()">
+                        <button th:if="${!modoLectura}" type="submit" name="accion" value="ENVIAR" class="btn btn-success px-4 fw-semibold" onclick="return confirmarEnvioDefinitivo(event)">
                             <i class="bi bi-send-check-fill me-1"></i> Enviar Pauta
                         </button>
                     </div>
@@ -526,13 +526,35 @@
             document.getElementById("averageScore").textContent = avg;
         }
 
-        function confirmarEnvioDefinitivo() {
+        async function confirmarEnvioDefinitivo(e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
             const respondidos = document.querySelectorAll('#rubric input[type="radio"]:checked').length;
             if (respondidos < 20) {
-                alert(`Faltan criterios por evaluar (${respondidos}/20 respondidos). Si aún no terminas, usa el botón "Guardar como Borrador".`);
+                ubbPopup.aviso(`Faltan criterios por evaluar (${respondidos}/20 respondidos). Si aún no terminas, usa el botón "Guardar como Borrador".`, {
+                    titulo: 'Evaluación incompleta'
+                });
                 return false;
             }
-            return confirm("¿Estás seguro de ENVIAR la pauta definitiva? Una vez enviada quedará disponible para el estudiante y no podrá editarse.");
+            const ok = await ubbPopup.confirmar("¿Estás seguro de ENVIAR la pauta definitiva? Una vez enviada quedará disponible para el estudiante y no podrá editarse.", {
+                titulo: 'Enviar pauta definitiva',
+                boton: 'Sí, enviar'
+            });
+            if (ok) {
+                const form = document.querySelector('form');
+                let inputAccion = form.querySelector('input[name="accion"]');
+                if (!inputAccion) {
+                    inputAccion = document.createElement('input');
+                    inputAccion.type = 'hidden';
+                    inputAccion.name = 'accion';
+                    form.appendChild(inputAccion);
+                }
+                inputAccion.value = 'ENVIAR';
+                form.submit();
+            }
+            return false;
         }
 
         function clearScores() {
@@ -540,8 +562,12 @@
             updateScoreSummary();
         }
 
-        function clearEditableFields() {
-            if (!confirm("¿Seguro que deseas borrar las calificaciones y los campos editables?")) return;
+        async function clearEditableFields() {
+            const ok = await ubbPopup.confirmar("¿Seguro que deseas borrar las calificaciones y los campos editables?", {
+                titulo: 'Borrar calificaciones y campos',
+                boton: 'Sí, borrar'
+            });
+            if (!ok) return;
             document.querySelectorAll('.editable-field').forEach(el => el.value = "");
             clearScores();
         }
@@ -574,7 +600,9 @@
 
         function toggleVoiceDictation() {
             if (!recognition) {
-                alert("Tu navegador no soporta reconocimiento de voz nativo. Te recomendamos utilizar Google Chrome, Brave o Microsoft Edge.");
+                ubbPopup.aviso("Tu navegador no soporta reconocimiento de voz nativo. Te recomendamos utilizar Google Chrome, Brave o Microsoft Edge.", {
+                    titulo: 'Dictado por voz no disponible'
+                });
                 return;
             }
 
@@ -620,6 +648,7 @@
             <small>Plataforma de Prácticas · &copy; <span class="anio"></span></small>
         </div>
     </footer>
+    <script th:src="@{/js/ubb-popup.js}"></script>
     <script>document.querySelectorAll('.anio').forEach(e => e.textContent = new Date().getFullYear());</script>
 </body>
 </html>

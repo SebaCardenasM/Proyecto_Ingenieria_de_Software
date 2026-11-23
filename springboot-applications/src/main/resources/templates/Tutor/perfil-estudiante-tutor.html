@@ -216,36 +216,39 @@
                         { titulo: '¡Pauta cargada!', onClose: () => window.location.reload() });
                 } else {
                     const errorText = await response.text();
-                    alert('Error del servidor:\n\n' + errorText);
+                    ubbPopup.error(errorText || 'Error del servidor al subir la pauta.', { titulo: 'No se pudo cargar' });
                     
                     btn.disabled = false;
                     btn.innerHTML = '<i class="bi bi-cloud-upload me-1"></i> Cargar Nueva Pauta';
                 }
             })
             .catch(() => {
-                alert('Error crítico de red o de conexión.');
+                ubbPopup.error('Error crítico de red o de conexión.', { titulo: 'Error de conexión' });
                 btn.disabled = false;
                 btn.innerHTML = '<i class="bi bi-cloud-upload me-1"></i> Cargar Nueva Pauta';
             });
         });
 
-        function eliminarDocumento(idDocumento) {
-            if (confirm('¿Estás seguro de que deseas eliminar esta pauta? Esta acción no se puede deshacer.')) {
-                fetch('/api/documentos/eliminar/' + idDocumento, {
+        async function eliminarDocumento(idDocumento) {
+            const ok = await ubbPopup.confirmar('¿Estás seguro de que deseas eliminar esta pauta? Esta acción no se puede deshacer.', {
+                titulo: 'Eliminar pauta',
+                boton: 'Sí, eliminar'
+            });
+            if (!ok) return;
+
+            try {
+                const response = await fetch('/api/documentos/eliminar/' + idDocumento, {
                     method: 'POST'
-                })
-                .then(async response => {
-                    if (response.ok) {
-                        ubbPopup.exito('La pauta fue eliminada exitosamente.',
-                            { titulo: '¡Pauta eliminada!', onClose: () => window.location.reload() });
-                    } else {
-                        const errorText = await response.text();
-                        alert('Error al eliminar: ' + errorText);
-                    }
-                })
-                .catch(() => {
-                    alert('Error de red o conexión al intentar eliminar.');
                 });
+                if (response.ok) {
+                    ubbPopup.exito('La pauta fue eliminada exitosamente.',
+                        { titulo: '¡Pauta eliminada!', onClose: () => window.location.reload() });
+                } else {
+                    const errorText = await response.text();
+                    ubbPopup.error(errorText || 'Error al eliminar la pauta.', { titulo: 'No se pudo eliminar' });
+                }
+            } catch (err) {
+                ubbPopup.error('Error de red o conexión al intentar eliminar.', { titulo: 'Error de conexión' });
             }
         }
     </script>

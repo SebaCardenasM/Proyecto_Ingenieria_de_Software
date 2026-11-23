@@ -419,6 +419,9 @@
                 if (i >= 0) archivosGlobales[i] = actualizado;
                 bootstrap.Modal.getInstance(document.getElementById('modalEvaluar'))?.hide();
                 renderizarTabla();
+                if (window.ubbPopup) {
+                    ubbPopup.exito('La evaluación fue guardada exitosamente.', { titulo: '¡Evaluación guardada!' });
+                }
             } catch (ex) {
                 err.textContent = 'Error de conexión con el servidor.';
                 err.classList.remove('d-none');
@@ -441,6 +444,7 @@
             <small>Plataforma de Prácticas · &copy; <span class="anio"></span></small>
         </div>
     </footer>
+    <script th:src="@{/js/ubb-popup.js}"></script>
     <script>document.querySelectorAll('.anio').forEach(e => e.textContent = new Date().getFullYear());</script>
 </body>
 </html>
