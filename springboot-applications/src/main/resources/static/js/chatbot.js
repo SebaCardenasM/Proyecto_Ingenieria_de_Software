@@ -297,10 +297,13 @@
     async function enviar() {
         const d = state.actual;
         if (!d) return;
-        if (!(await confirmar('¿Enviar «' + d.nombreArchivo + '» al gestor?\nTus profesores podrán verlo y ya no podrás editarlo.',
-        { titulo: 'Enviar al gestor', boton: 'Sí, enviar' }))) return;
+        const esPlan = d.tipoDocumento === 'PLANIFICACION';
+        if (!(await confirmar(
+            esPlan ? '¿Enviar «' + d.nombreArchivo + '» a tu profesor para revisión?\nNo podrás modificarla mientras la revisa.'
+                   : '¿Enviar «' + d.nombreArchivo + '» al gestor?\nTus profesores podrán verlo y ya no podrás editarlo.',
+            { titulo: esPlan ? 'Enviar al profesor' : 'Enviar al gestor', boton: 'Sí, enviar' }))) return;
         mensaje('');
-        ocupado(true, 'Enviando al gestor…');
+        ocupado(true, esPlan ? 'Enviando a tu profesor…' : 'Enviando al gestor…');
         try {
             const res = await api('/api/documentos/enviar/' + d.id, { method: 'POST' });
             if (!res.ok) {
@@ -314,7 +317,7 @@
             await cargarBorradores();
             state.enviado = true;
             pasos();
-            mensaje('¡Documento enviado al gestor!', 'ok');
+            mensaje(esPlan ? '¡Planificación enviada a tu profesor!' : '¡Documento enviado al gestor!', 'ok');
             notificarCambio();
         } catch (e) {
             ocupado(false);

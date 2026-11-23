@@ -52,8 +52,8 @@ public class PlanificacionOnlineService {
             if (!p.isOnline() || p.getEstudiante() == null || !rutEstudiante.equals(p.getEstudiante().getRut())) {
                 throw new IllegalArgumentException("No puedes editar esta planificación.");
             }
-            if (!p.isBorrador()) {
-                throw new IllegalArgumentException("Esta planificación ya fue enviada y no puede modificarse.");
+            if (!p.isBorrador() && p.getEstado() != EstadoDocumento.CON_OBSERVACIONES) {
+                throw new IllegalArgumentException("Esta planificación ya está en revisión o fue autorizada y no puede modificarse.");
             }
         } else {
             p = new Planificacion();
@@ -103,15 +103,19 @@ public class PlanificacionOnlineService {
         p.setNombreArchivo("Planificación en línea - " + limpios.getOrDefault("curso", "sin curso")
                 + (limpios.containsKey("fecha") ? " (" + limpios.get("fecha") + ")" : ""));
         p.setFechaSubida(LocalDateTime.now());
-        p.setEstado(enviar ? EstadoDocumento.ENVIADO : EstadoDocumento.BORRADOR);
+        EstadoDocumento nuevoEstado;
+        if (enviar) {
+            nuevoEstado = EstadoDocumento.EN_REVISION;
+        } else {
+            nuevoEstado = (p.getEstado() == EstadoDocumento.CON_OBSERVACIONES)
+                    ? EstadoDocumento.CON_OBSERVACIONES
+                    : EstadoDocumento.BORRADOR;
+        }
+        p.setEstado(nuevoEstado);
+        p.setRutaServidor(Planificacion.RUTA_ONLINE);
         p.setRevisadoIa(false);          // el contenido cambió: hay que revisarlo de nuevo
         p.setRevisionIa(null);
         p.setFechaRevisionIa(null);
-        Planificacion guardada = planificacionRepository.save(p);
-        if (enviar) {
-            guardada.setRutaServidor(pdfService.generar(guardada));
-            guardada = planificacionRepository.save(guardada);
-        }
-        return guardada;
+        return planificacionRepository.save(p);
     }
 }

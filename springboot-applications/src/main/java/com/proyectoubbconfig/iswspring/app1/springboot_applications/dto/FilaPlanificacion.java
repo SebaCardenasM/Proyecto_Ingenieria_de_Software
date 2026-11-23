@@ -19,5 +19,8 @@ public record FilaPlanificacion(
         boolean evaluaConPautas,      // NUEVO: tick 2
         String estadoEnlace,          // NINGUNO | VIGENTE | EXPIRADO | USADO
         LocalDateTime enlaceExpira,
-        boolean puedeReenviar
+        boolean puedeReenviar,
+        String estadoEnvio,        // EN_REVISION | CON_OBSERVACIONES | AUTORIZADO
+        String comentario,
+        boolean puedeAutorizar
 ) {}
