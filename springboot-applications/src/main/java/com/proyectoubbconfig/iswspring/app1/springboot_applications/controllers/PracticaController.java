@@ -11,6 +11,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.CentroPractica;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Colaborador;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.EstadoPractica;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Estudiante;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Practica;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Profesor;
@@ -99,7 +100,16 @@ public class PracticaController {
 
         // 3. Manejo de Estudiante
         Optional<Estudiante> estOpt = estudianteRepository.findById(practica.getEstudiante().getRut());
-        practica.setEstudiante(estOpt.orElse(null));
+        if (estOpt.isPresent()) {
+            Estudiante est = estOpt.get();
+            practica.setEstudiante(est);
+            if (est.getPracticaActual() == null || practica.getEstado() == EstadoPractica.PENDIENTE) {
+                est.setPracticaActual(practica.getNumeroPractica());
+                estudianteRepository.save(est);
+            }
+        } else {
+            practica.setEstudiante(null);
+        }
 
         // 4. Manejo de Profesor de Asignatura (Opcional)
         if (practica.getProfesor() != null && practica.getProfesor().getRut() != null && !practica.getProfesor().getRut().isBlank()) {
@@ -184,7 +194,16 @@ public class PracticaController {
 
         // 3. Manejo de Estudiante
         Optional<Estudiante> estOpt = estudianteRepository.findById(practica.getEstudiante().getRut());
-        practica.setEstudiante(estOpt.orElse(null));
+        if (estOpt.isPresent()) {
+            Estudiante est = estOpt.get();
+            practica.setEstudiante(est);
+            if (est.getPracticaActual() == null || practica.getEstado() == EstadoPractica.PENDIENTE) {
+                est.setPracticaActual(practica.getNumeroPractica());
+                estudianteRepository.save(est);
+            }
+        } else {
+            practica.setEstudiante(null);
+        }
         
         // 4. Manejo de Profesor de Asignatura (Opcional)
         if (practica.getProfesor() != null && practica.getProfesor().getRut() != null && !practica.getProfesor().getRut().isBlank()) {
@@ -217,7 +236,12 @@ public class PracticaController {
         } else {
             practica.setColaborador(null);
         }
-        practica.setEstudiante(estudianteRepository.findById(form.getEstudiante().getRut()).orElse(null));
+        Estudiante est = estudianteRepository.findById(form.getEstudiante().getRut()).orElse(null);
+        practica.setEstudiante(est);
+        if (est != null && (est.getPracticaActual() == null || practica.getEstado() == EstadoPractica.PENDIENTE)) {
+            est.setPracticaActual(form.getNumeroPractica());
+            estudianteRepository.save(est);
+        }
         practica.setNumeroPractica(form.getNumeroPractica());
         practica.setAno(form.getAno());
         practica.setSemestre(form.getSemestre());

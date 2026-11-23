@@ -30,6 +30,42 @@ public class PlanificacionOnlineService {
     @Autowired private EstudianteRepository estudianteRepository;
     @Autowired private PracticaRepository practicaRepository;
     @Autowired private PlanificacionPdfService pdfService;
+
+    /**
+     * Resuelve el número de práctica actual del estudiante.
+     * Si no tiene asignado 'practicaActual' en su registro, busca entre sus prácticas asignadas,
+     * priorizando aquellas en estado PENDIENTE y con periodo/número más reciente.
+     * Si encuentra una práctica activa, auto-actualiza el registro del estudiante.
+     */
+    @Transactional
+    public Integer resolverPracticaActual(Estudiante estudiante) {
+        if (estudiante == null) return null;
+        if (estudiante.getPracticaActual() != null) {
+            return estudiante.getPracticaActual();
+        }
+
+        List<Practica> practicas = practicaRepository.findByEstudiante(estudiante);
+        if (practicas == null || practicas.isEmpty()) {
+            return null;
+        }
+
+        Practica activa = practicas.stream()
+                .filter(p -> p.getNumeroPractica() != null)
+                .sorted(Comparator.comparing((Practica p) -> p.getEstado() == EstadoPractica.PENDIENTE ? 0 : 1)
+                        .thenComparing(Practica::getAno, Comparator.nullsLast(Comparator.reverseOrder()))
+                        .thenComparing(Practica::getSemestre, Comparator.nullsLast(Comparator.reverseOrder()))
+                        .thenComparing(Practica::getNumeroPractica, Comparator.nullsLast(Comparator.reverseOrder())))
+                .findFirst()
+                .orElse(null);
+
+        if (activa != null && activa.getNumeroPractica() != null) {
+            estudiante.setPracticaActual(activa.getNumeroPractica());
+            estudianteRepository.save(estudiante);
+            return activa.getNumeroPractica();
+        }
+        return null;
+    }
+
     /**
      * Crea o actualiza la planificación en línea del estudiante.
      * enviar=false -> BORRADOR (sin exigir campos); enviar=true -> ENVIADO (valida los obligatorios).

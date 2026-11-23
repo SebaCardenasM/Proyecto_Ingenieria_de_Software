@@ -5,6 +5,7 @@ import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Usuar
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.NotificacionRepository;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.PlanificacionRepository;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.UsuarioRepository;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.services.PlanificacionOnlineService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -30,6 +31,9 @@ public class InicioController {
 
     @Autowired
     private PlanificacionRepository planificacionRepository;
+
+    @Autowired
+    private PlanificacionOnlineService planificacionOnlineService;
 
     private boolean estaAutenticado(Authentication authentication) {
         return authentication != null
@@ -120,7 +124,7 @@ public class InicioController {
         model.addAttribute("avisosNuevos", notificacionRepository.contarNoLeidas(authentication.getName()));
         usuarioRepository.findByRut(authentication.getName()).ifPresent(u -> {
             if (u instanceof Estudiante est) {
-                model.addAttribute("practicaActual", est.getPracticaActual());
+                model.addAttribute("practicaActual", planificacionOnlineService.resolverPracticaActual(est));
             }
         });
         return "Estudiante/indexEstudiante";

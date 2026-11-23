@@ -34,14 +34,15 @@ public class PlanificacionOnlineController {
     @GetMapping("/estudiante/planificacion/nueva")
     public String nueva(Model model, Principal principal, RedirectAttributes redirectAttributes) {
         Estudiante e = estudianteRepository.findById(principal.getName()).orElse(null);
-        if (e == null || e.getPracticaActual() == null) {
+        Integer practicaActual = service.resolverPracticaActual(e);
+        if (e == null || practicaActual == null) {
             redirectAttributes.addFlashAttribute("errorMensaje",
                     "No tienes una práctica inscrita actualmente para crear planificaciones.");
             return "redirect:/estudiante/index";
         }
         Map<String, String> valores = new HashMap<>();
         valores.put("asignatura", "Matemática");
-        preparar(model, principal.getName(), valores, null, e.getPracticaActual(), false, "/estudiante/planificaciones");
+        preparar(model, principal.getName(), valores, null, practicaActual, false, "/estudiante/planificaciones");
         return VISTA;
     }
 
@@ -150,7 +151,7 @@ public class PlanificacionOnlineController {
     @Transactional(readOnly = true)
     public String misPlanificaciones(Model model, Principal principal, RedirectAttributes redirectAttributes) {
         Estudiante e = estudianteRepository.findById(principal.getName()).orElseThrow();
-        Integer practicaActual = e.getPracticaActual();
+        Integer practicaActual = service.resolverPracticaActual(e);
 
         // Si no tiene ninguna práctica inscrita actualmente, no puede acceder a esta pestaña
         // y se le redirige al inicio indicando que puede ver sus documentos anteriores en el gestor
