@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Gestión de Duplas - Prácticas UBB</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .ubb-bg { background-color: #004b85; }
+        body { background-color: #f4f6f9; }
+        .resumen-chip { border-radius: 2rem; padding: 0.35rem 0.9rem; font-weight: 600; }
+        .avatar-est {
+            width: 36px; height: 36px; border-radius: 50%;
+            display: inline-grid; place-items: center; flex: none;
+            background: #e7f0ff; color: #0d6efd; font-weight: 700; font-size: 0.9rem;
+        }
+        .dupla-card {
+            border-left: 5px solid #0d6efd;
+            transition: transform .15s ease, box-shadow .15s ease;
+        }
+        .dupla-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 .5rem 1rem rgba(0,0,0,.08) !important;
+        }
+        .nav-pills .nav-link.active {
+            background-color: #004b85;
+            color: #fff;
+        }
+        .nav-pills .nav-link {
+            font-weight: 600;
+            color: #495057;
+        }
+    </style>
+    <link th:href="@{/css/ubb-index.css}" rel="stylesheet">
+</head>
+<body class="ubb-page ubb-inner">
+
+    <!-- Barra de navegación -->
+    <nav class="navbar navbar-expand-lg navbar-dark ubb-bg mb-4 shadow-sm">
+        <div class="container-fluid px-4">
+            <div class="d-flex align-items-center">
+                <img th:src="@{/images/escudo-monocromatico-oscuro.png}" alt="Escudo Universidad del Bío-Bío" class="nav-logo">
+                <a class="navbar-brand fw-bold" th:href="@{/profesor/index}">
+                    <i class="bi bi-arrow-left-circle me-2"></i>Volver al Portal
+                </a>
+            </div>
+
+            <div class="d-flex text-white align-items-center ms-auto">
+                <i class="bi bi-person-circle fs-4 me-2"></i>
+                <div class="d-flex flex-column text-end me-3">
+                    <span class="fw-bold lh-1" th:text="${usuarioActivo != null ? usuarioActivo.nombre + ' ' + usuarioActivo.apellido : 'Profesor'}">Profesor</span>
+                    <small class="text-white-50 mt-1" style="font-size: 0.75rem;">PROFESOR DE ASIGNATURA</small>
+                </div>
+
+                <div th:if="${rolesUsuario != null and rolesUsuario.size() > 1}" class="me-2">
+                    <a th:href="@{/seleccionar-rol}" class="btn btn-outline-light btn-sm" title="Cambiar de perfil">
+                        <i class="bi bi-person-gear"></i> Cambiar Perfil
+                    </a>
+                </div>
+
+                <form th:action="@{/logout}" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-outline-light btn-sm" title="Cerrar sesión">
+                        <i class="bi bi-box-arrow-right"></i> Salir
+                    </button>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid px-4 px-md-5 mb-5">
+
+        <!-- Mensajes de Alerta / Éxito -->
+        <div th:if="${errorMensaje}" class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <span th:text="${errorMensaje}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+            <div>
+                <h2 class="fw-bold text-dark mb-1">
+                    <i class="bi bi-people-fill text-primary me-2"></i>Gestión de Duplas
+                </h2>
+            </div>
+            <div class="d-flex gap-2">
+                <a th:href="@{/profesor/estudiantes}" class="btn btn-outline-primary shadow-sm">
+                    <i class="bi bi-person-lines-fill me-1"></i> Ver Mis Estudiantes
+                </a>
+            </div>
+        </div>
+
+        <!-- Selector de Práctica en Duplas (Práctica 3 vs Práctica 4) -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body p-3">
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <ul class="nav nav-pills gap-2" role="tablist">
+                            <li class="nav-item">
+                                <a th:href="@{/profesor/duplas(practica=3)}"
+                                   class="nav-link py-1 px-3 rounded-pill"
+                                   th:classappend="${practicaSeleccionada == 3} ? 'active' : ''">
+                                    <i class="bi bi-people me-1"></i>Práctica 3: Trabajo Colaborativo
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a th:href="@{/profesor/duplas(practica=4)}"
+                                   class="nav-link py-1 px-3 rounded-pill"
+                                   th:classappend="${practicaSeleccionada == 4} ? 'active' : ''">
+                                    <i class="bi bi-search me-1"></i>Práctica 4: Investigación en el Aula
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Chips de Resumen -->
+                    <div class="d-flex flex-wrap gap-2">
+                        <span class="resumen-chip bg-primary bg-opacity-10 text-primary small">
+                            <i class="bi bi-people me-1"></i><strong th:text="${totalEstudiantes}">0</strong> Alumnos inscritos
+                        </span>
+                        <span class="resumen-chip bg-success bg-opacity-10 text-success small">
+                            <i class="bi bi-link-45deg me-1"></i><strong th:text="${totalDuplas}">0</strong> Duplas conformadas
+                        </span>
+                        <span class="resumen-chip bg-warning bg-opacity-10 text-warning-emphasis small">
+                            <i class="bi bi-hourglass-split me-1"></i><strong th:text="${pendientesDupla}">0</strong> Sin dupla asignada
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contenido Principal: Formulario de Creación + Listado de Duplas -->
+        <div class="row g-4">
+
+            <!-- Columna Izquierda: Formar Nueva Dupla -->
+            <div class="col-lg-4">
+                <div class="card shadow-sm border-0 sticky-top" style="top: 1.5rem; z-index: 10;">
+                    <div class="card-header bg-white py-3 border-0">
+                        <h5 class="fw-bold text-dark mb-0 d-flex align-items-center">
+                            <i class="bi bi-person-plus-fill text-primary me-2"></i>Conformar Dupla
+                        </h5>
+                    </div>
+                    <div class="card-body pt-1 pb-4">
+
+                        <form th:action="@{/profesor/duplas/crear}" method="post" id="formCrearDupla">
+                            <input type="hidden" name="numeroPractica" th:value="${practicaSeleccionada}">
+
+                            <!-- Estudiante 1 -->
+                            <div class="mb-3">
+                                <label for="practica1Id" class="form-label fw-semibold small text-secondary">Primer Integrante *</label>
+                                <select class="form-select select-estudiante" id="practica1Id" name="practica1Id" required
+                                        th:disabled="${#lists.size(estudiantesDisponibles) < 2}">
+                                    <option value="" selected disabled>Selecciona el primer estudiante...</option>
+                                    <option th:each="p : ${estudiantesDisponibles}"
+                                            th:value="${p.id}"
+                                            th:text="${p.estudiante.nombre + ' ' + p.estudiante.apellido + ' (' + p.estudiante.rut + ')'}">
+                                    </option>
+                                </select>
+                            </div>
+
+                            <!-- Estudiante 2 -->
+                            <div class="mb-4">
+                                <label for="practica2Id" class="form-label fw-semibold small text-secondary">Segundo Integrante *</label>
+                                <select class="form-select select-estudiante" id="practica2Id" name="practica2Id" required
+                                        th:disabled="${#lists.size(estudiantesDisponibles) < 2}">
+                                    <option value="" selected disabled>Selecciona el segundo estudiante...</option>
+                                    <option th:each="p : ${estudiantesDisponibles}"
+                                            th:value="${p.id}"
+                                            th:text="${p.estudiante.nombre + ' ' + p.estudiante.apellido + ' (' + p.estudiante.rut + ')'}">
+                                    </option>
+                                </select>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100 shadow-sm"
+                                    th:disabled="${#lists.size(estudiantesDisponibles) < 2}">
+                                <i class="bi bi-people-fill me-1"></i> Crear Dupla de Práctica
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Columna Derecha: Duplas Creadas y Estudiantes Pendientes -->
+            <div class="col-lg-8">
+
+                <!-- 1. Duplas Conformadas -->
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold text-dark mb-0">
+                            <i class="bi bi-link-45deg text-success me-2"></i>Duplas Conformadas
+                            <span class="badge bg-success ms-1" th:text="${#lists.size(duplas)}">0</span>
+                        </h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="ps-4">Integrantes de la Dupla</th>
+                                        <th>Centro Educativo</th>
+                                        <th>Periodo</th>
+                                        <th class="text-center pe-4">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="d, stat : ${duplas}">
+                                        <td class="ps-4 py-3">
+                                            <div class="d-flex flex-column gap-2">
+                                                <!-- Integrante 1 -->
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <span class="avatar-est" th:text="${#strings.substring(d.estudiante1.nombre, 0, 1)}">A</span>
+                                                    <div>
+                                                        <div class="fw-bold text-dark" th:text="${d.estudiante1.nombre + ' ' + d.estudiante1.apellido}">Estudiante 1</div>
+                                                        <small class="text-muted" th:text="${d.estudiante1.correo != null ? d.estudiante1.correo : d.estudiante1.rut}">correo</small>
+                                                    </div>
+                                                </div>
+                                                <!-- Integrante 2 -->
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <span class="avatar-est" style="background:#e8f5e9; color:#2e7d32;"
+                                                          th:text="${#strings.substring(d.estudiante2.nombre, 0, 1)}">B</span>
+                                                    <div>
+                                                        <div class="fw-bold text-dark" th:text="${d.estudiante2.nombre + ' ' + d.estudiante2.apellido}">Estudiante 2</div>
+                                                        <small class="text-muted" th:text="${d.estudiante2.correo != null ? d.estudiante2.correo : d.estudiante2.rut}">correo</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div th:if="${d.practica1 != null and d.practica1.centroPractica != null}">
+                                                <i class="bi bi-building text-primary me-1"></i>
+                                                <span class="fw-semibold" th:text="${d.practica1.centroPractica.nombre}">Colegio</span>
+                                                <small class="d-block text-muted" th:if="${d.practica1.centroPractica.comuna != null}" th:text="${d.practica1.centroPractica.comuna}"></small>
+                                            </div>
+                                            <span th:unless="${d.practica1 != null and d.practica1.centroPractica != null}" class="badge bg-secondary">
+                                                Sin centro asignado
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span th:text="${d.ano != null ? d.ano + '-' + d.semestre + 'S' : 'Actual'}">2026-2S</span>
+                                            <small class="d-block text-muted" th:text="${#temporals.format(d.fechaCreacion, 'dd/MM/yyyy')}"></small>
+                                        </td>
+                                        <td class="text-center pe-4">
+                                            <form th:action="@{/profesor/duplas/eliminar/{id}(id=${d.id})}" method="post"
+                                                  onsubmit="return confirm('¿Estás seguro de deshacer esta dupla? Ambos estudiantes volverán a estar disponibles para formar nuevas parejas.');">
+                                                <input type="hidden" name="numeroPractica" th:value="${practicaSeleccionada}">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Deshacer dupla">
+                                                    <i class="bi bi-x-circle me-1"></i> Deshacer
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Estudiantes Pendientes de Dupla -->
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+                        <h6 class="fw-bold text-dark mb-0">
+                            <i class="bi bi-hourglass-split text-warning me-2"></i>Alumnos sin Dupla Asignada
+                            <span class="badge bg-warning text-dark ms-1" th:text="${#lists.size(estudiantesDisponibles)}">0</span>
+                        </h6>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="ps-4">Estudiante</th>
+                                        <th>RUT</th>
+                                        <th>Centro de Práctica</th>
+                                        <th class="text-end pe-4">Estado Práctica</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="p : ${estudiantesDisponibles}">
+                                        <td class="ps-4 py-2">
+                                            <span class="fw-semibold text-dark" th:text="${p.estudiante.nombre + ' ' + p.estudiante.apellido}">Nombre</span>
+                                            <small class="d-block text-muted" th:text="${p.estudiante.correo}">correo</small>
+                                        </td>
+                                        <td class="font-monospace small" th:text="${p.estudiante.rut}">RUT</td>
+                                        <td>
+                                            <span th:if="${p.centroPractica != null}" th:text="${p.centroPractica.nombre}">Centro</span>
+                                            <span th:if="${p.centroPractica == null}" class="text-muted fst-italic">Pendiente</span>
+                                        </td>
+                                        <td class="text-end pe-4">
+                                            <span th:if="${p.estado?.name() == 'PENDIENTE'}" class="badge bg-warning text-dark">En curso</span>
+                                            <span th:if="${p.estado?.name() == 'APROBADA'}" class="badge bg-success">Aprobada</span>
+                                            <span th:if="${p.estado?.name() == 'REPROBADA'}" class="badge bg-danger">Reprobada</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Validación simple para evitar elegir al mismo estudiante en ambos selects -->
+    <script>
+        const s1 = document.getElementById('practica1Id');
+        const s2 = document.getElementById('practica2Id');
+        const form = document.getElementById('formCrearDupla');
+
+        function actualizarOpciones() {
+            if (!s1 || !s2) return;
+            const v1 = s1.value;
+            const v2 = s2.value;
+
+            Array.from(s2.options).forEach(opt => {
+                if (opt.value && opt.value === v1) {
+                    opt.disabled = true;
+                } else if (opt.value) {
+                    opt.disabled = false;
+                }
+            });
+
+            Array.from(s1.options).forEach(opt => {
+                if (opt.value && opt.value === v2) {
+                    opt.disabled = true;
+                } else if (opt.value) {
+                    opt.disabled = false;
+                }
+            });
+        }
+
+        if (s1 && s2) {
+            s1.addEventListener('change', actualizarOpciones);
+            s2.addEventListener('change', actualizarOpciones);
+        }
+
+        if (form) {
+            form.addEventListener('submit', e => {
+                if (s1 && s2 && s1.value && s1.value === s2.value) {
+                    e.preventDefault();
+                    alert('Debes seleccionar dos estudiantes distintos.');
+                }
+            });
+        }
+    </script>
+
+    <!-- Popup de confirmación (mensaje enviado por el controlador) -->
+    <div th:if="${mensajeExito}" data-ubb-flash hidden
+         th:attr="data-mensaje=${mensajeExito},data-titulo=${tituloExito}"></div>
+    <script th:src="@{/js/ubb-popup.js}"></script>
+
+    <!-- Footer -->
+    <footer class="ubb-footer compact">
+        <div class="container py-3 d-flex flex-column flex-md-row align-items-center justify-content-between gap-3 text-center text-md-start">
+            <div class="d-flex align-items-center gap-3">
+                <img th:src="@{/images/escudo-monocromatico-oscuro.png}" alt="Escudo Universidad del Bío-Bío" class="footer-logo">
+                <div>
+                    <div class="fw-bold">Universidad del Bío-Bío</div>
+                    <small>Escuela de Pedagogía en Educación Matemática</small>
+                </div>
+            </div>
+            <small>Plataforma de Prácticas · &copy; <span class="anio"></span></small>
+        </div>
+    </footer>
+    <script>document.querySelectorAll('.anio').forEach(e => e.textContent = new Date().getFullYear());</script>
+</body>
+</html>

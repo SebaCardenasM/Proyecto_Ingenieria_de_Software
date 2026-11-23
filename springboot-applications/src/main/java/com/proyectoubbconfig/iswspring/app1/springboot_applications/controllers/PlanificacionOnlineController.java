@@ -28,6 +28,7 @@ public class PlanificacionOnlineController {
     @Autowired private EstudianteRepository estudianteRepository;
     @Autowired private PracticaRepository practicaRepository;
     @Autowired private DocumentoService documentoService;
+    @Autowired private com.proyectoubbconfig.iswspring.app1.springboot_applications.services.DuplaService duplaService;
 
     // ------------------------------------------------------------ estudiante: crear / editar / guardar
 
@@ -168,6 +169,23 @@ public class PlanificacionOnlineController {
                 .orElse(null);
 
         InfoPracticaEstudianteDTO infoPractica = construirInfoPractica(practicaActual, practicaVigente);
+
+        if (duplaService.permiteDuplas(practicaActual)) {
+            Estudiante comp = null;
+            if (practicaVigente != null) {
+                comp = duplaService.buscarDuplaPorPractica(practicaVigente.getId())
+                        .map(d -> d.obtenerCompanero(e.getRut()))
+                        .orElse(null);
+            }
+            if (comp == null) {
+                comp = duplaService.buscarDuplaPorEstudianteYPractica(e.getRut(), practicaActual)
+                        .map(d -> d.obtenerCompanero(e.getRut()))
+                        .orElse(null);
+            }
+            if (comp != null) {
+                model.addAttribute("duplaCompanero", comp);
+            }
+        }
 
         model.addAttribute("usuarioActivo", e);
         model.addAttribute("practicaActual", practicaActual);

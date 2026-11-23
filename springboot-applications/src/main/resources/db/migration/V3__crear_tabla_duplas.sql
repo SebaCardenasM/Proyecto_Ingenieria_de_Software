@@ -1,0 +1,23 @@
+CREATE TABLE IF NOT EXISTS `dupla` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `numero_practica` int(11) NOT NULL,
+  `rut_estudiante1` varchar(12) NOT NULL,
+  `rut_estudiante2` varchar(12) NOT NULL,
+  `practica1_id` bigint(20) DEFAULT NULL,
+  `practica2_id` bigint(20) DEFAULT NULL,
+  `rut_profesor` varchar(12) DEFAULT NULL,
+  `ano` int(11) DEFAULT NULL,
+  `semestre` int(11) DEFAULT NULL,
+  `fecha_creacion` datetime NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `FK_dupla_estudiante1` (`rut_estudiante1`),
+  KEY `FK_dupla_estudiante2` (`rut_estudiante2`),
+  KEY `FK_dupla_practica1` (`practica1_id`),
+  KEY `FK_dupla_practica2` (`practica2_id`),
+  KEY `FK_dupla_profesor` (`rut_profesor`),
+  CONSTRAINT `FK_dupla_estudiante1` FOREIGN KEY (`rut_estudiante1`) REFERENCES `estudiante` (`rut`),
+  CONSTRAINT `FK_dupla_estudiante2` FOREIGN KEY (`rut_estudiante2`) REFERENCES `estudiante` (`rut`),
+  CONSTRAINT `FK_dupla_practica1` FOREIGN KEY (`practica1_id`) REFERENCES `practica` (`id`),
+  CONSTRAINT `FK_dupla_practica2` FOREIGN KEY (`practica2_id`) REFERENCES `practica` (`id`),
+  CONSTRAINT `FK_dupla_profesor` FOREIGN KEY (`rut_profesor`) REFERENCES `profesor` (`rut`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

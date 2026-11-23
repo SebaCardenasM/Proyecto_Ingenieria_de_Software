@@ -64,6 +64,9 @@ public class EstudianteController {
     @Autowired
     private EvaluacionPracticaService evaluacionPracticaService;
 
+    @Autowired
+    private com.proyectoubbconfig.iswspring.app1.springboot_applications.services.DuplaService duplaService;
+
     @GetMapping({"/estudiantes", "/portafolios"})
     public String listarEstudiantes(Model model) {
         model.addAttribute("estudiantes", estudianteRepository.findAll());
@@ -107,6 +110,7 @@ public class EstudianteController {
 
         List<PracticaPanelDTO> paneles = new ArrayList<>();
         Map<String, EvaluacionPractica> evaluacionesPorIntento = new HashMap<>();
+        Map<String, PracticaPanelDTO.ContactoDTO> duplasPorIntento = new HashMap<>();
         int ultimaExistente = 1;
 
         for (int n = 1; n <= NotasFiltro.TOTAL_PRACTICAS; n++) {
@@ -120,6 +124,24 @@ public class EstudianteController {
                 int numIntento = i + 1;
                 intentos.add(aIntento(pr, numIntento, cronologicas.size(), i == cronologicas.size() - 1));
                 evaluacionesPorIntento.put(n + "_" + numIntento, evaluacionPracticaService.obtenerVistaParaPractica(pr));
+
+                if (duplaService.permiteDuplas(n)) {
+                    final String intentoKey = n + "_" + numIntento;
+                    duplaService.buscarDuplaPorPractica(pr.getId()).ifPresent(d -> {
+                        Estudiante comp = d.obtenerCompanero(estudiante.getRut());
+                        if (comp != null) {
+                            duplasPorIntento.put(intentoKey, contactoDe(comp));
+                        }
+                    });
+                    if (!duplasPorIntento.containsKey(intentoKey)) {
+                        duplaService.buscarDuplaPorEstudianteYPractica(estudiante.getRut(), n).ifPresent(d -> {
+                            Estudiante comp = d.obtenerCompanero(estudiante.getRut());
+                            if (comp != null) {
+                                duplasPorIntento.put(intentoKey, contactoDe(comp));
+                            }
+                        });
+                    }
+                }
             }
             Collections.reverse(intentos);          // el vigente se muestra primero
 
@@ -133,6 +155,7 @@ public class EstudianteController {
 
         model.addAttribute("paneles", paneles);
         model.addAttribute("evaluacionesPorIntento", evaluacionesPorIntento);
+        model.addAttribute("duplasPorIntento", duplasPorIntento);
         model.addAttribute("tabActiva", tabActiva);
         model.addAttribute("practicaActual", actual);
         model.addAttribute("usuarioActivo", estudiante);

@@ -113,7 +113,6 @@
                 <h2 class="fw-bold text-dark mb-1">
                     <i class="bi bi-cloud-arrow-up-fill text-success me-2"></i>Subir Documentos
                 </h2>
-                <p class="text-muted mb-0">Sube tus planificaciones de clases y tu informe final correspondientes a tu práctica actual.</p>
             </div>
             <div class="col-lg-7 text-lg-end mt-3 mt-lg-0 d-flex flex-wrap gap-2 justify-content-lg-end">
                 <a th:href="@{/estudiante/planificacion/nueva}" class="btn btn-success shadow-sm">
@@ -133,7 +132,7 @@
              th:classappend="'tema-' + ${infoPractica.temaColor}">
             <div class="card-body p-4">
                 <div class="row align-items-center gy-3">
-                    <div class="col-lg-8">
+                    <div class="col-12">
                         <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
                             <span class="badge" th:classappend="${infoPractica.cicloBadgeClass}" th:text="${infoPractica.ciclo}">Ciclo</span>
                             <span class="badge bg-secondary-subtle text-secondary border" th:text="${infoPractica.duracion}">Duración</span>
@@ -159,43 +158,14 @@
                             <span th:if="${infoPractica.tutorNombre != null}">
                                 <i class="bi bi-person-badge me-1 text-info"></i><strong>Tutor UBB:</strong> <span th:text="${infoPractica.tutorNombre}">Tutor</span>
                             </span>
+                            <span th:if="${duplaCompanero != null}">
+                                <i class="bi bi-people-fill me-1 text-primary"></i><strong>Dupla:</strong> <span th:text="${duplaCompanero.nombre + ' ' + duplaCompanero.apellido}">Compañero</span>
+                            </span>
+                            <span th:if="${(practicaActual == 3 or practicaActual == 4) and duplaCompanero == null}" class="text-warning-emphasis">
+                                <i class="bi bi-people me-1"></i><strong>Dupla:</strong> Pendiente de conformación
+                            </span>
                         </div>
                     </div>
-                    <div class="col-lg-4">
-                        <div class="p-3 bg-white bg-opacity-80 rounded-3 border">
-                            <div class="fw-bold small text-dark mb-1">
-                                <i class="bi bi-check2-circle text-primary me-1"></i>Requisitos de entrega
-                            </div>
-                            <p class="text-secondary mb-0 small" th:text="${infoPractica.requisitoEspecial}">
-                                Requisitos y pautas específicas de esta etapa.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Flujo de Trabajo / Cadena -->
-        <div class="cadena mb-4">
-            <div class="paso">
-                <span class="num">1</span>
-                <div>
-                    <strong>Sube tu documento</strong>
-                    <small>Planificación o Informe Final (queda como borrador)</small>
-                </div>
-            </div>
-            <div class="paso">
-                <span class="num">2</span>
-                <div>
-                    <strong>Revisión con el asistente</strong>
-                    <small th:text="${revisionIaObligatoria} ? 'Obligatoria antes de enviar' : 'Opcional, recomendada'">Opcional</small>
-                </div>
-            </div>
-            <div class="paso">
-                <span class="num">3</span>
-                <div>
-                    <strong>Envía a revisión</strong>
-                    <small>Planificación → tu profesor · Informe → gestor</small>
                 </div>
             </div>
         </div>
