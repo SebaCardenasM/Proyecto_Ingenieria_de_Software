@@ -16,6 +16,9 @@ public interface DocumentoRepository extends JpaRepository<Documento, Long> {
 
     List<Documento> findByEstudiante(Estudiante estudiante);
 
+    @Query("SELECT d FROM Documento d WHERE d.practica.id = :practicaId")
+    List<Documento> findByPracticaId(@Param("practicaId") Long practicaId);
+
     // Búsqueda exacta por ruta física (la usa el interceptor de /uploads/**)
     Optional<Documento> findFirstByRutaServidor(String rutaServidor);
 

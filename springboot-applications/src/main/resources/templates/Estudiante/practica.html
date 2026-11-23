@@ -56,7 +56,7 @@
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
             <div>
                 <h2 class="fw-bold text-dark mb-0"><i class="bi bi-journal-bookmark-fill text-success me-2"></i>Mi Práctica</h2>
-                <p class="text-muted mb-0">Centro, profesores, fechas, estado y nota de cada una de tus prácticas.</p>
+                <p class="text-muted mb-0">Centro, profesores, fechas, estado, componentes de evaluación y nota de cada una de tus prácticas.</p>
             </div>
             <div class="d-flex gap-2">
                 <a th:href="@{/estudiante/portafolio}" class="btn btn-outline-warning text-dark btn-sm">
@@ -97,7 +97,8 @@
 
                 <!-- Un bloque por intento (si repitió la práctica, el vigente va primero) -->
                 <div th:each="i : ${p.intentos}" class="card border-0 shadow-sm mb-4"
-                     th:classappend="${!i.vigente} ? 'opacity-75'">
+                     th:classappend="${!i.vigente} ? 'opacity-75'"
+                     th:with="eval=${evaluacionesPorIntento != null ? evaluacionesPorIntento[p.numero + '_' + i.intento] : null}">
 
                     <div class="card-header bg-white border-0 pt-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
                         <div class="d-flex flex-wrap align-items-center gap-2">
@@ -194,6 +195,45 @@
                             </div>
 
                         </div>
+
+                        <!-- Desglose de Evaluación Ponderada por Componentes -->
+                        <div class="mt-4 pt-3 border-top" th:if="${eval != null and !eval.componentes.isEmpty()}">
+                            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+                                <div class="etiqueta mb-0"><i class="bi bi-calculator me-1 text-primary"></i>Evaluación Ponderada por Componentes</div>
+                                <div class="d-flex align-items-center gap-2 small">
+                                    <span class="badge bg-light text-dark border"
+                                          th:text="${#numbers.formatDecimal(eval.porcentajeEvaluado != null ? eval.porcentajeEvaluado : 0, 1, 'POINT', 0, 'COMMA') + '% evaluado'}">0% evaluado</span>
+                                </div>
+                            </div>
+
+                            <div class="table-responsive rounded border">
+                                <table class="table table-sm table-hover align-middle mb-0 small">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th class="ps-3">Componente</th>
+                                            <th class="text-end" style="width: 100px;">Peso</th>
+                                            <th class="text-center" style="width: 100px;">Nota</th>
+                                            <th class="text-end pe-3" style="width: 100px;">Aporte</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="c : ${eval.componentes}">
+                                            <td class="ps-3" th:text="${c.nombre}">Componente</td>
+                                            <td class="text-end" th:text="${#numbers.formatDecimal(c.peso, 1, 'POINT', 0, 'COMMA') + '%'}">10%</td>
+                                            <td class="text-center fw-bold">
+                                                <span th:if="${c.nota != null}"
+                                                      th:classappend="${c.nota >= 4.0 ? 'text-success' : 'text-danger'}"
+                                                      th:text="${#numbers.formatDecimal(c.nota, 1, 'POINT', 1, 'COMMA')}">6,0</span>
+                                                <span th:if="${c.nota == null}" class="text-muted fw-normal">Pendiente</span>
+                                            </td>
+                                            <td class="text-end pe-3 text-muted"
+                                                th:text="${c.aportePonderado != null ? #numbers.formatDecimal(c.aportePonderado, 1, 'POINT', 2, 'COMMA') : '—'}">—</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>

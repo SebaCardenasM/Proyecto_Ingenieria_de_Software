@@ -79,8 +79,8 @@
                         </div>
                     </div>
                     <div class="card-footer bg-white border-0 small text-muted px-4 py-3">
-                        <span class="badge bg-success me-1">Formulario web</span>
-                        Las filas en verde son formularios completados en línea por tu tutor; se abren en modo solo lectura.
+                        <span class="badge bg-success me-1"><i class="bi bi-ui-radios me-1"></i>Formulario en línea</span>
+                        Las pautas de observación son completadas digitalmente por tu tutor o profesor colaborador, permitiendo la calificación y cálculo automático.
                     </div>
                 </div>
             </div>
@@ -110,16 +110,6 @@
                             <label class="form-check-label" for="evaluadorColaborador">Profesor Colaborador</label>
                         </div>
 
-                        <h6 class="fw-bold text-secondary mb-3">Por Formato</h6>
-                        <div class="form-check mb-2">
-                            <input class="form-check-input filtro-formato" type="checkbox" value="WEB" id="formatoWeb">
-                            <label class="form-check-label" for="formatoWeb">Formulario web</label>
-                        </div>
-                        <div class="form-check mb-4">
-                            <input class="form-check-input filtro-formato" type="checkbox" value="ARCHIVO" id="formatoArchivo">
-                            <label class="form-check-label" for="formatoArchivo">Archivo subido</label>
-                        </div>
-
                         <button id="btnLimpiarFiltros" type="button" class="btn btn-sm btn-outline-secondary w-100 d-none">
                             <i class="bi bi-x-circle me-1"></i>Limpiar Filtros
                         </button>
@@ -136,10 +126,10 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             cargarPautas();
-            document.querySelectorAll('.filtro-practica-pauta, .filtro-evaluador, .filtro-formato')
+            document.querySelectorAll('.filtro-practica-pauta, .filtro-evaluador')
                 .forEach(cb => cb.addEventListener('change', renderizarPautas));
             document.getElementById('btnLimpiarFiltros').addEventListener('click', () => {
-                document.querySelectorAll('.filtro-practica-pauta, .filtro-evaluador, .filtro-formato')
+                document.querySelectorAll('.filtro-practica-pauta, .filtro-evaluador')
                     .forEach(cb => cb.checked = false);
                 renderizarPautas();
             });
@@ -173,19 +163,16 @@
 
             const practicasSel = Array.from(document.querySelectorAll('.filtro-practica-pauta:checked')).map(cb => cb.value);
             const evaluadoresSel = Array.from(document.querySelectorAll('.filtro-evaluador:checked')).map(cb => cb.value);
-            const formatosSel = Array.from(document.querySelectorAll('.filtro-formato:checked')).map(cb => cb.value);
 
             document.getElementById('btnLimpiarFiltros').classList.toggle('d-none',
-                !(practicasSel.length || evaluadoresSel.length || formatosSel.length));
+                !(practicasSel.length || evaluadoresSel.length));
 
             const filtradas = pautasGlobales.filter(p => {
                 const numPrac = p.numeroPractica || (p.practica ? p.practica.numeroPractica : null);
                 const tipoEval = p.tipoEvaluador === 'TUTOR_UNIVERSIDAD' ? 'TUTOR' : 'COLABORADOR';
-                const formato = p.rutaServidor === 'ONLINE_ENVIADA' ? 'WEB' : 'ARCHIVO';
 
                 return (practicasSel.length === 0 || (numPrac && practicasSel.includes(numPrac.toString())))
-                    && (evaluadoresSel.length === 0 || evaluadoresSel.includes(tipoEval))
-                    && (formatosSel.length === 0 || formatosSel.includes(formato));
+                    && (evaluadoresSel.length === 0 || evaluadoresSel.includes(tipoEval));
             });
 
             if (filtradas.length === 0) {

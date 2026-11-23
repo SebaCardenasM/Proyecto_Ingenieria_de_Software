@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Evaluar Práctica - Calculadora Ponderada UBB</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link th:href="@{/css/ubb-index.css}" rel="stylesheet">
+    <style>
+        .ubb-bg { background-color: #004b85; }
+        body { background-color: #f3f6fb; }
+        .resumen-panel {
+            background: #fffdf2;
+            border: 1px solid #f0e3b2;
+            border-radius: 12px;
+        }
+        .table-eval thead th {
+            background-color: #e9f0f8;
+            color: #1e3a5f;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+    </style>
+</head>
+<body class="ubb-page ubb-inner">
+
+    <nav class="navbar navbar-expand-lg navbar-dark ubb-bg mb-4 shadow-sm">
+        <div class="container">
+            <div class="d-flex align-items-center">
+                <img th:src="@{/images/escudo-monocromatico-oscuro.png}" alt="Escudo Universidad del Bío-Bío" class="nav-logo">
+                <a class="navbar-brand fw-bold" th:href="${esCoordinador} ? @{/index} : @{/profesor/index}">
+                    <i class="bi bi-mortarboard-fill me-2"></i>Plataforma de Prácticas
+                </a>
+            </div>
+            <div class="d-flex text-white align-items-center ms-auto">
+                <span class="fw-bold me-3" th:text="${usuarioActivo != null ? usuarioActivo.nombre + ' ' + usuarioActivo.apellido : 'Usuario'}">Usuario</span>
+                <a th:href="@{/evaluacion/listado}" class="btn btn-outline-light btn-sm me-2">
+                    <i class="bi bi-arrow-left me-1"></i> Volver al Listado
+                </a>
+                <form th:action="@{/logout}" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-outline-light btn-sm"><i class="bi bi-box-arrow-right"></i> Salir</button>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mb-5">
+        <!-- Cabecera del Estudiante -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <div>
+                    <span class="badge bg-primary mb-1" th:text="${nombreAsignatura}">5. Práctica Pedagógica</span>
+                    <span th:if="${evaluacion.personalizada}" class="badge bg-info text-dark mb-1 ms-1">Estructura personalizada</span>
+                    <h3 class="fw-bold mb-1" th:text="${practica.estudiante != null ? practica.estudiante.nombre + ' ' + practica.estudiante.apellido : 'Estudiante'}">Estudiante</h3>
+                    <div class="text-muted small">
+                        <i class="bi bi-person-vcard me-1"></i><span th:text="${practica.estudiante != null ? practica.estudiante.rut : ''}">RUT</span>
+                        <span class="mx-2">·</span>
+                        <i class="bi bi-calendar3 me-1"></i><span th:text="${practica.ano != null ? practica.ano + '-' + practica.semestre : 'Sin periodo'}">2026-2</span>
+                        <span class="mx-2">·</span>
+                        <i class="bi bi-building me-1"></i><span th:text="${practica.centroPractica != null ? practica.centroPractica.nombre : 'Sin centro asignado'}">Centro</span>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <form th:if="${evaluacion.personalizada}" method="post" th:action="@{/evaluacion/practica/{id}/restaurar(id=${practica.id})}"
+                          onsubmit="return confirm('¿Restaurar los componentes y pesos base de esta asignatura? Se mantendrán las notas de los componentes coincidentes.');">
+                        <button type="submit" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i> Restaurar estructura base
+                        </button>
+                    </form>
+                    <a th:href="@{/evaluacion/configuracion(numeroPractica=${practica.numeroPractica})}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-sliders me-1"></i> Estructura global
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mensajes Flash -->
+        <div th:if="${mensajeExito}" class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i><span th:text="${mensajeExito}">Guardado</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${mensajeError}" class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${mensajeError}">Error</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <form id="formEvaluarPractica" method="post" th:action="@{/evaluacion/practica/{id}/guardar(id=${practica.id})}">
+            <input type="hidden" id="inputPersonalizada" name="personalizada" th:value="${evaluacion.personalizada}">
+
+            <div class="row g-4">
+                <!-- Columna izquierda: tabla de componentes y notas -->
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-sm p-4">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                            <div>
+                                <h5 class="fw-bold mb-0">Componentes de Evaluación</h5>
+                                <small class="text-muted">Las notas de pautas completadas se cargan y bloquean automáticamente. Escala 1,0 a 7,0.</small>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="chkPersonalizar"
+                                       th:checked="${evaluacion.personalizada}">
+                                <label class="form-check-label small fw-semibold" for="chkPersonalizar">
+                                    Personalizar % solo para esta práctica
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Banner explicativo de notas automáticas bloqueadas -->
+                        <div class="alert alert-info py-2 px-3 small mb-3 border-0 bg-primary bg-opacity-10 text-primary-emphasis d-flex align-items-center">
+                            <i class="bi bi-shield-lock-fill fs-5 me-2 text-primary"></i>
+                            <div>
+                                <strong>Evaluación asistida:</strong> Las calificaciones con el distintivo <span class="badge bg-primary text-white"><i class="bi bi-lock-fill me-1"></i>Pauta en línea</span> o <span class="badge bg-primary text-white"><i class="bi bi-lock-fill me-1"></i>Informe evaluado</span> provienen directamente de las evaluaciones completadas y están protegidas contra modificaciones accidentales.
+                            </div>
+                        </div>
+
+                        <div id="alertaPesoEval" class="d-none"></div>
+
+                        <div class="table-responsive rounded border mb-3">
+                            <table class="table table-eval align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="ps-3 py-2">Componente</th>
+                                        <th class="text-end py-2" style="width: 135px;">Peso (%)</th>
+                                        <th class="text-center py-2" style="width: 135px;">Nota (1-7)</th>
+                                        <th class="text-center py-2" style="width: 90px;">Aporte</th>
+                                        <th id="thAccionEval" class="text-center py-2 d-none" style="width: 50px;"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbodyNotas">
+                                    <tr th:each="comp : ${componentes}" th:classappend="${comp.bloqueada} ? 'table-light' : ''">
+                                        <td class="ps-3">
+                                            <input type="hidden" name="uid" th:value="${comp.uid}">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <input type="text" name="nombre" class="form-control form-control-sm input-nombre-eval bg-light"
+                                                       th:value="${comp.nombre}" readonly required maxlength="160">
+                                                <span th:if="${comp.bloqueada}" class="badge bg-primary-subtle text-primary border border-primary-subtle text-nowrap"
+                                                      th:title="${comp.origen != null ? comp.origen : 'Nota calculada y bloqueada'}">
+                                                    <i class="bi bi-lock-fill me-1"></i><span th:text="${comp.origen != null and comp.origen.startsWith('Informe') ? 'Informe evaluado' : 'Pauta en línea'}">Pauta en línea</span>
+                                                </span>
+                                            </div>
+                                            <small th:if="${comp.bloqueada and comp.origen != null}" class="text-muted d-block mt-1" style="font-size: 0.75rem;">
+                                                <i class="bi bi-info-circle me-1 text-primary"></i><span th:text="${comp.origen}">Origen</span>
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <div class="input-group input-group-sm">
+                                                <input type="number" name="peso" class="form-control text-end input-peso-eval bg-light"
+                                                       step="0.01" min="0.1" max="100" required readonly
+                                                       th:value="${comp.peso}">
+                                                <span class="input-group-text">%</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="position-relative">
+                                                <input type="number" name="nota" class="form-control form-control-sm text-center input-nota-eval"
+                                                       th:classappend="${comp.bloqueada} ? 'bg-light text-primary fw-bold border-primary' : ''"
+                                                       th:readonly="${comp.bloqueada}"
+                                                       step="0.1" min="1.0" max="7.0" placeholder="1,0 - 7,0"
+                                                       th:value="${comp.nota != null ? #numbers.formatDecimal(comp.nota, 1, 'POINT', 1, 'POINT') : ''}"
+                                                       th:title="${comp.bloqueada ? 'Nota fijada automáticamente por la pauta en línea' : 'Ingresa la nota de 1,0 a 7,0'}">
+                                            </div>
+                                        </td>
+                                        <td class="text-center fw-semibold text-muted celda-aporte"
+                                            th:text="${comp.aportePonderado != null ? #numbers.formatDecimal(comp.aportePonderado, 1, 'POINT', 2, 'COMMA') : '—'}">—</td>
+                                        <td class="text-center col-accion-eval d-none">
+                                            <button type="button" class="btn btn-link text-danger p-0 btn-eliminar-eval"
+                                                    th:classappend="${comp.bloqueada} ? 'disabled opacity-25' : ''"
+                                                    th:disabled="${comp.bloqueada}"
+                                                    th:title="${comp.bloqueada ? 'Este componente tiene nota registrada desde una pauta y no se puede quitar' : 'Quitar'}">
+                                                <i class="bi bi-x-lg"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                                <tfoot>
+                                    <tr class="table-light">
+                                        <td class="ps-3 fw-bold">Total Ponderación</td>
+                                        <td class="text-end fw-bold pe-2"><span id="evalTotalPeso">100,00 %</span></td>
+                                        <td colspan="3"></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+
+                        <!-- Barra visible solo al activar personalización -->
+                        <div id="barraPersonalizacion" class="d-none d-flex flex-wrap gap-2 mb-3">
+                            <button type="button" id="btnAgregarFilaEval" class="btn btn-outline-primary btn-sm fw-semibold">
+                                <i class="bi bi-plus-lg me-1"></i> Agregar componente
+                            </button>
+                            <button type="button" id="btnIgualesEval" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-distribute-vertical me-1"></i> Ponderaciones iguales
+                            </button>
+                        </div>
+
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 pt-2 border-top">
+                            <button type="button" id="btnLimpiarNotas" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-eraser me-1"></i> Limpiar notas
+                            </button>
+                            <button type="submit" id="btnGuardarNotas" class="btn btn-success px-4 fw-semibold">
+                                <i class="bi bi-check2-circle me-1"></i> Guardar Notas
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Columna derecha: Calculadora Ponderada en Vivo -->
+                <div class="col-lg-4">
+                    <div class="resumen-panel shadow-sm p-4 sticky-top" style="top: 16px;">
+                        <h6 class="text-uppercase fw-bold text-secondary small mb-3">
+                            <i class="bi bi-calculator-fill me-1 text-primary"></i> Promedio Ponderado en Vivo
+                        </h6>
+
+                        <div class="text-center bg-white rounded border py-3 px-2 mb-3">
+                            <span class="text-muted small d-block mb-1">Nota Ponderada Actual</span>
+                            <div id="resPromedio" class="display-5 fw-bold text-muted mb-0">—</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span class="text-muted">Avance de evaluación</span>
+                                <strong id="resPorcentaje">0,0% evaluado</strong>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div id="resBarra" class="progress-bar bg-primary" role="progressbar" style="width: 0%;"></div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center small bg-white rounded border px-3 py-2 mb-3">
+                            <span class="text-muted">Nota acumulada (sobre 100%)</span>
+                            <strong id="resAcumulada">0,00 / 7,00</strong>
+                        </div>
+
+                        <div id="resNecesariaBox" class="alert alert-light border small mb-3 text-muted">
+                            <i class="bi bi-info-circle me-1"></i>Ingresa al menos una nota para calcular el promedio ponderado.
+                        </div>
+
+                        <hr>
+
+                        <div class="mb-0">
+                            <label for="estadoPractica" class="form-label small fw-bold text-secondary mb-1">Estado de la práctica</label>
+                            <select id="estadoPractica" name="estadoPractica" class="form-select form-select-sm">
+                                <option th:each="est : ${estados}"
+                                        th:value="${est}"
+                                        th:text="${est.name() == 'PENDIENTE' ? 'En curso (Pendiente)' : (est.name() == 'APROBADA' ? 'Aprobada' : 'Reprobada')}"
+                                        th:selected="${practica.estado == est}">En curso</option>
+                            </select>
+                            <small class="text-muted d-block mt-1">Al guardar se actualizará la nota final de la práctica en todo el sistema.</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </main>
+
+    <footer class="ubb-footer compact">
+        <div class="container py-3 d-flex flex-column flex-md-row align-items-center justify-content-between gap-3 text-center text-md-start">
+            <div class="d-flex align-items-center gap-3">
+                <img th:src="@{/images/escudo-monocromatico-oscuro.png}" alt="Escudo Universidad del Bío-Bío" class="footer-logo">
+                <div>
+                    <div class="fw-bold">Universidad del Bío-Bío</div>
+                    <small>Escuela de Pedagogía en Educación Matemática</small>
+                </div>
+            </div>
+            <small>Plataforma de Prácticas · &copy; <span class="anio"></span></small>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/evaluacion-practica.js}"></script>
+    <script>document.querySelectorAll('.anio').forEach(e => e.textContent = new Date().getFullYear());</script>
+</body>
+</html>

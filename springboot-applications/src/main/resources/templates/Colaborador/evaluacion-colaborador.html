@@ -93,8 +93,8 @@
                 </div>
 
                 <div class="text-center my-4">
-                    <p class="fw-bold text-secondary mb-1">Investigación en el aula 2026</p>
-                    <h4 class="fw-bold mb-1">PAUTA DE EVALUACIÓN PARA LA OBSERVACIÓN DE CLASE DE MATEMÁTICA</h4>
+                    <p class="fw-bold text-secondary mb-1" th:text="${nombreAsignatura != null ? nombreAsignatura : 'Práctica Pedagógica'}">Investigación en el aula 2026</p>
+                    <h4 class="fw-bold mb-1" id="tituloPautaHeading" th:text="${pauta != null and pauta.nombreArchivo != null ? pauta.nombreArchivo : 'PAUTA DE EVALUACIÓN PARA LA OBSERVACIÓN DE CLASE'}">PAUTA DE EVALUACIÓN PARA LA OBSERVACIÓN DE CLASE</h4>
                     <h5 class="fw-bold text-primary mb-0">PROFESOR(A) COLABORADOR(A)</h5>
                 </div>
 
@@ -102,11 +102,17 @@
                     <i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${error}"></span>
                 </div>
 
+                <div th:if="${todasCompletadas and !modoLectura}" class="alert alert-warning border shadow-sm mb-4">
+                    <i class="bi bi-check-circle-fill fs-5 me-2 text-success"></i>
+                    <strong>Todas las pautas completadas:</strong> Las pautas de observación requeridas para esta práctica ya han sido enviadas para este estudiante.
+                </div>
+
                 <!-- Indicaciones (solo al completar) -->
                 <section th:unless="${modoLectura}" class="p-3 mb-4 bg-light border rounded small">
                     <strong class="d-block mb-2">Estimado/a profesor(a) colaborador(a):</strong>
                     <ol class="mb-2 ps-3">
                         <li class="mb-1">Esta pauta permite evaluar de manera formativa la clase realizada por la/el estudiante de Pedagogía en Educación Matemática de la Universidad del Bío-Bío que realiza su práctica en su establecimiento.</li>
+                        <li class="mb-1">En el campo <strong>Pauta a evaluar</strong>, selecciona la observación correspondiente (las pautas ya enviadas aparecen bloqueadas).</li>
                         <li class="mb-1">En cada criterio seleccione el círculo que represente su apreciación de la clase observada (<strong>1: Muy bajo; 7: Muy alto</strong>).</li>
                         <li class="mb-1">Al finalizar, indique observaciones generales: fortalezas y aspectos a mejorar, en particular sobre las estrategias de trabajo colaborativo implementadas en la clase.</li>
                     </ol>
@@ -125,6 +131,37 @@
                                 <td colspan="3">
                                     <input type="text" class="form-control input-recognized" readonly
                                            th:value="${datos.estudianteNombre + ' (RUT: ' + datos.estudianteRut + ')'}">
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>PRÁCTICA ASIGNADA</th>
+                                <td colspan="3">
+                                    <span class="badge bg-primary px-3 py-2 me-2" th:text="${'Práctica ' + datos.numeroPractica}">Práctica</span>
+                                    <span class="fw-semibold text-secondary" th:text="${nombreAsignatura != null ? nombreAsignatura : ''}">Nombre de Asignatura</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>PAUTA A EVALUAR <span class="text-danger" th:if="${!modoLectura}">*</span></th>
+                                <td colspan="3">
+                                    <div th:if="${!modoLectura}">
+                                        <select id="identificadorPauta" name="identificadorPauta" class="form-select fw-semibold" required>
+                                            <option value="" disabled selected th:unless="${valores != null and valores['identificadorPauta'] != null}">-- Selecciona la pauta a rellenar --</option>
+                                            <option th:each="op : ${opcionesPauta}"
+                                                    th:value="${op.identificadorSlot}"
+                                                    th:text="${op.titulo + (op.completada ? ' (Ya enviada al estudiante - Bloqueada)' : '')}"
+                                                    th:disabled="${op.completada}"
+                                                    th:selected="${valores != null and valores['identificadorPauta'] == op.identificadorSlot}">
+                                            </option>
+                                        </select>
+                                        <div class="form-text small text-muted mt-1">
+                                            <i class="bi bi-info-circle me-1"></i>
+                                            Las pautas que ya han sido completadas y enviadas para este estudiante aparecen bloqueadas. Solo puedes rellenar las pautas pendientes.
+                                        </div>
+                                    </div>
+                                    <div th:if="${modoLectura}">
+                                        <input type="text" class="form-control input-recognized" readonly
+                                               th:value="${pauta != null ? pauta.nombreArchivo : (valores != null ? valores['identificadorPauta'] : 'Pauta de evaluación')}">
+                                    </div>
                                 </td>
                             </tr>
                             <tr>
@@ -207,11 +244,11 @@
                 <div class="score-banner shadow-sm rounded p-3 mb-3 border d-flex flex-wrap justify-content-between align-items-center gap-3">
                     <div>
                         <span class="text-muted small d-block">Criterios Evaluados</span>
-                        <span class="fs-5 fw-bold text-dark"><span id="answeredCount">0</span> / 20</span>
+                        <span class="fs-5 fw-bold text-dark"><span id="answeredCount">0</span> / <span id="totalCriteriaLabel">20</span></span>
                     </div>
                     <div>
                         <span class="text-muted small d-block">Puntaje Total</span>
-                        <span class="fs-5 fw-bold text-primary"><span id="totalScore">0</span> / 140 pts</span>
+                        <span class="fs-5 fw-bold text-primary"><span id="totalScore">0</span> / <span id="maxScoreLabel">140</span> pts</span>
                     </div>
                     <div>
                         <span class="text-muted small d-block">Porcentaje de Logro</span>
@@ -276,13 +313,14 @@
     <script th:inline="javascript">
         const modoLectura = /*[[${modoLectura != null ? modoLectura : false}]]*/ false;
         const rawJson = /*[[${pautaJson != null ? pautaJson : ''}]]*/ '';
+        const tipoInicial = /*[[${tipoPauta != null ? tipoPauta : 'ESPECIALIDAD'}]]*/ 'ESPECIALIDAD';
 
         let datosGuardados = {};
         if (rawJson) {
             try { datosGuardados = JSON.parse(rawJson); } catch (e) { datosGuardados = {}; }
         }
 
-        const sections = [
+        const sectionsEspecialidad = [
             {title: "ASPECTOS DE LA ESTRUCTURA DE LA CLASE", items: [
                 "El objetivo de la clase se presenta a los estudiantes. Es claro y pertinente al nivel.",
                 "El profesor/a desarrolla un inicio de la clase generando retroalimentación y/o activación de conocimientos previos.",
@@ -311,60 +349,122 @@
             ]}
         ];
 
-        const respuestasArray = Array.isArray(datosGuardados.respuestas) ? datosGuardados.respuestas : [];
-        const tbody = document.querySelector("#rubric tbody");
-        let criterionIndex = 0;
+        const sectionsOrientacion = [
+            {title: "DIMENSIÓN A: DISEÑO DE LA CLASE Y PLANIFICACIÓN DE LA ENSEÑANZA", items: [
+                "Comunica a las/os estudiantes los propósitos de la clase y los aprendizajes a lograr.",
+                "Utiliza el tiempo disponible para la enseñanza en función de los objetivos de la clase.",
+                "Especifica en las unidades pedagógicas de orientación, los tres momentos de la clase: inicio, desarrollo y cierre."
+            ]},
+            {title: "DIMENSIÓN B: GENERACIÓN DE AMBIENTE PROPICIO PARA EL APRENDIZAJE", items: [
+                "Formula preguntas y concede el tiempo necesario para resolverlos.",
+                "Posee la capacidad de empatía, de atención personalizada propiciada por la clase y escucha activamente a los y las estudiantes.",
+                "Establece un clima de relaciones interpersonales respetuosas y empáticas con sus estudiantes.",
+                "Establece normas de comportamiento que son conocidas y comprensibles para sus estudiantes."
+            ]},
+            {title: "DIMENSIÓN C: USO DE METODOLOGÍAS Y DIDÁCTICA PARA LA ENSEÑANZA", items: [
+                "Utiliza diferentes metodologías pedagógicas, que motiven el interés de los y las estudiantes durante las clases.",
+                "Ofrece oportunidades y desafíos de participación activas a los y las estudiantes del grupo curso, considerando su diversidad.",
+                "Demuestra conocer variadas estrategias de enseñanza y actividades congruentes con el proceso de enseñanza y aprendizaje."
+            ]},
+            {title: "DIMENSIÓN D: EVALUACIÓN DE LOS APRENDIZAJES", items: [
+                "Emplea instrumentos de evaluación, acorde a las temáticas desarrolladas en el grupo curso.",
+                "Utiliza criterios de evaluación coherentes con los objetivos de aprendizaje propuestos.",
+                "Evalúa el grado en que las/os estudiantes alcanzaron los aprendizajes esperados."
+            ]},
+            {title: "DIMENSIÓN E: EVALUACIÓN DE SU DESEMPEÑO", items: [
+                "Reflexiona sobre la propia práctica pedagógica, considerando la capacidad de preparar y gestionar curricularmente sus clases en el área de orientación.",
+                "Evalúa el nivel de logro de los objetivos de aprendizaje planteados, valorando los aciertos y analizando los errores.",
+                "Evidencia el cumplimiento de los compromisos contraídos, presentación personal, puntualidad y responsabilidad profesional.",
+                "Analiza críticamente su desempeño durante las clases, a partir de los resultados de aprendizaje de las y los estudiantes.",
+                "Presenta anticipadamente la planificación de la clase, de acuerdo a la unidad didáctica, para su debida retroalimentación."
+            ]}
+        ];
 
-        sections.forEach(section => {
-            const headingRow = document.createElement("tr");
-            headingRow.className = "category-row";
-            headingRow.innerHTML = `<th colspan="8">${section.title}</th>`;
-            tbody.appendChild(headingRow);
+        let currentTotalCriterios = 20;
+        let currentMaxPossible = 140;
 
-            section.items.forEach(item => {
-                criterionIndex++;
-                const currentIdx = criterionIndex;
-                const valorGuardado = respuestasArray[currentIdx - 1] ? parseInt(respuestasArray[currentIdx - 1], 10) : 0;
+        function renderRubric(tipo) {
+            const sections = (tipo === 'ORIENTACION') ? sectionsOrientacion : sectionsEspecialidad;
+            currentTotalCriterios = sections.reduce((acc, s) => acc + s.items.length, 0);
+            currentMaxPossible = currentTotalCriterios * 7;
 
-                const tr = document.createElement("tr");
-                const labelTd = document.createElement("td");
-                labelTd.className = "ps-3";
-                labelTd.innerHTML = `<div class="d-flex gap-2"><span class="fw-bold">${currentIdx}.</span><span>${item}</span></div>`;
-                tr.appendChild(labelTd);
+            const elTotalCriteria = document.getElementById("totalCriteriaLabel");
+            if (elTotalCriteria) elTotalCriteria.textContent = currentTotalCriterios;
+            const elMaxScore = document.getElementById("maxScoreLabel");
+            if (elMaxScore) elMaxScore.textContent = currentMaxPossible;
 
-                for (let score = 1; score <= 7; score++) {
-                    const td = document.createElement("td");
-                    td.className = "score-cell";
+            const respuestasArray = Array.isArray(datosGuardados.respuestas) ? datosGuardados.respuestas : [];
+            const tbody = document.querySelector("#rubric tbody");
+            tbody.innerHTML = "";
+            let criterionIndex = 0;
 
-                    const radio = document.createElement("input");
-                    radio.type = "radio";
-                    radio.className = "radio-circle";
-                    radio.name = `criterion${currentIdx}`;
-                    radio.value = score;
-                    radio.setAttribute("aria-label", `Criterio ${currentIdx}, puntaje ${score}`);
+            sections.forEach(section => {
+                const headingRow = document.createElement("tr");
+                headingRow.className = "category-row";
+                headingRow.innerHTML = `<th colspan="8">${section.title}</th>`;
+                tbody.appendChild(headingRow);
 
-                    if (!modoLectura && score === 1) radio.required = true;
-                    if (valorGuardado === score) radio.checked = true;
-                    if (modoLectura) radio.disabled = true;
+                section.items.forEach(item => {
+                    criterionIndex++;
+                    const currentIdx = criterionIndex;
+                    const valorGuardado = respuestasArray[currentIdx - 1] ? parseInt(respuestasArray[currentIdx - 1], 10) : 0;
 
-                    radio.addEventListener("change", updateScoreSummary);
+                    const tr = document.createElement("tr");
+                    const labelTd = document.createElement("td");
+                    labelTd.className = "ps-3";
+                    labelTd.innerHTML = `<div class="d-flex gap-2"><span class="fw-bold">${currentIdx}.</span><span>${item}</span></div>`;
+                    tr.appendChild(labelTd);
 
-                    if (!modoLectura) {
-                        td.addEventListener("click", (e) => {
-                            if (e.target !== radio) { radio.checked = true; updateScoreSummary(); }
-                        });
-                    } else {
-                        td.style.cursor = "default";
+                    for (let score = 1; score <= 7; score++) {
+                        const td = document.createElement("td");
+                        td.className = "score-cell";
+
+                        const radio = document.createElement("input");
+                        radio.type = "radio";
+                        radio.className = "radio-circle";
+                        radio.name = `criterion${currentIdx}`;
+                        radio.value = score;
+                        radio.setAttribute("aria-label", `Criterio ${currentIdx}, puntaje ${score}`);
+
+                        if (!modoLectura && score === 1) radio.required = true;
+                        if (valorGuardado === score) radio.checked = true;
+                        if (modoLectura) radio.disabled = true;
+
+                        radio.addEventListener("change", updateScoreSummary);
+
+                        if (!modoLectura) {
+                            td.addEventListener("click", (e) => {
+                                if (e.target !== radio) { radio.checked = true; updateScoreSummary(); }
+                            });
+                        } else {
+                            td.style.cursor = "default";
+                        }
+
+                        td.appendChild(radio);
+                        tr.appendChild(td);
                     }
-
-                    td.appendChild(radio);
-                    tr.appendChild(td);
-                }
-                tbody.appendChild(tr);
+                    tbody.appendChild(tr);
+                });
             });
-        });
+
+            updateScoreSummary();
+        }
 
         document.addEventListener("DOMContentLoaded", () => {
+            const selectPauta = document.getElementById("identificadorPauta");
+            let tipo = tipoInicial;
+            if (selectPauta && selectPauta.value) {
+                tipo = selectPauta.value.includes("ORIENTACION") ? "ORIENTACION" : "ESPECIALIDAD";
+            }
+            renderRubric(tipo);
+
+            if (selectPauta) {
+                selectPauta.addEventListener("change", function () {
+                    const nuevoTipo = this.value.includes("ORIENTACION") ? "ORIENTACION" : "ESPECIALIDAD";
+                    renderRubric(nuevoTipo);
+                });
+            }
+
             if (datosGuardados.curso) document.getElementById("course").value = datosGuardados.curso;
             if (datosGuardados.fecha) {
                 document.getElementById("date").value = datosGuardados.fecha;
@@ -399,8 +499,15 @@
             }
 
             const form = document.getElementById('formPauta');
-            form.addEventListener('submit', function (e) {
+            form.addEventListener('submit', async function (e) {
                 if (modoLectura) { e.preventDefault(); return; }
+
+                if (selectPauta && !selectPauta.value) {
+                    e.preventDefault();
+                    alert("Debes seleccionar qué pauta vas a rellenar.");
+                    selectPauta.focus();
+                    return;
+                }
 
                 if (rutInput && !validarRut(rutInput.value)) {
                     e.preventDefault();
@@ -409,16 +516,20 @@
                     return;
                 }
                 const respondidos = document.querySelectorAll('#rubric input[type="radio"]:checked').length;
-                if (respondidos < 20) {
+                if (respondidos < currentTotalCriterios) {
                     e.preventDefault();
-                    alert(`Faltan criterios por evaluar (${respondidos}/20 respondidos).`);
+                    ubbPopup.aviso(`Faltan criterios por evaluar (${respondidos}/${currentTotalCriterios} respondidos).`, { titulo: 'Evaluación incompleta' });
                     return;
                 }
-                if (!confirm("¿Enviar la pauta definitiva? Una vez enviada no podrá modificarse y este enlace dejará de funcionar.")) {
-                    e.preventDefault();
-                    return;
+                e.preventDefault();
+                const ok = await ubbPopup.confirmar("¿Enviar la pauta definitiva? Una vez enviada no podrá modificarse y este enlace dejará de funcionar.", {
+                    titulo: 'Enviar evaluación',
+                    boton: 'Sí, enviar'
+                });
+                if (ok) {
+                    document.getElementById('btnEnviar').disabled = true;   // evita doble envío
+                    form.submit();
                 }
-                document.getElementById('btnEnviar').disabled = true;   // evita doble envío
             });
 
             updateScoreSummary();
@@ -431,7 +542,7 @@
             const count = checkedRadios.length;
             document.getElementById("answeredCount").textContent = count;
             document.getElementById("totalScore").textContent = sum;
-            document.getElementById("percentageScore").textContent = `${Math.round((sum / 140) * 100)}%`;
+            document.getElementById("percentageScore").textContent = `${Math.round((sum / currentMaxPossible) * 100)}%`;
             document.getElementById("averageScore").textContent = count > 0 ? (sum / count).toFixed(1) : "-";
         }
 
@@ -464,6 +575,7 @@
             <small>Plataforma de Prácticas · &copy; <span class="anio"></span></small>
         </div>
     </footer>
+    <script th:src="@{/js/ubb-popup.js}"></script>
     <script>document.querySelectorAll('.anio').forEach(e => e.textContent = new Date().getFullYear());</script>
 </body>
 </html>

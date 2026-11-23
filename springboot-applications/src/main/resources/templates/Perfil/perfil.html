@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mi Perfil - Plataforma de Prácticas UBB</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link th:href="@{/css/ubb-index.css}" rel="stylesheet">
+
+    <style>
+        .profile-header-card {
+            background: linear-gradient(135deg, #004b85 0%, #002b4d 100%);
+            border-radius: 1.25rem;
+            color: #fff;
+        }
+        .profile-avatar {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: #ffffff;
+            color: #004b85;
+            font-size: 2.5rem;
+            font-weight: 800;
+            display: grid;
+            place-items: center;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        }
+        .nav-pills-ubb .nav-link {
+            border-radius: 0.75rem;
+            font-weight: 600;
+            color: #495057;
+            padding: 0.75rem 1.25rem;
+            transition: all 0.2s ease;
+        }
+        .nav-pills-ubb .nav-link.active {
+            background-color: #004b85;
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(0, 75, 133, 0.25);
+        }
+        .card-custom {
+            border-radius: 1.15rem;
+            border: 0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+        .qr-card {
+            background: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            border-radius: 1rem;
+        }
+    </style>
+</head>
+<body class="ubb-page ubb-inner">
+
+    <!-- Barra de Navegación -->
+    <nav class="navbar navbar-dark ubb-bg mb-4 shadow-sm">
+        <div class="container-fluid px-4">
+            <div class="d-flex align-items-center">
+                <img th:src="@{/images/escudo-monocromatico-oscuro.png}" alt="Escudo Universidad del Bío-Bío" class="nav-logo">
+                <a class="navbar-brand fw-bold" th:href="@{/}">
+                    <i class="bi bi-arrow-left-circle me-2"></i>Volver al Dashboard
+                </a>
+            </div>
+            <div class="d-flex text-white align-items-center gap-2">
+                <i class="bi bi-person-circle fs-5"></i>
+                <span class="fw-semibold" th:text="${usuario.nombre + ' ' + usuario.apellido}">Nombre Usuario</span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-2 mb-5">
+
+        <!-- Tarjeta de Encabezado de Perfil -->
+        <div class="profile-header-card p-4 p-md-5 mb-4 shadow">
+            <div class="d-flex flex-column flex-md-row align-items-center gap-4 text-center text-md-start">
+                <div class="profile-avatar flex-shrink-0">
+                    <span th:text="${usuario.nombre != null ? #strings.substring(usuario.nombre, 0, 1) : 'U'}">U</span>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-md-start gap-2 mb-2">
+                        <h2 class="fw-bold mb-0" th:text="${usuario.nombre + ' ' + usuario.apellido}">Nombre Completo</h2>
+                        <span th:if="${usuario.twoFactorEnabled}" class="badge bg-success-subtle text-success border border-success px-3 py-2 rounded-pill small">
+                            <i class="bi bi-shield-check me-1"></i>2FA Activo
+                        </span>
+                        <span th:unless="${usuario.twoFactorEnabled}" class="badge bg-warning-subtle text-warning border border-warning px-3 py-2 rounded-pill small">
+                            <i class="bi bi-shield-exclamation me-1"></i>2FA Inactivo
+                        </span>
+                    </div>
+
+                    <p class="text-white-50 mb-2">
+                        <i class="bi bi-envelope me-1"></i> <span th:text="${usuario.correo}">correo@ubiobio.cl</span>
+                        <span class="mx-2">·</span>
+                        <i class="bi bi-person-badge me-1"></i> RUT: <span th:text="${usuario.rut}">11.111.111-1</span>
+                    </p>
+
+                    <!-- Badges de Roles -->
+                    <div class="d-flex flex-wrap justify-content-center justify-content-md-start gap-1">
+                        <span th:each="r : ${rolesUsuario}" class="badge bg-light text-primary fw-semibold px-2 py-1">
+                            <i class="bi bi-check2-circle me-1"></i><span th:text="${r}">ROL</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pestañas de Navegación -->
+        <ul class="nav nav-pills nav-pills-ubb mb-4 gap-2 border-bottom pb-3" id="perfilTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="info-tab" data-bs-toggle="pill" data-bs-target="#tab-info" type="button" role="tab">
+                    <i class="bi bi-person-lines-fill me-1"></i> Mi Información
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="academico-tab" data-bs-toggle="pill" data-bs-target="#tab-academico" type="button" role="tab">
+                    <i class="bi bi-mortarboard-fill me-1"></i> <span th:text="${isEstudiante ? 'Avance y Prácticas' : 'Gestión Docente'}">Información Académica</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="seguridad-tab" data-bs-toggle="pill" data-bs-target="#tab-seguridad" type="button" role="tab">
+                    <i class="bi bi-shield-lock-fill me-1"></i> Seguridad y 2FA
+                </button>
+            </li>
+        </ul>
+
+        <!-- Contenido de las Pestañas -->
+        <div class="tab-content" id="perfilTabsContent">
+
+            <!-- TAB 1: DATOS PERSONALES Y EDITABLES -->
+            <div class="tab-pane fade show active" id="tab-info" role="tabpanel">
+                <div class="card card-custom p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <h4 class="fw-bold text-dark mb-1"><i class="bi bi-pencil-square text-primary me-2"></i>Datos Personales y de Contacto</h4>
+                            <p class="text-muted small mb-0">Revisa tus antecedentes y mantén actualizados tus medios de contacto.</p>
+                        </div>
+                    </div>
+
+                    <form th:action="@{/perfil/guardar}" method="post">
+
+                        <!-- Datos Institucionales (No editables directamente) -->
+                        <div class="row g-3 mb-4 p-3 bg-light rounded-3">
+                            <div class="col-md-4">
+                                <label class="form-label text-muted small fw-bold">RUT (Identificador)</label>
+                                <input type="text" class="form-control bg-white" th:value="${usuario.rut}" readonly>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label text-muted small fw-bold">Nombre Completo</label>
+                                <input type="text" class="form-control bg-white" th:value="${usuario.nombre + ' ' + usuario.apellido}" readonly>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label text-muted small fw-bold">Correo Institucional</label>
+                                <input type="email" class="form-control bg-white" th:value="${usuario.correo}" readonly>
+                            </div>
+                        </div>
+
+                        <h5 class="fw-bold text-dark border-bottom pb-2 mb-3">Información de Contacto Modificable</h5>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label for="telefono" class="form-label fw-semibold">Teléfono / WhatsApp</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white"><i class="bi bi-telephone text-primary"></i></span>
+                                    <input type="text" class="form-control" id="telefono" name="telefono"
+                                           th:value="${usuario.telefono}" placeholder="+56 9 1234 5678">
+                                </div>
+                                <div class="form-text">Para contacto y avisos sobre tus prácticas.</div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label for="correoSecundario" class="form-label fw-semibold">Correo Personal / Alternativo</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white"><i class="bi bi-envelope-at text-primary"></i></span>
+                                    <input type="email" class="form-control" id="correoSecundario" name="correoSecundario"
+                                           th:value="${usuario.correoSecundario}" placeholder="ejemplo@gmail.com">
+                                </div>
+                                <div class="form-text">Medio de respaldo en caso de emergencia.</div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label for="ciudad" class="form-label fw-semibold">Ciudad / Comuna de Residencia</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white"><i class="bi bi-geo-alt text-primary"></i></span>
+                                    <input type="text" class="form-control" id="ciudad" name="ciudad"
+                                           th:value="${usuario.ciudad}" placeholder="Chillán, Concepción, etc.">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Campos específicos para Profesores / Tutores -->
+                        <div th:if="${isProfesor}" class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label for="departamento" class="form-label fw-semibold">Departamento / Escuela</label>
+                                <input type="text" class="form-control" id="departamento" name="departamento"
+                                       th:value="${profesor != null ? profesor.departamento : ''}" placeholder="Departamento de Ciencias de la Educación">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="gradoAcademico" class="form-label fw-semibold">Grado Académico / Título</label>
+                                <input type="text" class="form-control" id="gradoAcademico" name="gradoAcademico"
+                                       th:value="${profesor != null ? profesor.gradoAcademico : ''}" placeholder="Magíster / Doctor en Educación">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="oficina" class="form-label fw-semibold">Oficina / Despacho</label>
+                                <input type="text" class="form-control" id="oficina" name="oficina"
+                                       th:value="${profesor != null ? profesor.oficina : ''}" placeholder="Edificio A, Oficina 204">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="horarioAtencion" class="form-label fw-semibold">Horario de Atención / Consultas</label>
+                                <input type="text" class="form-control" id="horarioAtencion" name="horarioAtencion"
+                                       th:value="${profesor != null ? profesor.horarioAtencion : ''}" placeholder="Lunes y Miércoles 15:00 a 17:00">
+                            </div>
+                        </div>
+
+                        <!-- Biografía / Sobre mí -->
+                        <div class="mb-4">
+                            <label for="biografia" class="form-label fw-semibold">Presentación Personal / Biografía</label>
+                            <textarea class="form-control" id="biografia" name="biografia" rows="4" maxlength="1000"
+                                      placeholder="Escribe una breve presentación sobre tus intereses pedagógicos, motivaciones o áreas de especialización..."
+                                      th:text="${usuario.biografia}"></textarea>
+                            <div class="form-text">Máximo 1000 caracteres. Visible para los coordinadores y profesores de tus asignaturas.</div>
+                        </div>
+
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-primary px-4 py-2 fw-bold shadow-sm">
+                                <i class="bi bi-floppy-fill me-1"></i> Guardar Cambios
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- TAB 2: INFORMACIÓN ACADÉMICA / DOCENTE -->
+            <div class="tab-pane fade" id="tab-academico" role="tabpanel">
+
+                <!-- Vista de Estudiante -->
+                <div th:if="${isEstudiante}" class="row g-4">
+                    <div class="col-lg-4">
+                        <div class="card card-custom p-4 h-100">
+                            <h5 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="bi bi-info-circle text-primary me-2"></i>Ficha Académica</h5>
+                            <ul class="list-unstyled mb-0 d-flex flex-column gap-3">
+                                <li>
+                                    <span class="text-muted d-block small">Carrera:</span>
+                                    <strong class="text-dark" th:text="${estudiante != null ? estudiante.carrera : 'Pedagogía en Educación Matemática'}">Pedagogía en Educación Matemática</strong>
+                                </li>
+                                <li>
+                                    <span class="text-muted d-block small">Año de Ingreso:</span>
+                                    <strong class="text-dark" th:text="${estudiante != null and estudiante.anoIngreso != null ? estudiante.anoIngreso : 'N/A'}">2023</strong>
+                                </li>
+                                <li>
+                                    <span class="text-muted d-block small">Estado Académico:</span>
+                                    <span class="badge bg-success" th:text="${estudiante != null ? estudiante.estadoAcademico : 'Regular'}">Regular</span>
+                                </li>
+                                <li>
+                                    <span class="text-muted d-block small">Nivel de Práctica Actual:</span>
+                                    <span class="badge bg-primary fs-6" th:text="${estudiante != null and estudiante.practicaActual != null ? 'Práctica ' + estudiante.practicaActual : 'Sin práctica asignada'}">Práctica 1</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-8">
+                        <div class="card card-custom p-4 mb-4">
+                            <h5 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="bi bi-geo-alt-fill text-primary me-2"></i>Práctica en Curso</h5>
+                            <div th:if="${practicaActual != null}">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="p-3 bg-light rounded-3">
+                                            <small class="text-muted d-block">Centro de Práctica (Colegio):</small>
+                                            <strong class="text-dark" th:text="${practicaActual.centroPractica != null ? practicaActual.centroPractica.nombre : 'Por asignar'}">Colegio Bío-Bío</strong>
+                                            <small class="text-muted d-block" th:if="${practicaActual.centroPractica != null}" 
+                                                   th:text="${practicaActual.centroPractica.direccionCompleta != null and !practicaActual.centroPractica.direccionCompleta.isEmpty() ? practicaActual.centroPractica.direccionCompleta : (practicaActual.centroPractica.comuna != null ? practicaActual.centroPractica.comuna : 'Sin dirección')}">Chillán</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="p-3 bg-light rounded-3">
+                                            <small class="text-muted d-block">Tutor Supervisor UBB:</small>
+                                            <strong class="text-dark" th:text="${practicaActual.tutor != null ? practicaActual.tutor.nombre + ' ' + practicaActual.tutor.apellido : 'Sin tutor asignado'}">Nombre Tutor</strong>
+                                            <small class="text-muted d-block" th:if="${practicaActual.tutor != null}" th:text="${practicaActual.tutor.correo}">tutor@ubiobio.cl</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="p-3 bg-light rounded-3">
+                                            <small class="text-muted d-block">Profesor de Asignatura:</small>
+                                            <strong class="text-dark" th:text="${practicaActual.profesor != null ? practicaActual.profesor.nombre + ' ' + practicaActual.profesor.apellido : 'Sin profesor'}">Nombre Profesor</strong>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="p-3 bg-light rounded-3">
+                                            <small class="text-muted d-block">Profesor Colaborador (Guía):</small>
+                                            <strong class="text-dark" th:text="${practicaActual.colaborador != null ? practicaActual.colaborador.nombre + ' ' + practicaActual.colaborador.apellido : 'Sin colaborador asignado'}">Nombre Colaborador</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div th:unless="${practicaActual != null}" class="text-center text-muted py-4">
+                                <i class="bi bi-inbox fs-2 d-block mb-1"></i>No tienes una práctica activa asignada en este momento.
+                            </div>
+                        </div>
+
+                        <!-- Historial de Prácticas -->
+                        <div class="card card-custom p-4">
+                            <h5 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="bi bi-clock-history text-primary me-2"></i>Historial de Prácticas</h5>
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Práctica</th>
+                                            <th>Periodo</th>
+                                            <th>Centro</th>
+                                            <th class="text-center">Estado</th>
+                                            <th class="text-center">Nota</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="p : ${practicas}">
+                                            <td class="fw-semibold" th:text="'Práctica ' + ${p.numeroPractica}">Práctica 1</td>
+                                            <td th:text="${p.ano + '-' + p.semestre}">2026-1</td>
+                                            <td th:text="${p.centroPractica != null ? p.centroPractica.nombre : '—'}">Colegio</td>
+                                            <td class="text-center">
+                                                <span class="badge"
+                                                      th:classappend="${p.estado != null and p.estado.name() == 'APROBADA'} ? 'bg-success' : (${p.estado != null and p.estado.name() == 'REPROBADA'} ? 'bg-danger' : 'bg-warning text-dark')"
+                                                      th:text="${p.estado}">PENDIENTE</span>
+                                            </td>
+                                            <td class="text-center fw-bold" th:text="${p.notaAprobacion != null ? #numbers.formatDecimal(p.notaAprobacion, 1, 'POINT', 1, 'COMMA') : '—'}">6,0</td>
+                                        </tr>
+                                        <tr th:if="${practicas == null or practicas.isEmpty()}">
+                                            <td colspan="5" class="text-center text-muted py-3">Aún no registras historial de prácticas.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vista de Profesor / Tutor -->
+                <div th:if="${isProfesor}" class="row g-4">
+                    <div class="col-md-6">
+                        <div class="card card-custom p-4 h-100">
+                            <h5 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="bi bi-person-workspace text-primary me-2"></i>Información Departamental</h5>
+                            <ul class="list-unstyled d-flex flex-column gap-3 mb-0">
+                                <li>
+                                    <span class="text-muted d-block small">Departamento:</span>
+                                    <strong class="text-dark" th:text="${profesor != null and profesor.departamento != null ? profesor.departamento : 'Departamento de Ciencias de la Educación'}">Departamento de Ciencias de la Educación</strong>
+                                </li>
+                                <li>
+                                    <span class="text-muted d-block small">Grado Académico:</span>
+                                    <strong class="text-dark" th:text="${profesor != null and profesor.gradoAcademico != null ? profesor.gradoAcademico : 'No especificado'}">Magíster</strong>
+                                </li>
+                                <li>
+                                    <span class="text-muted d-block small">Oficina:</span>
+                                    <strong class="text-dark" th:text="${profesor != null and profesor.oficina != null ? profesor.oficina : 'No especificada'}">Oficina 102</strong>
+                                </li>
+                                <li>
+                                    <span class="text-muted d-block small">Horario de Atención:</span>
+                                    <strong class="text-dark" th:text="${profesor != null and profesor.horarioAtencion != null ? profesor.horarioAtencion : 'A convenir con estudiantes'}">Por definir</strong>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="card card-custom p-4 h-100">
+                            <h5 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="bi bi-people-fill text-primary me-2"></i>Estudiantes a Cargo</h5>
+                            <div class="d-flex flex-column gap-3">
+                                <div class="p-3 bg-light rounded-3 d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-0 fw-bold">Alumnos en Asignatura</h6>
+                                        <small class="text-muted">Prácticas que coordinas como docente</small>
+                                    </div>
+                                    <span class="badge bg-primary fs-5 px-3 py-2" th:text="${totalAlumnosProfesor}">0</span>
+                                </div>
+                                <div class="p-3 bg-light rounded-3 d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-0 fw-bold">Alumnos como Tutor</h6>
+                                        <small class="text-muted">Estudiantes bajo tu supervisión directa</small>
+                                    </div>
+                                    <span class="badge bg-info text-dark fs-5 px-3 py-2" th:text="${totalAlumnosTutor}">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- TAB 3: SEGURIDAD Y VERIFICACIÓN POR CORREO -->
+            <div class="tab-pane fade" id="tab-seguridad" role="tabpanel">
+                <div class="row g-4">
+
+                    <!-- TARJETA 1: CAMBIAR CONTRASEÑA -->
+                    <div class="col-lg-6">
+                        <div class="card card-custom p-4 h-100">
+                            <h4 class="fw-bold text-dark mb-1"><i class="bi bi-key-fill text-primary me-2"></i>Cambiar Contraseña</h4>
+                            <p class="text-muted small mb-4">Actualiza tu contraseña periódicamente para proteger tu cuenta institucional.</p>
+
+                            <form th:action="@{/perfil/cambiar-password}" method="post">
+                                <div class="mb-3">
+                                    <label for="passwordActual" class="form-label fw-semibold">Contraseña Actual *</label>
+                                    <input type="password" class="form-control" id="passwordActual" name="passwordActual" required autocomplete="current-password">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="passwordNueva" class="form-label fw-semibold">Nueva Contraseña *</label>
+                                    <input type="password" class="form-control" id="passwordNueva" name="passwordNueva" minlength="8" required autocomplete="new-password">
+                                    <div class="form-text">Mínimo 8 caracteres. Recomendamos usar mayúsculas, números y símbolos.</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="passwordConfirmar" class="form-label fw-semibold">Confirmar Nueva Contraseña *</label>
+                                    <input type="password" class="form-control" id="passwordConfirmar" name="passwordConfirmar" minlength="8" required autocomplete="new-password">
+                                </div>
+
+                                <div class="mb-4">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <label for="codigoPassword" class="form-label fw-semibold mb-0">Código de Verificación por Correo *</label>
+                                        <button type="button" id="btnEnviarCodigoPassword" class="btn btn-outline-primary btn-sm py-1 px-2 fw-semibold">
+                                            <i class="bi bi-send-fill me-1"></i> Enviar código al correo
+                                        </button>
+                                    </div>
+                                    <input type="text" class="form-control text-center fw-bold fs-5 letter-spacing-1" id="codigoPassword" name="codigo"
+                                           maxlength="6" pattern="[0-9]{6}" inputmode="numeric" placeholder="123456" required>
+                                    <div class="form-text">
+                                        El código de 6 dígitos se enviará a <span class="fw-semibold text-primary" th:text="${correoOculto}">tu correo institucional</span>.
+                                    </div>
+                                </div>
+
+                                <div class="text-end">
+                                    <button type="submit" class="btn btn-primary px-4 py-2 fw-bold shadow-sm">
+                                        <i class="bi bi-shield-check me-1"></i> Actualizar Contraseña
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- TARJETA 2: AUTENTICACIÓN EN DOS PASOS (2FA) -->
+                    <div class="col-lg-6">
+                        <div class="card card-custom p-4 h-100">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <h4 class="fw-bold text-dark mb-0"><i class="bi bi-envelope-shield text-primary me-2"></i>Autenticación en 2 Pasos (2FA)</h4>
+                            </div>
+                            <p class="text-muted small mb-4">Añade una capa de seguridad adicional mediante códigos de verificación enviados a tu correo.</p>
+
+                            <!-- ESTADO: YA ACTIVO -->
+                            <div th:if="${usuario.twoFactorEnabled}" class="text-center p-4 bg-success-subtle rounded-3 border border-success">
+                                <div class="d-inline-flex p-3 bg-success text-white rounded-circle mb-3 shadow-sm">
+                                    <i class="bi bi-shield-fill-check fs-1"></i>
+                                </div>
+                                <h5 class="fw-bold text-success mb-2">¡Tu cuenta está protegida con 2FA!</h5>
+                                <p class="text-muted small mb-4">
+                                    Tu cuenta cuenta con verificación de seguridad mediante códigos enviados a tu correo institucional <strong class="text-dark" th:text="${correoOculto}"></strong>.
+                                </p>
+
+                                <form th:action="@{/perfil/2fa/desactivar}" method="post" class="d-inline-block text-start w-100 max-w-sm">
+                                    <div class="mb-3">
+                                        <label for="passwordDesactivar" class="form-label fw-semibold small">Ingresa tu contraseña para desactivar:</label>
+                                        <input type="password" class="form-control form-control-sm" id="passwordDesactivar" name="password" required placeholder="Tu contraseña actual">
+                                    </div>
+                                    <button type="submit" class="btn btn-outline-danger w-100 btn-sm fw-semibold"
+                                            data-ubb-confirm="¿Seguro que deseas desactivar la autenticación en dos pasos?"
+                                            data-ubb-titulo="Desactivar 2FA"
+                                            data-ubb-boton="Sí, desactivar">
+                                        <i class="bi bi-shield-x me-1"></i> Desactivar 2FA
+                                    </button>
+                                </form>
+                            </div>
+
+                            <!-- ESTADO: INACTIVO (FORMULARIO PARA ACTIVAR) -->
+                            <div th:unless="${usuario.twoFactorEnabled}">
+                                <div class="alert alert-primary py-2 px-3 small mb-3 border-0 bg-primary bg-opacity-10 text-primary-emphasis d-flex align-items-center">
+                                    <i class="bi bi-envelope-check-fill fs-4 me-2 text-primary"></i>
+                                    <div>
+                                        Los códigos de verificación serán enviados directamente a tu correo institucional:
+                                        <strong class="d-block text-primary" th:text="${correoOculto}">tu correo institucional</strong>
+                                    </div>
+                                </div>
+
+                                <div class="card bg-light border p-3 text-center mb-3">
+                                    <span class="fw-bold text-dark mb-1 small d-block">Paso 1: Solicita el código a tu correo</span>
+                                    <p class="text-muted small mb-2">Presiona el botón para recibir tu código de 6 dígitos.</p>
+                                    <div>
+                                        <button type="button" id="btnEnviarCodigo2FA" class="btn btn-outline-primary btn-sm fw-semibold px-3">
+                                            <i class="bi bi-send-fill me-1"></i> Enviar código al correo
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <form th:action="@{/perfil/2fa/activar}" method="post">
+                                    <div class="mb-3">
+                                        <label for="codigo2fa" class="form-label fw-semibold small">Paso 2: Ingresa el código de 6 dígitos recibido</label>
+                                        <input type="text" class="form-control text-center fw-bold fs-5 letter-spacing-1" id="codigo2fa" name="codigo"
+                                               maxlength="6" pattern="[0-9]{6}" inputmode="numeric" placeholder="123456" required>
+                                    </div>
+
+                                    <button type="submit" class="btn btn-success w-100 py-2 fw-bold shadow-sm">
+                                        <i class="bi bi-shield-plus me-1"></i> Confirmar y Activar 2FA
+                                    </button>
+                                </form>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="ubb-footer compact">
+        <div class="container py-3 d-flex flex-column flex-md-row align-items-center justify-content-between gap-3 text-center text-md-start">
+            <div class="d-flex align-items-center gap-3">
+                <img th:src="@{/images/escudo-monocromatico-oscuro.png}" alt="Escudo Universidad del Bío-Bío" class="footer-logo">
+                <div>
+                    <div class="fw-bold">Universidad del Bío-Bío</div>
+                    <small>Escuela de Pedagogía en Educación Matemática</small>
+                </div>
+            </div>
+            <small>Plataforma de Prácticas · &copy; <span class="anio"></span></small>
+        </div>
+    </footer>
+
+    <!-- Popups UBB -->
+    <div th:if="${mensajeExito}" data-ubb-flash hidden
+         th:attr="data-mensaje=${mensajeExito},data-titulo=${tituloExito}"></div>
+    <div th:if="${errorMensaje}" data-ubb-flash hidden data-tipo="error"
+         th:attr="data-mensaje=${errorMensaje},data-titulo=${tituloError}"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/ubb-popup.js}"></script>
+    <script>
+        document.querySelectorAll('.anio').forEach(e => e.textContent = new Date().getFullYear());
+
+        // Manejo del hash en URL para abrir la pestaña correcta (ej: #seguridad)
+        const hash = window.location.hash;
+        if (hash === '#seguridad') {
+            const tabBtn = document.getElementById('seguridad-tab');
+            if (tabBtn) bootstrap.Tab.getOrCreateInstance(tabBtn).show();
+        } else if (hash === '#academico') {
+            const tabBtn = document.getElementById('academico-tab');
+            if (tabBtn) bootstrap.Tab.getOrCreateInstance(tabBtn).show();
+        }
+
+        // Manejo de envío de códigos por correo (cambio de password y 2FA)
+        function configurarEnvioCodigo(btnId, url) {
+            const btn = document.getElementById(btnId);
+            if (!btn) return;
+
+            btn.addEventListener('click', async function() {
+                btn.disabled = true;
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>Enviando...';
+
+                const csrfInput = document.querySelector('input[name="_csrf"]');
+                const headers = { 'X-Requested-With': 'XMLHttpRequest' };
+                if (csrfInput) {
+                    headers['X-CSRF-TOKEN'] = csrfInput.value;
+                }
+
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: headers
+                    });
+                    const data = await response.json();
+                    if (data.ok) {
+                        ubbPopup.exito(data.mensaje || 'Se ha enviado el código a tu correo institucional.', { titulo: '¡Código enviado!' });
+                        let segundos = 60;
+                        btn.innerHTML = `<i class="bi bi-clock me-1"></i>Reenviar (${segundos}s)`;
+                        const timer = setInterval(() => {
+                            segundos--;
+                            if (segundos <= 0) {
+                                clearInterval(timer);
+                                btn.disabled = false;
+                                btn.innerHTML = originalHtml;
+                            } else {
+                                btn.innerHTML = `<i class="bi bi-clock me-1"></i>Reenviar (${segundos}s)`;
+                            }
+                        }, 1000);
+                    } else {
+                        ubbPopup.error(data.mensaje || 'No se pudo enviar el código.', { titulo: 'Error al enviar' });
+                        btn.disabled = false;
+                        btn.innerHTML = originalHtml;
+                    }
+                } catch (err) {
+                    ubbPopup.error('Error de red o conexión al intentar enviar el código.', { titulo: 'Error de conexión' });
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                }
+            });
+        }
+
+        configurarEnvioCodigo('btnEnviarCodigoPassword', '/perfil/enviar-codigo-password');
+        configurarEnvioCodigo('btnEnviarCodigo2FA', '/perfil/enviar-codigo-2fa');
+    </script>
+</body>
+</html>

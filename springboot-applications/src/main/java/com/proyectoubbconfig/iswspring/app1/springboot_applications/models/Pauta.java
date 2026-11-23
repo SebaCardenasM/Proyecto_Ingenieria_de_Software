@@ -69,6 +69,37 @@ public class Pauta extends Documento {
         this.observaciones = observaciones;
     }
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_pauta")
+    private TipoPauta tipoPauta;
+
+    @Column(name = "numero_observacion")
+    private Integer numeroObservacion;
+
+    public TipoPauta getTipoPauta() {
+        return tipoPauta != null ? tipoPauta : TipoPauta.ESPECIALIDAD;
+    }
+
+    public void setTipoPauta(TipoPauta tipoPauta) {
+        this.tipoPauta = tipoPauta;
+    }
+
+    public Integer getNumeroObservacion() {
+        return numeroObservacion != null ? numeroObservacion : 1;
+    }
+
+    public void setNumeroObservacion(Integer numeroObservacion) {
+        this.numeroObservacion = numeroObservacion;
+    }
+
+    public String getIdentificadorSlot() {
+        return getTipoPauta().name() + "_" + getNumeroObservacion();
+    }
+
+    public int getPuntajeMaximo() {
+        return getTipoPauta().getPuntajeMaximo();
+    }
+
     public TipoEvaluador getTipoEvaluador() {
         return tipoEvaluador;
     }

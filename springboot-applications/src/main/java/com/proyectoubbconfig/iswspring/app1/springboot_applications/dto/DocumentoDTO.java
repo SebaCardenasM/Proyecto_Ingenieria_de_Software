@@ -5,6 +5,7 @@ import java.util.Comparator;
 
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Documento;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Estudiante;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Informe;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Pauta;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Planificacion;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Practica;
@@ -20,9 +21,13 @@ public record DocumentoDTO(
         Integer anoPractica,
         Integer semestrePractica,
         String tipoEvaluador,
-        String estado,          // BORRADOR | ENVIADO
-        boolean revisadoIa,     // pasó por el asistente
-        String comentarioProfesor,
+
+        String estado,              // BORRADOR | ENVIADO
+        boolean revisadoIa,         // pasó por el asistente
+        String estadoRevision ,   // PENDIENTE | REVISADA | CON_PAUTAS | EVALUADO (null en otros tipos)
+        String comentarioProfesor,   
+        Double nota,                // solo informes evaluados
+        String retroalimentacion,   // solo informes evaluados (opcional)
         EstudianteResumen estudiante
 ) {
 
@@ -62,6 +67,19 @@ public record DocumentoDTO(
             }
         }
 
+        // Estado de revisión según el tipo de documento
+        String estadoRevision = null;
+        Double nota = null;
+        String retroalimentacion = null;
+        if (d instanceof Informe inf) {
+            nota = inf.getNota();
+            retroalimentacion = inf.getRetroalimentacion();
+            estadoRevision = nota != null ? "EVALUADO" : "PENDIENTE";
+        } else if (d instanceof Planificacion pl) {
+            estadoRevision = pl.isEvaluaConPautas() ? "CON_PAUTAS"
+                    : (pl.isRevisada() ? "REVISADA" : "PENDIENTE");
+        }
+
         return new DocumentoDTO(
                 d.getId(),
                 d.getNombreArchivo(),
@@ -75,6 +93,9 @@ public record DocumentoDTO(
                 d.getEstado().name(),
                 d.isRevisadoIa(),
                 d instanceof Planificacion pl ? pl.getComentarioProfesor() : null,
+                estadoRevision,
+                nota,
+                retroalimentacion,
                 e == null ? null : new EstudianteResumen(e.getRut(), e.getNombre(), e.getApellido(), e.getAnoIngreso())
         );
     }

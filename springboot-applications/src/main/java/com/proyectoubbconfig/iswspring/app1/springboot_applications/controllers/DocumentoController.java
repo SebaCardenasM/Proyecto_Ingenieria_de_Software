@@ -9,13 +9,16 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.dto.DocumentoDTO;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.dto.EvaluacionInformeDTO;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Documento;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Informe;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.TipoDocumento;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.services.DocumentoService;
 
@@ -58,9 +61,20 @@ public class DocumentoController {
     public ResponseEntity<?> subirPautaTutor(
             @RequestParam("archivo") MultipartFile archivo,
             @RequestParam("idPractica") Long idPractica) {
+        return ResponseEntity.badRequest().body("La subida de pautas en formato PDF/Word ha sido deshabilitada. Las evaluaciones deben registrarse exclusivamente a través del formulario digital en línea para automatizar el cálculo de notas.");
+    }
+
+    @PostMapping("/evaluar-informe/{id}")
+    @Transactional
+    public ResponseEntity<?> evaluarInforme(
+            @PathVariable Long id,
+            @RequestBody EvaluacionInformeDTO request) {
         try {
-            Documento guardado = documentoService.subirPautaTutor(archivo, idPractica);
-            return ResponseEntity.ok(DocumentoDTO.desde(guardado));
+            if (request == null || request.nota() == null) {
+                return ResponseEntity.badRequest().body("Debes ingresar una nota válida.");
+            }
+            Informe informeEvaluado = documentoService.evaluarInforme(id, request.nota(), request.retroalimentacion());
+            return ResponseEntity.ok(DocumentoDTO.desde(informeEvaluado));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

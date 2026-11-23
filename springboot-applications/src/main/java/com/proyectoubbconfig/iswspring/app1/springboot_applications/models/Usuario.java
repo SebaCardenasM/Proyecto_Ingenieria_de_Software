@@ -21,6 +21,16 @@ public abstract class Usuario {
     @Column(unique = true, nullable = false)
     private String correo;
     private String telefono;
+    private String correoSecundario;
+    private String ciudad;
+
+    @Column(length = 1000)
+    private String biografia;
+
+    @Column(nullable = false)
+    private boolean twoFactorEnabled = false;
+
+    private String twoFactorSecret;
 
     @Column(nullable = false)
     @JsonIgnore
@@ -79,4 +89,19 @@ public abstract class Usuario {
 
     public String getTelefono() { return telefono; }
     public void setTelefono(String telefono) { this.telefono = telefono; }
+
+    public String getCorreoSecundario() { return correoSecundario; }
+    public void setCorreoSecundario(String correoSecundario) { this.correoSecundario = correoSecundario; }
+
+    public String getCiudad() { return ciudad; }
+    public void setCiudad(String ciudad) { this.ciudad = ciudad; }
+
+    public String getBiografia() { return biografia; }
+    public void setBiografia(String biografia) { this.biografia = biografia; }
+
+    public boolean isTwoFactorEnabled() { return twoFactorEnabled; }
+    public void setTwoFactorEnabled(boolean twoFactorEnabled) { this.twoFactorEnabled = twoFactorEnabled; }
+
+    public String getTwoFactorSecret() { return twoFactorSecret; }
+    public void setTwoFactorSecret(String twoFactorSecret) { this.twoFactorSecret = twoFactorSecret; }
 }

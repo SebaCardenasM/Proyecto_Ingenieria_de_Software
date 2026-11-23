@@ -34,10 +34,15 @@
                     <small class="text-white-50 mt-1" style="font-size: 0.75rem;" th:text="${#strings.arrayJoin(rolesUsuario, ', ')}">COORDINADOR</small>
                 </div>
 
+                <!-- Mi Perfil -->
+                <a th:href="@{/perfil}" class="btn btn-outline-light btn-sm me-2" title="Mi Perfil">
+                    <i class="bi bi-person-gear"></i> Mi Perfil
+                </a>
+
                 <!-- Botón de cambio de rol si posee más de uno -->
                 <div th:if="${rolesUsuario != null and rolesUsuario.size() > 1}" class="me-2">
-                    <a th:href="@{/seleccionar-rol}" class="btn btn-outline-light btn-sm" title="Cambiar de perfil">
-                        <i class="bi bi-person-gear"></i> Cambiar Perfil
+                    <a th:href="@{/seleccionar-rol}" class="btn btn-outline-light btn-sm" title="Cambiar de rol">
+                        <i class="bi bi-arrow-repeat"></i> Cambiar Rol
                     </a>
                 </div>
 
@@ -143,27 +148,42 @@
                 </div>
             </div>
 
-            <!-- 4. Portafolio del Estudiante -->
+            <!-- 4. Portafolio del Estudiante y Evaluación Ponderada -->
             <div class="col-md-6">
                 <div class="card ubb-card accent-amber" style="--i:3">
                     <div class="card-body">
                         <div class="d-flex align-items-center mb-3">
                             <div class="icon-bubble"><i class="bi bi-person-vcard"></i></div>
-                            <h4 class="card-title mb-0">Portafolio Estudiantil</h4>
+                            <h4 class="card-title mb-0">Portafolio y Evaluación</h4>
                         </div>
-                        <p class="card-text text-muted mb-4">Registro consolidado del desempeño de cada alumno a lo largo de sus ciclos de práctica.</p>
-                        <div class="d-grid gap-2">
-                            <a th:href="@{/portafolios}" class="btn btn-outline-warning text-dark">
-                                <i class="bi bi-journal-bookmark me-1"></i> Ver Perfiles de Estudiantes
-                            </a>
-                            <a th:href="@{/practicas/notas}" class="btn btn-outline-warning text-dark">
-                                <i class="bi bi-table me-1"></i> Notas Estudiantiles
-                            </a>
+                        <p class="card-text text-muted mb-4">Registro consolidado del desempeño, notas estudiantiles y ponderaciones (%) por práctica.</p>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <div class="d-grid gap-2">
+                                    <a th:href="@{/portafolios}" class="btn btn-outline-warning text-dark w-100">
+                                        <i class="bi bi-journal-bookmark me-1"></i> Perfiles
+                                    </a>
+                                    <a th:href="@{/practicas/notas}" class="btn btn-outline-warning text-dark w-100">
+                                        <i class="bi bi-table me-1"></i> Notas Estudiantiles
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="d-grid gap-2">
+                                    <a th:href="@{/evaluacion/configuracion}" class="btn btn-outline-warning text-dark w-100">
+                                        <i class="bi bi-sliders me-1"></i> Ponderaciones (%)
+                                    </a>
+                                    <a th:href="@{/evaluacion/listado}" class="btn btn-outline-warning text-dark w-100">
+                                        <i class="bi bi-calculator me-1"></i> Evaluar Prácticas
+                                    </a>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-                        <!-- 5. Monitoreo del Asistente IA -->
+
+            <!-- 5. Monitoreo del Asistente IA -->
             <div class="col-md-6">
                 <div class="card ubb-card accent-cyan" style="--i:4">
                     <div class="card-body">
@@ -180,6 +200,7 @@
                     </div>
                 </div>
             </div>
+
             <!-- 6. Profesores Colaboradores -->
             <div class="col-md-6">
                 <div class="card ubb-card accent-blue" style="--i:5">
@@ -203,7 +224,7 @@
         </div>
     </main>
 
-        <!-- Popup de confirmación (mensaje enviado por el controlador) -->
+    <!-- Popup de confirmación (mensaje enviado por el controlador) -->
     <div th:if="${mensajeExito}" data-ubb-flash hidden
          th:attr="data-mensaje=${mensajeExito},data-titulo=${tituloExito}"></div>
     <script th:src="@{/js/ubb-popup.js}"></script>
@@ -225,7 +246,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>document.querySelectorAll('.anio').forEach(e => e.textContent = new Date().getFullYear());</script>
 
-     <!-- Asistente (solo consultas) -->
+    <!-- Asistente (solo consultas) -->
     <div th:replace="~{fragments/chatbot :: chatbot(false)}"></div>
 </body>
 </html>

@@ -1,13 +1,16 @@
 package com.proyectoubbconfig.iswspring.app1.springboot_applications.controllers;
 
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.dto.BloquePautasDTO;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Documento;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Pauta;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Practica;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.TipoDocumento;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.TipoEvaluador;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.TipoPauta;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.DocumentoRepository;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.PracticaRepository;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.UsuarioRepository;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.services.EvaluacionPracticaService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -39,6 +42,9 @@ public class TutorController {
 
     @Autowired
     private DocumentoRepository documentoRepository;
+
+    @Autowired
+    private EvaluacionPracticaService evaluacionPracticaService;
 
     /* 1. Mostrar la lista de alumnos asignados al tutor */
     @GetMapping("/alumnos")
@@ -98,9 +104,12 @@ public class TutorController {
                     }
                 }
 
+                List<BloquePautasDTO> bloquesPautas = evaluacionPracticaService.obtenerBloquesPautasParaTutor(practica);
+
                 model.addAttribute("practica", practica);
                 model.addAttribute("estudiante", practica.getEstudiante());
                 model.addAttribute("pautasOnline", pautasOnline);
+                model.addAttribute("bloquesPautas", bloquesPautas);
                 return "Tutor/perfil-estudiante-tutor";
             }
         }
@@ -111,7 +120,12 @@ public class TutorController {
     /* 3. Mostrar la pauta de evaluación interactiva en blanco */
     @GetMapping("/estudiante/{idPractica}/pauta-interactiva")
     @Transactional(readOnly = true)
-    public String mostrarPautaInteractiva(@PathVariable Long idPractica, Model model, Authentication authentication) {
+    public String mostrarPautaInteractiva(
+            @PathVariable Long idPractica,
+            @RequestParam(required = false, defaultValue = "ESPECIALIDAD") String tipoPauta,
+            @RequestParam(required = false, defaultValue = "1") Integer numObs,
+            Model model,
+            Authentication authentication) {
         String rutTutor = authentication.getName();
         cargarDatosUsuario(model, rutTutor);
 
@@ -129,9 +143,15 @@ public class TutorController {
                 }
                 practica.getTutor().getNombre();
 
+                TipoPauta tipoEnum = "ORIENTACION".equalsIgnoreCase(tipoPauta) ? TipoPauta.ORIENTACION : TipoPauta.ESPECIALIDAD;
+                int obs = (numObs != null && numObs == 2) ? 2 : 1;
+
                 model.addAttribute("practica", practica);
                 model.addAttribute("estudiante", practica.getEstudiante());
                 model.addAttribute("modoLectura", false);
+                model.addAttribute("tipoPauta", tipoEnum.name());
+                model.addAttribute("numeroObservacion", obs);
+                model.addAttribute("tituloPauta", resolverTituloPauta(practica, tipoEnum, obs));
                 return "Tutor/pauta_observacion_interactiva";
             }
         }
@@ -145,6 +165,8 @@ public class TutorController {
     public String guardarPautaInteractiva(
             @PathVariable Long idPractica,
             @RequestParam(required = false) Long idPauta,
+            @RequestParam(required = false, defaultValue = "ESPECIALIDAD") String tipoPauta,
+            @RequestParam(required = false, defaultValue = "1") Integer numObs,
             @RequestParam(required = false) String curso,
             @RequestParam(required = false) String fechaObservacion,
             @RequestParam(required = false) String horaInicio,
@@ -180,10 +202,14 @@ public class TutorController {
                     return "redirect:/tutor/estudiante/" + idPractica;
                 }
 
+                TipoPauta tipoEnum = "ORIENTACION".equalsIgnoreCase(tipoPauta) ? TipoPauta.ORIENTACION : TipoPauta.ESPECIALIDAD;
+                int obs = (numObs != null && numObs == 2) ? 2 : 1;
+                int totalCriterios = tipoEnum.getTotalCriterios();
+
                 List<Integer> respuestas = new ArrayList<>();
                 double sumaPuntaje = 0;
 
-                for (int i = 1; i <= 20; i++) {
+                for (int i = 1; i <= totalCriterios; i++) {
                     String val = request.getParameter("criterion" + i);
                     if (val != null && !val.isBlank()) {
                         int pts = Integer.parseInt(val);
@@ -212,7 +238,11 @@ public class TutorController {
                 pauta.setEstudiante(practica.getEstudiante());
                 pauta.setNumeroPractica(practica.getNumeroPractica());
                 pauta.setTipoDocumento(TipoDocumento.PAUTA);
-                pauta.setNombreArchivo("Pauta Online - " + cursoTexto + (fechaTexto.isEmpty() ? "" : " (" + fechaTexto + ")"));
+                pauta.setTipoPauta(tipoEnum);
+                pauta.setNumeroObservacion(obs);
+
+                String etiquetaTipo = (tipoEnum == TipoPauta.ORIENTACION ? "Orientación" : "Especialidad") + " (Obs. " + obs + ")";
+                pauta.setNombreArchivo("Pauta Tutor " + etiquetaTipo + " - " + cursoTexto + (fechaTexto.isEmpty() ? "" : " (" + fechaTexto + ")"));
                 pauta.setFechaSubida(LocalDateTime.now());
                 pauta.setRutaServidor("ENVIAR".equalsIgnoreCase(accion) ? "ONLINE_ENVIADA" : "ONLINE_BORRADOR");
 
@@ -224,8 +254,9 @@ public class TutorController {
                 documentoRepository.save(pauta);
 
                 if ("ENVIAR".equalsIgnoreCase(accion)) {
+                    evaluacionPracticaService.obtenerOAsegurarEvaluacionPractica(practica);
                     redirectAttributes.addFlashAttribute("tituloExito", "¡Pauta enviada!");
-                    redirectAttributes.addFlashAttribute("mensajeExito", "La pauta fue enviada exitosamente al estudiante.");
+                    redirectAttributes.addFlashAttribute("mensajeExito", "La pauta fue enviada exitosamente al estudiante y sincronizada con sus componentes de evaluación.");
                 } else {
                     redirectAttributes.addFlashAttribute("tituloExito", "¡Borrador guardado!");
                     redirectAttributes.addFlashAttribute("mensajeExito", "La pauta se guardó exitosamente como borrador.");
@@ -268,15 +299,32 @@ public class TutorController {
             }
 
             boolean esModoLectura = "ONLINE_ENVIADA".equals(pauta.getRutaServidor());
+            TipoPauta tipoEnum = pauta.getTipoPauta() != null ? pauta.getTipoPauta() : TipoPauta.ESPECIALIDAD;
+            int obs = pauta.getNumeroObservacion() != null ? pauta.getNumeroObservacion() : 1;
 
             model.addAttribute("pauta", pauta);
             model.addAttribute("practica", practica);
             model.addAttribute("estudiante", practica.getEstudiante());
             model.addAttribute("modoLectura", esModoLectura);
+            model.addAttribute("tipoPauta", tipoEnum.name());
+            model.addAttribute("numeroObservacion", obs);
+            model.addAttribute("tituloPauta", resolverTituloPauta(practica, tipoEnum, obs));
             return "Tutor/pauta_observacion_interactiva";
         }
 
         return "redirect:/tutor/alumnos";
+    }
+
+    private String resolverTituloPauta(Practica practica, TipoPauta tipo, int numObs) {
+        int numPractica = practica != null && practica.getNumeroPractica() != null ? practica.getNumeroPractica() : 1;
+        if (numPractica == 3 || numPractica == 4) {
+            return "PAUTA DE EVALUACIÓN PARA LA OBSERVACIÓN DE CLASE DE MATEMÁTICA ACADÉMICA(O) UBB";
+        }
+        String ordinal = (numObs == 2) ? "SEGUNDA" : "PRIMERA";
+        if (tipo == TipoPauta.ORIENTACION) {
+            return ordinal + " PAUTA DE EVALUACIÓN ORIENTACIÓN TUTOR(A)";
+        }
+        return ordinal + " PAUTA DE EVALUACIÓN ESPECIALIDAD TUTOR-A";
     }
 
     private String escaparJson(String texto) {

@@ -23,14 +23,17 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
             .authorizeHttpRequests(auth -> auth
-                // Públicas: estáticos, login, recuperación de contraseña y acceso por token del colaborador
+                // Públicas: estáticos, login, 2FA, recuperación de contraseña y acceso por token del colaborador
                 .requestMatchers("/css/**", "/js/**", "/images/**",
-                                "/login", "/recuperar/**", "/evaluacion-colaborador/**").permitAll()
+                                "/login", "/login-2fa/**", "/recuperar/**", "/evaluacion-colaborador/**").permitAll()
+
+                // Ver perfiles de estudiantes y profesores (coordinador, profesor de asignatura y tutor)
+                .requestMatchers("/perfil/estudiante/**", "/perfil/profesor/**").hasAnyRole("COORDINADOR", "PROFESOR_ASIGNATURA", "TUTOR")
 
                 // Cualquier usuario autenticado (el acceso fino a /uploads lo valida el interceptor)
-                .requestMatchers("/seleccionar-rol", "/uploads/**").authenticated()
+                .requestMatchers("/seleccionar-rol", "/uploads/**", "/perfil", "/perfil/**").authenticated()
 
-               // API de documentos: cada endpoint con su rol
+                // API de documentos: cada endpoint con su rol
                 .requestMatchers(HttpMethod.POST, "/api/documentos/subir", "/api/documentos/subir-tutor").hasAnyRole("ESTUDIANTE", "TUTOR", "PROFESOR_ASIGNATURA")
 
                 // Paso 3 de la cadena: solo el estudiante envía sus borradores al gestor
@@ -46,14 +49,21 @@ public class SecurityConfig {
                     .hasAnyRole("PROFESOR_ASIGNATURA", "TUTOR", "COORDINADOR")
                 .requestMatchers("/api/documentos/todos").hasRole("COORDINADOR")
 
+                // Evaluar informes: profesor de asignatura o coordinador (el servicio valida además que le corresponda el estudiante)
+                .requestMatchers(HttpMethod.POST, "/api/documentos/evaluar-informe/**").hasAnyRole("PROFESOR_ASIGNATURA", "COORDINADOR")
+
                 // Chatbot
                 .requestMatchers(HttpMethod.POST, "/api/chat/preguntar").authenticated()
                 // Paso 2 de la cadena: revisión de borradores (solo estudiantes)
                 .requestMatchers(HttpMethod.POST, "/api/chat/revisar/**").hasRole("ESTUDIANTE")
                 .requestMatchers(HttpMethod.GET, "/api/chat/historial").authenticated()
                 .requestMatchers(HttpMethod.POST, "/api/chat/resumen/**").hasAnyRole("COORDINADOR", "PROFESOR_ASIGNATURA")
+
                 // Cualquier otro endpoint de la API queda bloqueado (debe ir DESPUÉS de definir las rutas de /api/ permitidas)
                 .requestMatchers("/api/**").denyAll()
+
+                // Evaluación ponderada por componentes (Coordinador y Profesor de Asignatura)
+                .requestMatchers("/evaluacion/**").hasAnyRole("COORDINADOR", "PROFESOR_ASIGNATURA")
 
                 // Paneles por rol (lo específico va antes que lo general)
                 .requestMatchers("/estudiante/**").hasRole("ESTUDIANTE")

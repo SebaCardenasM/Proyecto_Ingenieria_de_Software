@@ -45,4 +45,35 @@ public class CentroPractica {
 
     public List<Practica> getPracticas() { return practicas; }
     public void setPracticas(List<Practica> practicas) { this.practicas = practicas; }
+
+    @Transient
+    public String getDireccion() {
+        StringBuilder sb = new StringBuilder();
+        if (calle != null && !calle.trim().isEmpty()) {
+            sb.append(calle.trim());
+        }
+        if (numero != null && !numero.trim().isEmpty()) {
+            if (!sb.isEmpty()) sb.append(" #");
+            sb.append(numero.trim());
+        }
+        return sb.toString();
+    }
+
+    @Transient
+    public String getDireccionCompleta() {
+        StringBuilder sb = new StringBuilder();
+        String dir = getDireccion();
+        if (!dir.isEmpty()) {
+            sb.append(dir);
+        }
+        if (comuna != null && !comuna.trim().isEmpty()) {
+            if (!sb.isEmpty()) sb.append(" · ");
+            sb.append(comuna.trim());
+        }
+        if (region != null && !region.trim().isEmpty()) {
+            if (!sb.isEmpty()) sb.append(", ");
+            sb.append(region.trim());
+        }
+        return sb.toString();
+    }
 }

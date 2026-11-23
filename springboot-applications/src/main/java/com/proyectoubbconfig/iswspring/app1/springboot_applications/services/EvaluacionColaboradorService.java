@@ -22,6 +22,7 @@ import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Plani
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Practica;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.TipoDocumento;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.TipoEvaluador;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.TipoPauta;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.ColaboradorRepository;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.EnlaceEvaluacionRepository;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.NotificacionRepository;
@@ -72,7 +73,19 @@ public class EvaluacionColaboradorService {
     @Autowired
     private NotificacionRepository notificacionRepository;
 
+    @Autowired
+    private EvaluacionPracticaService evaluacionPracticaService;
+
     // ------------------------------------------------------------------ validar enlace
+
+    @Transactional(readOnly = true)
+    public Practica obtenerPracticaDeToken(String token) {
+        if (token == null || token.isBlank()) return null;
+        EnlaceEvaluacion enlace = enlaceRepository.findByToken(token).orElse(null);
+        if (enlace == null || enlace.getPractica() == null) return null;
+        Long id = enlace.getPractica().getId();
+        return (id != null) ? practicaRepository.findById(id).orElse(null) : null;
+    }
 
     @Transactional(readOnly = true)
     public Validacion validar(String token) {
@@ -139,6 +152,26 @@ public class EvaluacionColaboradorService {
         Practica pr = enlace.getPractica();
         Estudiante estudiante = pr.getEstudiante();
 
+        // ---- pauta seleccionada (identificador)
+        String identificadorPauta = requerido(p, "identificadorPauta", 50, "Pauta a evaluar");
+        TipoPauta tipoPauta = identificadorPauta.toUpperCase().contains("ORIENTACION")
+                ? TipoPauta.ORIENTACION
+                : TipoPauta.ESPECIALIDAD;
+        int numObs = identificadorPauta.contains("2") ? 2 : 1;
+        int totalCriterios = tipoPauta.getTotalCriterios();
+
+        // Validar que esta pauta no haya sido enviada ya para este estudiante
+        final TipoPauta tpFinal = tipoPauta;
+        final int noFinal = numObs;
+        boolean yaEnviada = pautaRepository.findByPracticaId(pr.getId()).stream()
+                .filter(pa -> pa.getTipoEvaluador() == TipoEvaluador.PROFESOR_COLABORADOR)
+                .filter(pa -> "ONLINE_ENVIADA".equalsIgnoreCase(pa.getRutaServidor()))
+                .anyMatch(pa -> pa.getTipoPauta() == tpFinal && pa.getNumeroObservacion() != null && pa.getNumeroObservacion() == noFinal);
+
+        if (yaEnviada) {
+            throw new IllegalArgumentException("La pauta seleccionada ya fue completada y enviada previamente para este estudiante.");
+        }
+
         // ---- campos de la clase observada
         String curso = requerido(p, "curso", 100, "Curso");
         String objetivo = requerido(p, "objetivoClase", 2000, "Objetivo de la clase");
@@ -163,7 +196,7 @@ public class EvaluacionColaboradorService {
 
         // ---- criterios (1 a 7)
         int suma = 0;
-        for (int i = 1; i <= TOTAL_CRITERIOS; i++) {
+        for (int i = 1; i <= totalCriterios; i++) {
             int valor;
             try {
                 valor = Integer.parseInt(p.getOrDefault("criterion" + i, "").trim());
@@ -215,7 +248,11 @@ public class EvaluacionColaboradorService {
         pauta.setEstudiante(estudiante);
         pauta.setNumeroPractica(pr.getNumeroPractica());
         pauta.setTipoDocumento(TipoDocumento.PAUTA);
-        pauta.setNombreArchivo("Pauta Colaborador - " + curso + " (" + fecha + ")");
+        pauta.setTipoPauta(tipoPauta);
+        pauta.setNumeroObservacion(numObs);
+
+        String nombreTipo = (tipoPauta == TipoPauta.ORIENTACION ? "Orientación" : "Especialidad") + " (Obs. " + numObs + ")";
+        pauta.setNombreArchivo("Pauta Colaborador " + nombreTipo + " - " + curso + " (" + fecha + ")");
         pauta.setFechaSubida(LocalDateTime.now());
         pauta.setRutaServidor("ONLINE_ENVIADA");
         pauta.setPuntajeObtenido((double) suma);
@@ -229,6 +266,9 @@ public class EvaluacionColaboradorService {
         enlace.setFechaUso(LocalDateTime.now());
         enlace.setPautaId(pauta.getId());
         enlaceRepository.save(enlace);
+
+        // Sincronizar automáticamente la nota en componentes de evaluación
+        evaluacionPracticaService.obtenerOAsegurarEvaluacionPractica(pr);
 
         // ---- aviso al estudiante
         notificacionRepository.save(new Notificacion(

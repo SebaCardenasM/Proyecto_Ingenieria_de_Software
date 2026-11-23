@@ -102,8 +102,10 @@
                         </button>
                         <button th:unless="${revisionIaObligatoria}" type="submit" name="accion" value="ENVIAR"
                                 class="btn btn-success fw-semibold"
+
                                 onclick="return confirm('¿Enviar la planificación a tu profesor para revisión?\nNo podrás modificarla mientras la revisa.')">
                             <i class="bi bi-send-check me-1"></i>Enviar a revisión
+
                         </button>
                     </th:block>
                 </div>
@@ -113,5 +115,6 @@
             </form>
         </div></div>
     </div>
+    <script th:src="@{/js/ubb-popup.js}"></script>
 </body>
 </html>

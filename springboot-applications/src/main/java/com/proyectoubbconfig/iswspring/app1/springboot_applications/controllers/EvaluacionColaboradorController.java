@@ -1,9 +1,11 @@
 package com.proyectoubbconfig.iswspring.app1.springboot_applications.controllers;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,10 +15,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import jakarta.servlet.http.HttpServletResponse;
 
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.dto.PautaSlotDTO;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Practica;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.services.EvaluacionColaboradorService;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.services.EvaluacionColaboradorService.EnlaceNoDisponibleException;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.services.EvaluacionColaboradorService.Estado;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.services.EvaluacionColaboradorService.Validacion;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.services.EvaluacionPracticaService;
 
 /**
  * Formulario público del profesor colaborador (sin login). La ruta /evaluacion-colaborador/**
@@ -29,10 +34,14 @@ public class EvaluacionColaboradorController {
     @Autowired
     private EvaluacionColaboradorService servicio;
 
-        @GetMapping("/{token}")
-        public String mostrar(@PathVariable String token, Model model, HttpServletResponse response) {
-            response.setHeader("Cache-Control", "no-store");
-            Validacion v = servicio.validar(token);
+    @Autowired
+    private EvaluacionPracticaService evaluacionPracticaService;
+
+    @GetMapping("/{token}")
+    @Transactional(readOnly = true)
+    public String mostrar(@PathVariable String token, Model model, HttpServletResponse response) {
+        response.setHeader("Cache-Control", "no-store");
+        Validacion v = servicio.validar(token);
         if (v.estado() != Estado.OK) {
             return paginaEstado(model, v.estado().name());
         }
@@ -60,8 +69,21 @@ public class EvaluacionColaboradorController {
     }
 
     private void cargarFormulario(Model model, String token, Validacion v, String error, Map<String, String> valores) {
+        Practica practica = servicio.obtenerPracticaDeToken(token);
+        List<PautaSlotDTO> opcionesPauta = practica != null
+                ? evaluacionPracticaService.obtenerSlotsParaColaborador(practica)
+                : List.of();
+        String nombreAsignatura = practica != null
+                ? evaluacionPracticaService.nombreAsignatura(practica.getNumeroPractica() != null ? practica.getNumeroPractica() : 1)
+                : "";
+        boolean todasCompletadas = !opcionesPauta.isEmpty() && opcionesPauta.stream().allMatch(PautaSlotDTO::isCompletada);
+
         model.addAttribute("token", token);
         model.addAttribute("datos", v.datos());
+        model.addAttribute("practica", practica);
+        model.addAttribute("nombreAsignatura", nombreAsignatura);
+        model.addAttribute("opcionesPauta", opcionesPauta);
+        model.addAttribute("todasCompletadas", todasCompletadas);
         model.addAttribute("modoLectura", false);
         model.addAttribute("pautaJson", valores != null ? servicio.armarJson(valores) : "");
         model.addAttribute("valores", valores);

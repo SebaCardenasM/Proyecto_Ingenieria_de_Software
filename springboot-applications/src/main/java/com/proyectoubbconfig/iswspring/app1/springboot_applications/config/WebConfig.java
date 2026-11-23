@@ -12,6 +12,9 @@ public class WebConfig implements WebMvcConfigurer {
     @Autowired
     private UploadAccessInterceptor uploadAccessInterceptor;
 
+    @Autowired
+    private TwoFactorInterceptor twoFactorInterceptor;
+
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/uploads/**")
@@ -21,5 +24,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(uploadAccessInterceptor).addPathPatterns("/uploads/**");
+        registry.addInterceptor(twoFactorInterceptor).addPathPatterns("/**")
+                .excludePathPatterns("/css/**", "/js/**", "/images/**", "/login", "/login-2fa/**", "/logout");
     }
 }

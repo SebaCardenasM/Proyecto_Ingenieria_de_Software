@@ -223,6 +223,7 @@
                                     </button>
                                 </td>
 
+
                                 <!-- Enlace colaborador (aquí vive también «Nuevo enlace») -->
                                 <td>
                                     <div th:switch="${f.estadoEnlace}">
@@ -243,8 +244,10 @@
                                         <button type="submit" class="btn btn-link btn-nuevo-enlace" title="Generar un enlace nuevo">
                                             <i class="bi bi-arrow-repeat"></i> Nuevo enlace
                                         </button>
+
                                     </form>
                                 </td>
+
 
                                 <!-- TICK 1: Autorizar clase -->
                                 <td class="text-center col-tick">
@@ -302,6 +305,7 @@
                                               th:action="@{/profesor/planificaciones/{id}/pautas(id=${f.id})}" method="post" class="d-inline"
                                               onsubmit="return confirm('¿Esta clase se evaluará con pautas?\n\nSe avisará al estudiante y se generará un enlace temporal para su profesor colaborador.');">
                                             <button type="submit" class="tick-btn" title="Indicar que la clase se evaluará con pautas"><i class="bi bi-check-lg"></i></button>
+
                                         </form>
 
                                         <!-- Marcada -->
