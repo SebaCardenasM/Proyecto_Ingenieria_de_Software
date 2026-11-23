@@ -29,7 +29,7 @@ public class PlanificacionOnlineService {
     @Autowired private PlanificacionRepository planificacionRepository;
     @Autowired private EstudianteRepository estudianteRepository;
     @Autowired private PracticaRepository practicaRepository;
-
+    @Autowired private PlanificacionPdfService pdfService;
     /**
      * Crea o actualiza la planificación en línea del estudiante.
      * enviar=false -> BORRADOR (sin exigir campos); enviar=true -> ENVIADO (valida los obligatorios).
@@ -107,6 +107,11 @@ public class PlanificacionOnlineService {
         p.setRevisadoIa(false);          // el contenido cambió: hay que revisarlo de nuevo
         p.setRevisionIa(null);
         p.setFechaRevisionIa(null);
-        return planificacionRepository.save(p);
+        Planificacion guardada = planificacionRepository.save(p);
+        if (enviar) {
+            guardada.setRutaServidor(pdfService.generar(guardada));
+            guardada = planificacionRepository.save(guardada);
+        }
+        return guardada;
     }
 }
