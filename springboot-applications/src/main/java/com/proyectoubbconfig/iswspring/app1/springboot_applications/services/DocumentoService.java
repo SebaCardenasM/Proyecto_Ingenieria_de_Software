@@ -48,12 +48,12 @@ public class DocumentoService {
 
     @Autowired
     private DocumentoRepository documentoRepository;
-
     @Autowired
     private UsuarioRepository usuarioRepository;
-
     @Autowired
     private com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.PracticaRepository practicaRepository;
+    @Autowired
+    private PlanificacionPdfService planificacionPdfService;
 
     private final String CARPETA_SUBIDAS = "uploads/practicas/";
 
@@ -220,12 +220,13 @@ public class DocumentoService {
             throw new Exception("Antes de enviarlo debes pasar el documento por la revisión del asistente.");
         }
 
-        // ===== CAMBIO 3: si es una planificación en línea, exige los campos obligatorios =====
+
         if (documento instanceof Planificacion pl && pl.isOnline()) {
             List<String> faltan = CamposPlanificacion.faltantes(pl.getCampos());
             if (!faltan.isEmpty()) {
                 throw new Exception("Completa antes de enviar: " + String.join(", ", faltan) + ".");
             }
+            pl.setRutaServidor(planificacionPdfService.generar(pl));   // ← nuevo
         }
 
         documento.setEstado(EstadoDocumento.ENVIADO);
