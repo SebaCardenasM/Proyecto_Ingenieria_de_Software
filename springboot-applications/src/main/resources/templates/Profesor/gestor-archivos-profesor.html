@@ -307,6 +307,10 @@
                         <i class="bi bi-clipboard2-check me-1"></i>Evaluar informe
                     </button>` : '';
 
+                const esOnline = archivo.rutaServidor && archivo.rutaServidor.startsWith('ONLINE_');
+                const iconoAccion = esOnline ? 'bi bi-eye' : 'bi bi-download';
+                const tituloAccion = esOnline ? 'Ver planificación' : 'Descargar/Ver Documento';
+
                 const fila = `
                     <tr>
                         <td class="ps-4 fw-semibold text-primary">
@@ -318,9 +322,9 @@
                         <td>${escapeHtml(fecha)}</td>
                         <td class="text-center"><span class="badge bg-info text-dark">Práctica ${escapeHtml(numPrac)}</span></td>
                         <td class="text-center text-nowrap">
-                            <a href="${escapeHtml(rutaSegura(archivo.rutaServidor))}" target="_blank" rel="noopener noreferrer"
-                            class="btn btn-sm btn-outline-primary" title="Descargar/Ver Documento">
-                                <i class="bi bi-download"></i>
+                            <a href="${escapeHtml(rutaSegura(archivo))}" target="_blank" rel="noopener noreferrer"
+                            class="btn btn-sm btn-outline-primary" title="${tituloAccion}">
+                                <i class="${iconoAccion}"></i>
                             </a>
                             ${botonEvaluar}
                         </td>
@@ -339,9 +343,12 @@
                 .replace(/'/g, '&#39;');
         }
 
-        function rutaSegura(ruta) {
-            if (!ruta) return '#';
-            const r = ruta.startsWith('/') ? ruta : '/' + ruta;
+        function rutaSegura(archivo) {
+            if (!archivo || !archivo.rutaServidor) return '#';
+            if (archivo.rutaServidor.startsWith('ONLINE_')) {
+                return '/planificaciones/' + archivo.id;
+            }
+            const r = archivo.rutaServidor.startsWith('/') ? archivo.rutaServidor : '/' + archivo.rutaServidor;
             return r.startsWith('/uploads/') ? r : '#';
         }
 
@@ -355,19 +362,30 @@
         }
 
         function badgeEstado(a) {
+            if (a.estado === 'AUTORIZADO' || a.estadoRevision === 'REVISADA' || a.estadoRevision === 'AUTORIZADO') {
+                if (a.estadoRevision === 'CON_PAUTAS') {
+                    return '<span class="badge bg-success"><i class="bi bi-clipboard2-check me-1"></i>Con pautas</span>';
+                }
+                return '<span class="badge bg-success"><i class="bi bi-lock-fill me-1"></i>Autorizada</span>';
+            }
+            if (a.estado === 'CON_OBSERVACIONES') {
+                return '<span class="badge bg-danger"><i class="bi bi-chat-left-text me-1"></i>Con observaciones</span>';
+            }
             switch (a.estadoRevision) {
                 case 'EVALUADO': {
                     const n = a.nota != null ? Number(a.nota).toFixed(1).replace('.', ',') : '';
                     return `<span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Evaluado · ${escapeHtml(n)}</span>`;
                 }
                 case 'CON_PAUTAS':
-                    return '<span class="badge bg-success"><i class="bi bi-clipboard2-check me-1"></i>Se evalúa con pautas</span>';
+                    return '<span class="badge bg-success"><i class="bi bi-clipboard2-check me-1"></i>Con pautas</span>';
                 case 'REVISADA':
-                    return '<span class="badge bg-info text-dark"><i class="bi bi-check-circle me-1"></i>Revisada</span>';
+                    return '<span class="badge bg-success"><i class="bi bi-lock-fill me-1"></i>Autorizada</span>';
                 case 'PENDIENTE':
                     return '<span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>Pendiente</span>';
                 default:
-                    return '<span class="text-muted">—</span>';
+                    return a.estado === 'EN_REVISION'
+                        ? '<span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>Pendiente</span>'
+                        : '<span class="text-muted">—</span>';
             }
         }
 

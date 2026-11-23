@@ -64,7 +64,7 @@ public class EstudianteController {
     @Autowired
     private EvaluacionPracticaService evaluacionPracticaService;
 
-    @GetMapping("/estudiantes")
+    @GetMapping({"/estudiantes", "/portafolios"})
     public String listarEstudiantes(Model model) {
         model.addAttribute("estudiantes", estudianteRepository.findAll());
         return "Coordinador/estudiantes";
