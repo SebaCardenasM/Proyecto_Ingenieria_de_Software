@@ -90,6 +90,7 @@
                                         <th class="ps-4">Nombre del Archivo</th>
                                         <th>Estudiante</th>
                                         <th>Tipo Documento</th>
+                                        <th>Estado</th>
                                         <th>Fecha de Subida</th>
                                         <th class="text-center">N° Práctica</th>
                                         <th class="text-center">Acciones</th>
@@ -97,7 +98,7 @@
                                 </thead>
                                 <tbody id="tablaArchivos">
                                     <tr>
-                                        <td colspan="6" class="text-center text-muted py-5">
+                                        <td colspan="7" class="text-center text-muted py-5">
                                             <div class="spinner-border text-primary spinner-border-sm me-2" role="status"></div>
                                             Cargando entregas de tus estudiantes...
                                         </td>
@@ -139,6 +140,36 @@
 
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalEvaluar" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title"><i class="bi bi-clipboard2-check me-2"></i>Evaluar informe</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="formEvaluar" class="modal-body p-4">
+                    <p class="mb-1 fw-semibold" id="evalNombreArchivo"></p>
+                    <p class="text-muted small" id="evalEstudiante"></p>
+
+                    <div class="mb-3">
+                        <label for="evalNota" class="form-label fw-semibold">Nota (1,0 a 7,0) *</label>
+                        <input type="number" class="form-control" id="evalNota" min="1" max="7" step="0.1" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="evalRetro" class="form-label fw-semibold">Retroalimentación <span class="text-muted fw-normal">(opcional)</span></label>
+                        <textarea class="form-control" id="evalRetro" rows="5" maxlength="2000"
+                                placeholder="Comentarios para el estudiante..."></textarea>
+                    </div>
+                    <div id="evalError" class="alert alert-danger d-none py-2"></div>
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-success px-4" id="evalGuardar">Guardar evaluación</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -193,7 +224,7 @@
                 renderizarTabla();
             } catch (error) {
                 console.error('Error cargando documentos:', error);
-                tabla.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">' +
+                tabla.innerHTML = '<tr><td colspan="7" class="text-center text-danger py-4">' +
                     '<i class="bi bi-exclamation-triangle-fill me-2"></i>Error al cargar los documentos (' +
                     escapeHtml(error.message) + ').</td></tr>';
             }
@@ -203,7 +234,7 @@
             const tabla = document.getElementById('tablaArchivos');
             
             if (!archivosGlobales || archivosGlobales.length === 0) {
-                tabla.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-5"><i class="bi bi-inbox fs-3 d-block mb-2"></i>No hay documentos entregados aún por tus alumnos asignados.</td></tr>';
+                tabla.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-5"><i class="bi bi-inbox fs-3 d-block mb-2"></i>No hay documentos entregados aún por tus alumnos asignados.</td></tr>';
                 return;
             }
 
@@ -222,7 +253,7 @@
             }
             // ===================================
 
-                 const archivosFiltrados = archivosGlobales.filter(archivo => {
+                const archivosFiltrados = archivosGlobales.filter(archivo => {
                 const numPrac = archivo.numeroPractica || (archivo.practica ? archivo.practica.numeroPractica : null);
                 const tipoDoc = archivo.tipoDocumento;
 
@@ -242,7 +273,7 @@
             });
 
             if (archivosFiltrados.length === 0) {
-                tabla.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4"><i class="bi bi-search me-2"></i>No se encontraron entregas que coincidan con los filtros aplicados.</td></tr>';
+                tabla.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4"><i class="bi bi-search me-2"></i>No se encontraron entregas que coincidan con los filtros aplicados.</td></tr>';
                 return;
             }
 
@@ -270,6 +301,12 @@
                     ruta = '/' + ruta;
                 }
 
+                const esInforme = archivo.tipoDocumento === 'INFORME_FINAL';
+                const botonEvaluar = esInforme
+                    ? `<button type="button" class="btn btn-sm btn-outline-success ms-1" data-evaluar="${escapeHtml(archivo.id)}" title="Evaluar informe">
+                        <i class="bi bi-clipboard2-check me-1"></i>Evaluar informe
+                    </button>` : '';
+
                 const fila = `
                     <tr>
                         <td class="ps-4 fw-semibold text-primary">
@@ -277,13 +314,15 @@
                         </td>
                         <td><span class="fw-bold text-dark">${escapeHtml(nombreEstudiante)}</span></td>
                         <td><span class="badge bg-secondary">${escapeHtml(tipoDocText)}</span></td>
+                        <td>${badgeEstado(archivo)}</td>
                         <td>${escapeHtml(fecha)}</td>
                         <td class="text-center"><span class="badge bg-info text-dark">Práctica ${escapeHtml(numPrac)}</span></td>
-                        <td class="text-center">
+                        <td class="text-center text-nowrap">
                             <a href="${escapeHtml(rutaSegura(archivo.rutaServidor))}" target="_blank" rel="noopener noreferrer"
                             class="btn btn-sm btn-outline-primary" title="Descargar/Ver Documento">
                                 <i class="bi bi-download"></i>
                             </a>
+                            ${botonEvaluar}
                         </td>
                     </tr>
                 `;
@@ -314,6 +353,79 @@
                 default: return tipo || 'Sin Especificar';
             }
         }
+
+        function badgeEstado(a) {
+            switch (a.estadoRevision) {
+                case 'EVALUADO': {
+                    const n = a.nota != null ? Number(a.nota).toFixed(1).replace('.', ',') : '';
+                    return `<span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Evaluado · ${escapeHtml(n)}</span>`;
+                }
+                case 'CON_PAUTAS':
+                    return '<span class="badge bg-success"><i class="bi bi-clipboard2-check me-1"></i>Se evalúa con pautas</span>';
+                case 'REVISADA':
+                    return '<span class="badge bg-info text-dark"><i class="bi bi-check-circle me-1"></i>Revisada</span>';
+                case 'PENDIENTE':
+                    return '<span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>Pendiente</span>';
+                default:
+                    return '<span class="text-muted">—</span>';
+            }
+        }
+
+        // ---------- Evaluar informe ----------
+        let informeEnEvaluacion = null;
+
+        document.getElementById('tablaArchivos').addEventListener('click', e => {
+            const btn = e.target.closest('[data-evaluar]');
+            if (!btn) return;
+            informeEnEvaluacion = archivosGlobales.find(a => String(a.id) === btn.dataset.evaluar);
+            if (!informeEnEvaluacion) return;
+
+            const est = informeEnEvaluacion.estudiante;
+            document.getElementById('evalNombreArchivo').textContent = informeEnEvaluacion.nombreArchivo || '';
+            document.getElementById('evalEstudiante').textContent = est ? `${est.nombre ?? ''} ${est.apellido ?? ''} · ${est.rut ?? ''}` : '';
+            document.getElementById('evalNota').value = informeEnEvaluacion.nota ?? '';
+            document.getElementById('evalRetro').value = informeEnEvaluacion.retroalimentacion ?? '';
+            document.getElementById('evalError').classList.add('d-none');
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('modalEvaluar')).show();
+        });
+
+        document.getElementById('formEvaluar').addEventListener('submit', async e => {
+            e.preventDefault();
+            if (!informeEnEvaluacion) return;
+
+            const err = document.getElementById('evalError');
+            const guardar = document.getElementById('evalGuardar');
+            const nota = parseFloat(document.getElementById('evalNota').value.replace(',', '.'));
+            const retro = document.getElementById('evalRetro').value;
+
+            guardar.disabled = true;
+            try {
+                const headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
+                const token = document.querySelector('meta[name="_csrf"]')?.content;
+                const cab = document.querySelector('meta[name="_csrf_header"]')?.content;
+                if (token && cab) headers[cab] = token;
+
+                const res = await fetch('/api/documentos/evaluar-informe/' + encodeURIComponent(informeEnEvaluacion.id), {
+                    method: 'POST', headers,
+                    body: JSON.stringify({ nota: nota, retroalimentacion: retro })
+                });
+                if (!res.ok) {
+                    err.textContent = (await res.text()) || 'No se pudo guardar la evaluación.';
+                    err.classList.remove('d-none');
+                    return;
+                }
+                const actualizado = await res.json();
+                const i = archivosGlobales.findIndex(a => a.id === actualizado.id);
+                if (i >= 0) archivosGlobales[i] = actualizado;
+                bootstrap.Modal.getInstance(document.getElementById('modalEvaluar'))?.hide();
+                renderizarTabla();
+            } catch (ex) {
+                err.textContent = 'Error de conexión con el servidor.';
+                err.classList.remove('d-none');
+            } finally {
+                guardar.disabled = false;
+            }
+        });
     </script>
 
     <!-- Footer -->
