@@ -11,6 +11,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.CentroPractica;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Colaborador;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.EstadoPractica;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Estudiante;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Practica;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Profesor;
@@ -22,9 +23,12 @@ import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.ProfesorRepository;
 
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Controller
 public class PracticaController {
@@ -50,8 +54,22 @@ public class PracticaController {
     // =========================================================================
 
     @GetMapping("/practicas")
-    public String listarPracticas(Model model) {
-        List<Practica> listaPracticas = practicaRepository.findAll();
+    public String listarPracticas(@RequestParam(value = "estado", required = false) String estadoStr, Model model) {
+        List<Practica> listaPracticas;
+        EstadoPractica estadoFiltro = null;
+        if (estadoStr != null && !estadoStr.isBlank()) {
+            try {
+                estadoFiltro = EstadoPractica.valueOf(estadoStr.toUpperCase().trim());
+            } catch (IllegalArgumentException ignored) {}
+        }
+
+        if (estadoFiltro != null) {
+            listaPracticas = practicaRepository.findByEstado(estadoFiltro);
+            model.addAttribute("estadoSeleccionado", estadoFiltro.name());
+        } else {
+            listaPracticas = practicaRepository.findAll();
+            model.addAttribute("estadoSeleccionado", "TODAS");
+        }
         model.addAttribute("practicas", listaPracticas);
         model.addAttribute("estudiantes", estudianteRepository.findAll());
         model.addAttribute("profesores", profesorRepository.findAll());
@@ -61,10 +79,7 @@ public class PracticaController {
     @GetMapping("/practicas/registro")
     public String mostrarFormulario(Model model) {
         model.addAttribute("practica", new Practica());
-        model.addAttribute("estudiantes", estudianteRepository.findAll());
-        model.addAttribute("profesores", profesorRepository.findAll());
-        model.addAttribute("centros", centroPracticaRepository.findAll());
-        model.addAttribute("colaboradores", colaboradorRepository.findAll());
+        cargarAtributosFormularioRegistro(model);
         return "Coordinador/registro_practica";
     }
 
@@ -74,32 +89,40 @@ public class PracticaController {
         // 1. VALIDACIONES ESTRICTAS DE CAMPOS VACÍOS
         if (practica.getEstudiante() == null || practica.getEstudiante().getRut() == null || practica.getEstudiante().getRut().isBlank()) {
             model.addAttribute("error", "Error: Es obligatorio seleccionar un estudiante.");
-            cargarAtributosFormulario(model);
+            cargarAtributosFormularioRegistro(model);
+            return "Coordinador/registro_practica";
+        }
+
+        // Validación: Un estudiante solo puede tener una práctica activa/pendiente a la vez
+        if (practicaRepository.existsByEstudianteRutAndEstado(practica.getEstudiante().getRut(), EstadoPractica.PENDIENTE)) {
+            model.addAttribute("error", "Error: El estudiante seleccionado ya cuenta con una práctica activa/pendiente y no puede tener más de una a la vez.");
+            cargarAtributosFormularioRegistro(model);
             return "Coordinador/registro_practica";
         }
         
         // Validación segura sin isBlank() en caso de que semestre sea numérico
         if (practica.getNumeroPractica() == null || practica.getAno() == null || practica.getSemestre() == null) {
             model.addAttribute("error", "Error: Los campos N° Práctica, Año y Semestre no pueden estar vacíos.");
-            cargarAtributosFormulario(model);
+            cargarAtributosFormularioRegistro(model);
             return "Coordinador/registro_practica";
         }
 
         // 2. VALIDACIONES ESTRICTAS DE FECHAS
         if (practica.getFechaInicio() == null || practica.getFechaFin() == null) {
             model.addAttribute("error", "Error: Debe ingresar de manera obligatoria la fecha de inicio y la fecha de fin.");
-            cargarAtributosFormulario(model);
+            cargarAtributosFormularioRegistro(model);
             return "Coordinador/registro_practica";
         }
         if (practica.getFechaFin().isBefore(practica.getFechaInicio())) {
             model.addAttribute("error", "Error lógico de fechas: La fecha de fin es imposible porque es anterior a la fecha de inicio.");
-            cargarAtributosFormulario(model);
+            cargarAtributosFormularioRegistro(model);
             return "Coordinador/registro_practica";
         }
 
         // 3. Manejo de Estudiante
         Optional<Estudiante> estOpt = estudianteRepository.findById(practica.getEstudiante().getRut());
-        practica.setEstudiante(estOpt.orElse(null));
+        Estudiante estudianteAsignado = estOpt.orElse(null);
+        practica.setEstudiante(estudianteAsignado);
 
         // 4. Manejo de Profesor de Asignatura (Opcional)
         if (practica.getProfesor() != null && practica.getProfesor().getRut() != null && !practica.getProfesor().getRut().isBlank()) {
@@ -135,6 +158,12 @@ public class PracticaController {
 
         // 8. Guardar en Base de Datos
         practicaRepository.save(practica);
+        if (estudianteAsignado != null && practica.getNumeroPractica() != null) {
+            if (estudianteAsignado.getPracticaActual() == null || practica.getNumeroPractica() >= estudianteAsignado.getPracticaActual()) {
+                estudianteAsignado.setPracticaActual(practica.getNumeroPractica());
+                estudianteRepository.save(estudianteAsignado);
+            }
+        }
         redirectAttributes.addFlashAttribute("tituloExito", "¡Práctica asignada!");
         redirectAttributes.addFlashAttribute("mensajeExito", "La práctica fue asignada exitosamente.");
         return "redirect:/index"; // Redirección actualizada al Dashboard
@@ -145,7 +174,7 @@ public class PracticaController {
         Practica practica = practicaRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("ID de práctica inválido: " + id));
         model.addAttribute("practica", practica);
-        cargarAtributosFormulario(model);
+        cargarAtributosFormularioEdicion(model, practica);
         return "Coordinador/editar_practica";
     }
 
@@ -157,34 +186,42 @@ public class PracticaController {
             .orElseThrow(() -> new IllegalArgumentException("ID de práctica inválido: " + id));
         
         // 1. VALIDACIONES ESTRICTAS DE CAMPOS VACÍOS
-        if (practica.getEstudiante() == null || practica.getEstudiante().getRut() == null || practica.getEstudiante().getRut().isBlank()) {
+        if (form.getEstudiante() == null || form.getEstudiante().getRut() == null || form.getEstudiante().getRut().isBlank()) {
             model.addAttribute("error", "Error: Es obligatorio mantener asignado a un estudiante.");
-            cargarAtributosFormulario(model);
+            cargarAtributosFormularioEdicion(model, practica);
+            return "Coordinador/editar_practica";
+        }
+
+        // Validación: El estudiante asignado no debe tener otra práctica activa/pendiente distinta de esta
+        if (practicaRepository.existsByEstudianteRutAndEstadoAndIdNot(form.getEstudiante().getRut(), EstadoPractica.PENDIENTE, id)) {
+            model.addAttribute("error", "Error: El estudiante seleccionado ya cuenta con otra práctica activa/pendiente.");
+            cargarAtributosFormularioEdicion(model, practica);
             return "Coordinador/editar_practica";
         }
         
         // Validación segura sin isBlank() en caso de que semestre sea numérico
-        if (practica.getNumeroPractica() == null || practica.getAno() == null || practica.getSemestre() == null) {
+        if (form.getNumeroPractica() == null || form.getAno() == null || form.getSemestre() == null) {
             model.addAttribute("error", "Error: Los campos N° Práctica, Año y Semestre no pueden quedar vacíos.");
-            cargarAtributosFormulario(model);
+            cargarAtributosFormularioEdicion(model, practica);
             return "Coordinador/editar_practica";
         }
 
         // 2. VALIDACIONES ESTRICTAS DE FECHAS
-        if (practica.getFechaInicio() == null || practica.getFechaFin() == null) {
+        if (form.getFechaInicio() == null || form.getFechaFin() == null) {
             model.addAttribute("error", "Error: No puede dejar las fechas de inicio o fin en blanco.");
-            cargarAtributosFormulario(model);
+            cargarAtributosFormularioEdicion(model, practica);
             return "Coordinador/editar_practica";
         }
-        if (practica.getFechaFin().isBefore(practica.getFechaInicio())) {
+        if (form.getFechaFin().isBefore(form.getFechaInicio())) {
             model.addAttribute("error", "Error lógico de fechas: La fecha de término ingresada es anterior a la fecha de inicio.");
-            cargarAtributosFormulario(model);
+            cargarAtributosFormularioEdicion(model, practica);
             return "Coordinador/editar_practica";
         }
 
         // 3. Manejo de Estudiante
         Optional<Estudiante> estOpt = estudianteRepository.findById(practica.getEstudiante().getRut());
-        practica.setEstudiante(estOpt.orElse(null));
+        Estudiante estudianteAsignado = estOpt.orElse(null);
+        practica.setEstudiante(estudianteAsignado);
         
         // 4. Manejo de Profesor de Asignatura (Opcional)
         if (practica.getProfesor() != null && practica.getProfesor().getRut() != null && !practica.getProfesor().getRut().isBlank()) {
@@ -229,6 +266,13 @@ public class PracticaController {
         practica.setColaborador(resolverColaborador(form.getColaborador()));
 
         practicaRepository.save(practica);
+        if (practica.getEstudiante() != null && practica.getNumeroPractica() != null) {
+            Estudiante estActual = practica.getEstudiante();
+            if (estActual.getPracticaActual() == null || practica.getNumeroPractica() >= estActual.getPracticaActual()) {
+                estActual.setPracticaActual(practica.getNumeroPractica());
+                estudianteRepository.save(estActual);
+            }
+        }
         redirectAttributes.addFlashAttribute("tituloExito", "¡Práctica actualizada!");
         redirectAttributes.addFlashAttribute("mensajeExito", "Los datos de la práctica fueron actualizados exitosamente.");
         return "redirect:/practicas";
@@ -301,11 +345,38 @@ public class PracticaController {
     // MÉTODOS AUXILIARES
     // =========================================================================
 
-    private void cargarAtributosFormulario(Model model) {
-        model.addAttribute("estudiantes", estudianteRepository.findAll());
+    private void cargarAtributosFormularioRegistro(Model model) {
+        List<String> rutsConPendiente = practicaRepository.findRutsEstudiantesPorEstado(EstadoPractica.PENDIENTE);
+        Set<String> rutsExcluidos = new HashSet<>(rutsConPendiente);
+        List<Estudiante> disponibles = estudianteRepository.findAll().stream()
+                .filter(e -> !rutsExcluidos.contains(e.getRut()))
+                .toList();
+        model.addAttribute("estudiantes", disponibles);
         model.addAttribute("profesores", profesorRepository.findAll());
         model.addAttribute("centros", centroPracticaRepository.findAll());
         model.addAttribute("colaboradores", colaboradorRepository.findAll());
+    }
+
+    private void cargarAtributosFormularioEdicion(Model model, Practica practicaActual) {
+        String rutActual = (practicaActual != null && practicaActual.getEstudiante() != null)
+                ? practicaActual.getEstudiante().getRut()
+                : null;
+        List<String> rutsConPendiente = practicaRepository.findRutsEstudiantesPorEstado(EstadoPractica.PENDIENTE);
+        Set<String> rutsExcluidos = new HashSet<>(rutsConPendiente);
+        if (rutActual != null) {
+            rutsExcluidos.remove(rutActual);
+        }
+        List<Estudiante> disponibles = estudianteRepository.findAll().stream()
+                .filter(e -> !rutsExcluidos.contains(e.getRut()))
+                .toList();
+        model.addAttribute("estudiantes", disponibles);
+        model.addAttribute("profesores", profesorRepository.findAll());
+        model.addAttribute("centros", centroPracticaRepository.findAll());
+        model.addAttribute("colaboradores", colaboradorRepository.findAll());
+    }
+
+    private void cargarAtributosFormulario(Model model) {
+        cargarAtributosFormularioRegistro(model);
     }
     
     private Profesor resolverProfesor(Profesor ref) {
