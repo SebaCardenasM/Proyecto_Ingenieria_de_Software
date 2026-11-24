@@ -47,7 +47,7 @@
             <div class="d-flex align-items-center">
                 <img th:src="@{/images/escudo-monocromatico-oscuro.png}" alt="Escudo Universidad del Bío-Bío" class="nav-logo">
                 <a class="navbar-brand fw-bold" th:href="${esCoordinador} ? @{/index} : @{/profesor/index}">
-                    <i class="bi bi-mortarboard-fill me-2"></i>Plataforma de Prácticas
+                    <i class="bi bi-arrow-left-circle me-2"></i>Volver al Dashboard
                 </a>
             </div>
 
@@ -58,9 +58,6 @@
                     <small class="text-white-50 mt-1" style="font-size: 0.75rem;"
                            th:text="${esCoordinador ? 'COORDINADOR' : 'PROFESOR DE ASIGNATURA'}">ROL</small>
                 </div>
-                <a th:href="${esCoordinador} ? @{/index} : @{/profesor/index}" class="btn btn-outline-light btn-sm me-2">
-                    <i class="bi bi-arrow-left me-1"></i> Panel
-                </a>
                 <form th:action="@{/logout}" method="post" class="d-inline">
                     <button type="submit" class="btn btn-outline-light btn-sm"><i class="bi bi-box-arrow-right"></i> Salir</button>
                 </form>

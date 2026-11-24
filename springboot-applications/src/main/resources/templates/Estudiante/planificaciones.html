@@ -97,7 +97,7 @@
         <div class="container-fluid px-4">
             <div class="d-flex align-items-center">
                 <img th:src="@{/images/escudo-monocromatico-oscuro.png}" alt="Escudo Universidad del Bío-Bío" class="nav-logo">
-                <a class="navbar-brand fw-bold" th:href="@{/estudiante/index}"><i class="bi bi-arrow-left-circle me-2"></i>Volver al Panel</a>
+                <a class="navbar-brand fw-bold" th:href="@{/estudiante/index}"><i class="bi bi-arrow-left-circle me-2"></i>Volver al Dashboard</a>
             </div>
             <div class="d-flex text-white align-items-center">
                 <i class="bi bi-cloud-arrow-up-fill fs-5 me-2"></i> Subir Documentos
@@ -119,7 +119,7 @@
                     <i class="bi bi-pencil-square me-1"></i> Planificación en línea
                 </a>
                 <button type="button" class="btn btn-outline-success shadow-sm" data-bs-toggle="modal" data-bs-target="#modalSubir">
-                    <i class="bi bi-file-earmark-arrow-up me-1"></i> Subir Planificación
+                    <i class="bi bi-file-earmark-arrow-up me-1"></i> Subir Documento
                 </button>
                 <button type="button" class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#modalSubirInforme">
                     <i class="bi bi-file-earmark-check-fill me-1"></i> Subir Informe Final
@@ -178,6 +178,7 @@
                 </h5>
                 <div class="btn-group btn-group-sm flex-wrap" role="group" id="grupoFiltros">
                     <button type="button" class="btn btn-outline-secondary filter-btn active" data-filtro="TODOS">Todos</button>
+                    <button type="button" class="btn btn-outline-secondary filter-btn" data-filtro="DOCUMENTO_GENERAL">Documentos</button>
                     <button type="button" class="btn btn-outline-secondary filter-btn" data-filtro="PLANIFICACION">Planificaciones</button>
                     <button type="button" class="btn btn-outline-secondary filter-btn" data-filtro="INFORME_FINAL">Informes Finales</button>
                     <button type="button" class="btn btn-outline-secondary filter-btn" data-filtro="BORRADOR">Borradores</button>
@@ -214,35 +215,24 @@
         </div>
     </div>
 
-    <!-- Modal 1: Subir Planificación (Archivo) -->
+    <!-- Modal 1: Subir Documento (Archivo) -->
     <div class="modal fade" id="modalSubir" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content border-0 shadow">
                 <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title"><i class="bi bi-cloud-arrow-up-fill me-2"></i>Subir planificación</h5>
+                    <h5 class="modal-title"><i class="bi bi-cloud-arrow-up-fill me-2"></i>Subir Documento</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4">
-                    <div class="alert alert-info small py-2">
-                        <i class="bi bi-info-circle me-1"></i>El archivo se guardará como <strong>borrador</strong>. Podrás revisarlo con el asistente y enviarlo a tu <strong>profesor</strong> para su revisión. Debe ser <strong>PDF</strong>.
-                    </div>
                     <form id="formSubida">
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold text-secondary" for="practicaSel">¿A qué práctica corresponde?</label>
-                            <select class="form-select" id="practicaSel" required>
-                                <option value="" disabled>Seleccione su práctica...</option>
-                                <option th:each="p : ${misPracticas}" th:value="${p.numeroPractica}"
-                                        th:selected="${p.numeroPractica == practicaActual}"
-                                        th:text="'Práctica N° ' + ${p.numeroPractica} + ' (' + ${p.ano} + '-' + ${p.semestre} + ')'"></option>
-                            </select>
-                        </div>
+                        <input type="hidden" id="practicaSel" th:value="${practicaActual}">
                         <div class="mb-4">
-                            <label class="form-label fw-semibold text-secondary" for="archivoInput">Archivo (PDF)</label>
-                            <input type="file" class="form-control" id="archivoInput" accept=".pdf,application/pdf" required>
+                            <label class="form-label fw-semibold text-secondary" for="archivoInput">Archivo</label>
+                            <input type="file" class="form-control" id="archivoInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png" required>
                         </div>
                         <div id="alerta" class="alert d-none"></div>
                         <div class="d-grid">
-                            <button class="btn btn-success btn-lg" type="submit">Guardar planificación como borrador</button>
+                            <button class="btn btn-success btn-lg" type="submit">Subir Documento</button>
                         </div>
                     </form>
                 </div>
@@ -329,8 +319,8 @@
             try {
                 const r = await fetch('/api/documentos/mis-documentos', { headers: { 'Accept': 'application/json' } });
                 docs = (r.status === 204 || r.status === 404) ? [] : await r.json();
-                // Permitir planificaciones e informes finales
-                docs = docs.filter(d => d.tipoDocumento === 'PLANIFICACION' || d.tipoDocumento === 'INFORME_FINAL');
+                // Permitir planificaciones, informes finales y documentos generales
+                docs = docs.filter(d => d.tipoDocumento === 'PLANIFICACION' || d.tipoDocumento === 'INFORME_FINAL' || d.tipoDocumento === 'DOCUMENTO_GENERAL');
                 pintar();
             } catch (e) {
                 t.innerHTML = '<tr><td colspan="7" class="text-center text-danger py-4">Error al cargar los documentos.</td></tr>';
@@ -341,7 +331,7 @@
             const t = document.getElementById('tabla');
             let filtrados = docs.slice();
 
-            if (filtroActual === 'PLANIFICACION' || filtroActual === 'INFORME_FINAL') {
+            if (filtroActual === 'PLANIFICACION' || filtroActual === 'INFORME_FINAL' || filtroActual === 'DOCUMENTO_GENERAL') {
                 filtrados = filtrados.filter(d => d.tipoDocumento === filtroActual);
             } else if (filtroActual !== 'TODOS') {
                 filtrados = filtrados.filter(d => d.estado === filtroActual);   // BORRADOR, EN_REVISION, CON_OBSERVACIONES, AUTORIZADO, ENVIADO
@@ -358,9 +348,14 @@
                 const fecha = d.fechaSubida ? new Date(d.fechaSubida).toLocaleDateString('es-CL',
                     {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'}) : '—';
 
-                const tipoBadge = d.tipoDocumento === 'INFORME_FINAL'
-                    ? '<span class="badge bg-primary text-white"><i class="bi bi-file-earmark-check-fill me-1"></i>Informe Final</span>'
-                    : '<span class="badge bg-success bg-opacity-75 text-white"><i class="bi bi-clipboard2-check me-1"></i>Planificación</span>';
+                let tipoBadge = '<span class="badge bg-secondary text-white"><i class="bi bi-file-earmark-text me-1"></i>Documento</span>';
+                if (d.tipoDocumento === 'INFORME_FINAL') {
+                    tipoBadge = '<span class="badge bg-primary text-white"><i class="bi bi-file-earmark-check-fill me-1"></i>Informe Final</span>';
+                } else if (d.tipoDocumento === 'PLANIFICACION') {
+                    tipoBadge = '<span class="badge bg-success bg-opacity-75 text-white"><i class="bi bi-clipboard2-check me-1"></i>Planificación</span>';
+                } else if (d.tipoDocumento === 'DOCUMENTO_GENERAL') {
+                    tipoBadge = '<span class="badge bg-secondary text-white"><i class="bi bi-file-earmark-text me-1"></i>Documento</span>';
+                }
 
                 const formato = online
                     ? '<span class="badge bg-info text-dark"><i class="bi bi-ui-radios me-1"></i>En línea</span>'
@@ -458,12 +453,12 @@
             }
         });
 
-        // Formulario 1: Subir Planificación
+        // Formulario 1: Subir Documento
         document.getElementById('formSubida').addEventListener('submit', async e => {
             e.preventDefault();
             const fd = new FormData();
             fd.append('archivo', document.getElementById('archivoInput').files[0]);
-            fd.append('tipoDocumento', 'PLANIFICACION');
+            fd.append('tipoDocumento', 'DOCUMENTO_GENERAL');
             fd.append('numeroPractica', document.getElementById('practicaSel').value);
             const al = document.getElementById('alerta');
             try {
@@ -473,8 +468,7 @@
                     e.target.reset();
                     bootstrap.Modal.getInstance(document.getElementById('modalSubir'))?.hide();
                     await cargar();
-                    avisar('Tu archivo quedó como borrador. Ahora puedes revisarlo con el asistente antes de enviarlo.',
-                           '¡Borrador guardado!', () => window.ubbChatbot?.abrirRevision(doc.id));
+                    avisar('Tu documento ha sido subido y asignado a tu práctica.', '¡Documento subido!');
                 } else {
                     al.className = 'alert alert-danger mt-3'; al.textContent = 'Error: ' + await r.text();
                 }
