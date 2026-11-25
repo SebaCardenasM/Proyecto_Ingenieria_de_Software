@@ -100,6 +100,30 @@
 
         /* ---------- Modal de lectura ---------- */
         #verComentarioTexto { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.5; }
+
+        /* ---------- Modales: asegurar texto oscuro, cursor visible y fondo blanco ---------- */
+        .modal { z-index: 1060 !important; }
+        .modal-content {
+            background-color: #ffffff !important;
+            color: #212529 !important;
+        }
+        .modal-content .modal-title {
+            color: #0f172a !important;
+            font-weight: 700 !important;
+        }
+        .modal-content textarea.form-control,
+        .modal-content input.form-control {
+            background-color: #ffffff !important;
+            color: #212529 !important;
+            caret-color: #212529 !important;
+        }
+        .modal-content textarea.form-control:focus,
+        .modal-content input.form-control:focus {
+            background-color: #ffffff !important;
+            color: #212529 !important;
+            border-color: #86b7fe !important;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+        }
     </style>
     <link th:href="@{/css/ubb-index.css}" rel="stylesheet">
 </head>
@@ -240,11 +264,15 @@
                                     </div>
                                     <form th:if="${f.evaluaConPautas and f.puedeReenviar}"
                                           th:action="@{/profesor/planificaciones/{id}/reenviar(id=${f.id})}" method="post" class="mt-1"
-                                          onsubmit="return confirm('Se generará un enlace nuevo y el anterior dejará de funcionar. ¿Continuar?');">
-                                        <button type="submit" class="btn btn-link btn-nuevo-enlace" title="Generar un enlace nuevo">
+                                          data-ubb-confirm="Se generará un enlace nuevo y el anterior dejará de funcionar. ¿Continuar?"
+                                          data-ubb-titulo="Nuevo enlace"
+                                          data-ubb-boton="Generar enlace">
+                                        <button type="submit" class="btn btn-link btn-nuevo-enlace" title="Generar un enlace nuevo"
+                                                data-ubb-confirm="Se generará un enlace nuevo y el anterior dejará de funcionar. ¿Continuar?"
+                                                data-ubb-titulo="Nuevo enlace"
+                                                data-ubb-boton="Generar enlace">
                                             <i class="bi bi-arrow-repeat"></i> Nuevo enlace
                                         </button>
-
                                     </form>
                                 </td>
 
@@ -253,34 +281,19 @@
                                 <td class="text-center col-tick">
                                     <div th:if="${f.puedeAutorizar}" class="tick-fila">
                                         <button type="button" class="tick-comentar" title="Comentar y devolver al estudiante"
-                                                data-bs-toggle="modal" th:attr="data-bs-target='#modalComentar' + ${f.id}">
+                                                data-bs-toggle="modal" data-bs-target="#modalComentar"
+                                                th:attr="data-action=@{/profesor/planificaciones/{id}/comentar(id=${f.id})},data-estudiante=${f.estudianteNombre},data-archivo=${f.nombreArchivo}">
                                             <i class="bi bi-chat-left-text"></i>
                                         </button>
                                         <form th:action="@{/profesor/planificaciones/{id}/autorizar(id=${f.id})}" method="post" class="d-inline"
-                                            onsubmit="return confirm('¿Autorizar esta planificación?\n\nQuedará bloqueada y se guardará como PDF permanente. Se avisará al estudiante que ya puede dar su clase.');">
-                                            <button type="submit" class="tick-btn" title="Autorizar planificación"><i class="bi bi-check-lg"></i></button>
+                                            data-ubb-confirm="¿Autorizar esta planificación? Quedará bloqueada y se guardará como PDF permanente. Se avisará al estudiante que ya puede dar su clase."
+                                            data-ubb-titulo="Autorizar clase"
+                                            data-ubb-boton="Autorizar">
+                                            <button type="submit" class="tick-btn" title="Autorizar planificación"
+                                                data-ubb-confirm="¿Autorizar esta planificación? Quedará bloqueada y se guardará como PDF permanente. Se avisará al estudiante que ya puede dar su clase."
+                                                data-ubb-titulo="Autorizar clase"
+                                                data-ubb-boton="Autorizar"><i class="bi bi-check-lg"></i></button>
                                         </form>
-
-                                        <div class="modal fade" th:id="'modalComentar' + ${f.id}" tabindex="-1" aria-hidden="true">
-                                            <div class="modal-dialog modal-dialog-centered"><div class="modal-content text-start">
-                                                <form th:action="@{/profesor/planificaciones/{id}/comentar(id=${f.id})}" method="post">
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title">Comentar planificación</h5>
-                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        <p class="small text-muted mb-2" th:text="${f.estudianteNombre + ' · ' + f.nombreArchivo}"></p>
-                                                        <textarea name="comentario" class="form-control" rows="5" maxlength="2000" required
-                                                                placeholder="¿Qué debe corregir el estudiante?"></textarea>
-                                                        <div class="form-text">El estudiante verá tus observaciones y podrá corregir y reenviar su planificación.</div>
-                                                    </div>
-                                                    <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                                        <button type="submit" class="btn btn-danger">Devolver con comentario</button>
-                                                    </div>
-                                                </form>
-                                            </div></div>
-                                        </div>
                                     </div>
 
                                     <div th:if="${f.revisada}" class="tick-fila">
@@ -303,9 +316,13 @@
                                         <!-- Habilitado: autorizada pero no marcada para pautas -->
                                         <form th:if="${f.revisada and !f.evaluaConPautas}"
                                               th:action="@{/profesor/planificaciones/{id}/pautas(id=${f.id})}" method="post" class="d-inline"
-                                              onsubmit="return confirm('¿Esta clase se evaluará con pautas?\n\nSe avisará al estudiante y se generará un enlace temporal para su profesor colaborador.');">
-                                            <button type="submit" class="tick-btn" title="Indicar que la clase se evaluará con pautas"><i class="bi bi-check-lg"></i></button>
-
+                                              data-ubb-confirm="¿Esta clase se evaluará con pautas? Se avisará al estudiante y se generará un enlace temporal para su profesor colaborador."
+                                              data-ubb-titulo="Evaluar con pautas"
+                                              data-ubb-boton="Confirmar">
+                                            <button type="submit" class="tick-btn" title="Indicar que la clase se evaluará con pautas"
+                                                data-ubb-confirm="¿Esta clase se evaluará con pautas? Se avisará al estudiante y se generará un enlace temporal para su profesor colaborador."
+                                                data-ubb-titulo="Evaluar con pautas"
+                                                data-ubb-boton="Confirmar"><i class="bi bi-check-lg"></i></button>
                                         </form>
 
                                         <!-- Marcada -->
@@ -350,6 +367,32 @@
         </div>
     </div>
 
+    <!-- Popup: Escribir comentarios y devolver planificación -->
+    <div class="modal fade" id="modalComentar" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow text-start">
+                <form id="formComentar" th:action="@{/profesor/planificaciones/0/comentar}" method="post">
+                    <div class="modal-header border-bottom">
+                        <h5 class="modal-title fw-bold text-dark mb-0">
+                            <i class="bi bi-chat-left-dots-fill text-danger me-2"></i>Comentarios
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body py-3">
+                        <p class="small text-muted mb-2" id="comentarMeta"></p>
+                        <textarea id="comentarioInput" name="comentario" class="form-control" rows="5" maxlength="2000" required
+                                  placeholder="¿Qué debe corregir el estudiante?"></textarea>
+                        <div class="form-text mt-2">El estudiante verá tus observaciones y podrá corregir y reenviar su planificación.</div>
+                    </div>
+                    <div class="modal-footer border-top bg-light">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-danger">Devolver con comentario</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         let filtroEstado = 'TODAS';
@@ -383,6 +426,27 @@
                 aplicarFiltros();
             });
         });
+
+        // Popup para escribir comentarios y devolver planificación
+        const modalComentarEl = document.getElementById('modalComentar');
+        if (modalComentarEl) {
+            modalComentarEl.addEventListener('show.bs.modal', ev => {
+                const b = ev.relatedTarget;
+                if (!b) return;
+                const form = document.getElementById('formComentar');
+                if (b.dataset.action) {
+                    form.action = b.dataset.action;
+                }
+                document.getElementById('comentarMeta').textContent =
+                    [b.dataset.estudiante, b.dataset.archivo].filter(Boolean).join(' · ');
+                const input = document.getElementById('comentarioInput');
+                if (input) input.value = '';
+            });
+            modalComentarEl.addEventListener('shown.bs.modal', () => {
+                const input = document.getElementById('comentarioInput');
+                if (input) input.focus();
+            });
+        }
 
         // Popup con el comentario completo (se llena con el botón que lo abrió)
         document.getElementById('modalVerComentario').addEventListener('show.bs.modal', ev => {

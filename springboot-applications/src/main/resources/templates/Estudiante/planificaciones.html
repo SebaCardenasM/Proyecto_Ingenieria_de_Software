@@ -249,26 +249,17 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4">
-                    <div class="alert alert-primary small py-2">
-                        <i class="bi bi-info-circle me-1"></i>Tu <strong>Informe Final</strong> se guardará inicialmente como borrador para que puedas revisarlo o actualizarlo antes de la entrega definitiva al gestor.
-                    </div>
                     <form id="formSubidaInforme">
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold text-secondary" for="practicaSelInforme">Práctica correspondiente</label>
-                            <select class="form-select" id="practicaSelInforme" required>
-                                <option value="" disabled>Seleccione su práctica...</option>
-                                <option th:each="p : ${misPracticas}" th:value="${p.numeroPractica}"
-                                        th:selected="${p.numeroPractica == practicaActual}"
-                                        th:text="'Práctica N° ' + ${p.numeroPractica} + ' (' + ${p.ano} + '-' + ${p.semestre} + ')'"></option>
-                            </select>
-                        </div>
+                        <input type="hidden" id="practicaSelInforme" th:value="${practicaActual}">
                         <div class="mb-4">
                             <label class="form-label fw-semibold text-secondary" for="archivoInputInforme">Archivo del Informe (PDF o Word)</label>
-                            <input type="file" class="form-control" id="archivoInputInforme" required>
+                            <input type="file" class="form-control" id="archivoInputInforme" accept=".pdf,.doc,.docx" required>
                         </div>
                         <div id="alertaInforme" class="alert d-none"></div>
                         <div class="d-grid">
-                            <button class="btn btn-primary btn-lg" type="submit">Guardar Informe como borrador</button>
+                            <button class="btn btn-primary btn-lg" type="submit">
+                                <i class="bi bi-file-earmark-check-fill me-2"></i>Subir Informe Final
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -319,8 +310,13 @@
             try {
                 const r = await fetch('/api/documentos/mis-documentos', { headers: { 'Accept': 'application/json' } });
                 docs = (r.status === 204 || r.status === 404) ? [] : await r.json();
-                // Permitir planificaciones, informes finales y documentos generales
-                docs = docs.filter(d => d.tipoDocumento === 'PLANIFICACION' || d.tipoDocumento === 'INFORME_FINAL' || d.tipoDocumento === 'DOCUMENTO_GENERAL');
+                const numActual = document.getElementById('practicaSel')?.value;
+                // Permitir planificaciones, informes finales y documentos generales solo de la práctica actual
+                docs = docs.filter(d => {
+                    const tipoValido = d.tipoDocumento === 'PLANIFICACION' || d.tipoDocumento === 'INFORME_FINAL' || d.tipoDocumento === 'DOCUMENTO_GENERAL';
+                    const coincidePractica = !numActual || String(d.numeroPractica) === String(numActual);
+                    return tipoValido && coincidePractica;
+                });
                 pintar();
             } catch (e) {
                 t.innerHTML = '<tr><td colspan="7" class="text-center text-danger py-4">Error al cargar los documentos.</td></tr>';
@@ -492,8 +488,7 @@
                     e.target.reset();
                     bootstrap.Modal.getInstance(document.getElementById('modalSubirInforme'))?.hide();
                     await cargar();
-                    avisar('Tu Informe Final quedó guardado como borrador. Puedes revisarlo con el asistente antes de enviarlo al gestor.',
-                           '¡Informe guardado!', () => window.ubbChatbot?.abrirRevision(doc.id));
+                    avisar('Tu Informe Final ha sido enviado y asignado a tu práctica.', '¡Informe Final enviado!');
                 } else {
                     al.className = 'alert alert-danger mt-3'; al.textContent = 'Error: ' + await r.text();
                 }

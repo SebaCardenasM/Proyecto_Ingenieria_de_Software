@@ -166,9 +166,13 @@
                             <input class="form-check-input filtro-tipo" type="checkbox" value="INFORME_FINAL" id="tipoInforme">
                             <label class="form-check-label" for="tipoInforme">Informe</label>
                         </div>
-                        <div class="form-check mb-4">
+                        <div class="form-check mb-2">
                             <input class="form-check-input filtro-tipo" type="checkbox" value="PAUTA" id="tipoEvaluacion">
                             <label class="form-check-label" for="tipoEvaluacion">Evaluación / Pauta</label>
+                        </div>
+                        <div class="form-check mb-4">
+                            <input class="form-check-input filtro-tipo" type="checkbox" value="DOCUMENTO_GENERAL" id="tipoDocumentoGeneral">
+                            <label class="form-check-label" for="tipoDocumentoGeneral">Documento General</label>
                         </div>
 
                         <button id="btnLimpiarFiltros" class="btn btn-sm btn-outline-secondary w-100 d-none">
@@ -378,7 +382,7 @@
                 case 'PLANIFICACION': return 'Planificación';
                 case 'INFORME_FINAL': return 'Informe Final';
                 case 'PAUTA': return 'Evaluación / Pauta';
-                case 'DOCUMENTO_GENERAL': return 'Documento';
+                case 'DOCUMENTO_GENERAL': return 'Documento General';
                 default: return tipo || 'Sin Especificar';
             }
         }

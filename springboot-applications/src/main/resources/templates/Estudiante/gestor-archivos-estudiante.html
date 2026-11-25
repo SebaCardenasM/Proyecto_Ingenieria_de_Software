@@ -80,7 +80,6 @@
                                             <tr>
                                                 <th class="ps-4">Nombre del Archivo</th>
                                                 <th>Tipo Documento</th>
-                                                <th>Estado</th>
                                                 <th>Fecha de Subida</th>
                                                 <th class="text-center">N° Práctica</th>
                                                 <th class="text-center">Acciones</th>
@@ -88,7 +87,7 @@
                                         </thead>
                                         <tbody id="tablaArchivos">
                                             <tr>
-                                                <td colspan="6" class="text-center text-muted py-5">
+                                                <td colspan="5" class="text-center text-muted py-5">
                                                     <div class="spinner-border text-danger spinner-border-sm me-2" role="status"></div>
                                                     Cargando tus evidencias...
                                                 </td>
@@ -117,18 +116,13 @@
                                     <input class="form-check-input filtro-tipo" type="checkbox" value="PLANIFICACION" id="tipoPlanificacion">
                                     <label class="form-check-label" for="tipoPlanificacion">Planificación</label>
                                 </div>
-                                <div class="form-check mb-4">
+                                <div class="form-check mb-2">
                                     <input class="form-check-input filtro-tipo" type="checkbox" value="INFORME_FINAL" id="tipoInforme">
                                     <label class="form-check-label" for="tipoInforme">Informe Final</label>
                                 </div>
-                                <h6 class="fw-bold text-secondary mb-3">Por Estado</h6>
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input filtro-estado" type="checkbox" value="ENVIADO" id="estadoEnviado">
-                                    <label class="form-check-label" for="estadoEnviado">Enviado</label>
-                                </div>
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input filtro-estado" type="checkbox" value="AUTORIZADO" id="estadoAutorizado">
-                                    <label class="form-check-label" for="estadoAutorizado">Autorizada</label>
+                                <div class="form-check mb-4">
+                                    <input class="form-check-input filtro-tipo" type="checkbox" value="DOCUMENTO_GENERAL" id="tipoDocGeneral">
+                                    <label class="form-check-label" for="tipoDocGeneral">Documento General</label>
                                 </div>
                             </div>
                         </div>
@@ -148,7 +142,7 @@
             cargarArchivos();
 
             // Listeners de filtros
-            document.querySelectorAll('.filtro-practica, .filtro-tipo, .filtro-estado').forEach(cb => cb.addEventListener('change', renderizarTabla));
+            document.querySelectorAll('.filtro-practica, .filtro-tipo').forEach(cb => cb.addEventListener('change', renderizarTabla));
 
             // Acciones de cada fila (revisar / enviar / descartar)
             document.getElementById('tablaArchivos').addEventListener('click', async (e) => {
@@ -178,7 +172,7 @@
                 archivosGlobales = await respuesta.json();
                 renderizarTabla();
             } catch (error) {
-                tabla.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">Error al cargar evidencias.</td></tr>';
+                tabla.innerHTML = '<tr><td colspan="5" class="text-center text-danger py-4">Error al cargar evidencias.</td></tr>';
             }
         }
 
@@ -218,12 +212,11 @@
         function renderizarTabla() {
             const tabla = document.getElementById('tablaArchivos');
             if (!archivosGlobales || archivosGlobales.length === 0) {
-                tabla.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">Aún no has subido ninguna evidencia.</td></tr>';
+                tabla.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">Aún no has subido ninguna evidencia.</td></tr>';
                 return;
             }
             const practicasSel = Array.from(document.querySelectorAll('.filtro-practica:checked')).map(cb => cb.value);
             const tiposSel = Array.from(document.querySelectorAll('.filtro-tipo:checked')).map(cb => cb.value);
-            const estadosSel = Array.from(document.querySelectorAll('.filtro-estado:checked')).map(cb => cb.value);
 
             const filtrados = archivosGlobales.filter(a => {
                 // En el gestor de archivos solo deben verse evidencias enviadas y guardadas como PDF:
@@ -235,14 +228,11 @@
                 const p = a.numeroPractica || (a.practica ? a.practica.numeroPractica : null);
                 const coincidePractica = practicasSel.length === 0 || (p && practicasSel.includes(p.toString()));
                 const coincideTipo = tiposSel.length === 0 || (a.tipoDocumento && tiposSel.includes(a.tipoDocumento));
-                const coincideEstado = estadosSel.length === 0 || estadosSel.includes(a.estado)
-                                     || (estadosSel.includes('ENVIADO') && a.estado === 'ENVIADO')
-                                     || (estadosSel.includes('AUTORIZADO') && a.estado === 'AUTORIZADO');
-                return coincidePractica && coincideTipo && coincideEstado;
+                return coincidePractica && coincideTipo;
             });
 
             if (filtrados.length === 0) {
-                tabla.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">No hay documentos con los filtros aplicados.</td></tr>';
+                tabla.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">No hay documentos con los filtros aplicados.</td></tr>';
                 return;
             }
 
@@ -251,18 +241,6 @@
                 const fecha = a.fechaSubida ? new Date(a.fechaSubida).toLocaleDateString('es-CL', {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'}) : 'Recién subido';
                 const esBorrador = a.estado === 'BORRADOR';
 
-                let estado = '';
-                if (a.estado === 'BORRADOR') {
-                    estado = '<span class="badge bg-warning text-dark"><i class="bi bi-pencil-fill me-1"></i>Borrador</span>';
-                } else if (a.estado === 'AUTORIZADO') {
-                    estado = '<span class="badge bg-success"><i class="bi bi-lock-fill me-1"></i>Autorizada</span>';
-                } else if (a.estado === 'EN_REVISION') {
-                    estado = '<span class="badge bg-info text-dark"><i class="bi bi-hourglass-split me-1"></i>En revisión</span>';
-                } else if (a.estado === 'CON_OBSERVACIONES') {
-                    estado = '<span class="badge bg-danger"><i class="bi bi-chat-left-text me-1"></i>Con observaciones</span>';
-                } else {
-                    estado = '<span class="badge bg-success"><i class="bi bi-check-circle-fill me-1"></i>Enviado</span>';
-                }
                 const ia = a.revisadoIa
                     ? '<span class="badge bg-info text-dark ms-1" title="Revisado por el asistente"><i class="bi bi-robot"></i> IA</span>' : '';
 
@@ -272,7 +250,9 @@
 
                 const icono = a.tipoDocumento === 'PLANIFICACION'
                     ? '<i class="bi bi-file-earmark-text text-primary me-2"></i>'
-                    : '<i class="bi bi-file-earmark-pdf text-danger me-2"></i>';
+                    : (a.tipoDocumento === 'DOCUMENTO_GENERAL'
+                        ? '<i class="bi bi-file-earmark-arrow-up text-success me-2"></i>'
+                        : '<i class="bi bi-file-earmark-pdf text-danger me-2"></i>');
 
                 const acciones = esBorrador
                     ? `<a href="${urlVer}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-secondary" title="Ver archivo"><i class="bi bi-eye"></i></a>
@@ -283,9 +263,8 @@
 
                 tabla.insertAdjacentHTML('beforeend', `
                     <tr>
-                        <td class="ps-4 fw-semibold text-dark">${icono}${escapeHtml(a.nombreArchivo)}</td>
+                        <td class="ps-4 fw-semibold text-dark">${icono}${escapeHtml(a.nombreArchivo)}${ia}</td>
                         <td><span class="badge bg-secondary">${escapeHtml(formatoTipo(a.tipoDocumento))}</span></td>
-                        <td>${estado}${ia}</td>
                         <td>${escapeHtml(fecha)}</td>
                         <td class="text-center"><span class="badge bg-danger bg-opacity-75">Práctica ${escapeHtml(a.numeroPractica || 'N/A')}</span></td>
                         <td class="text-center text-nowrap">${acciones}</td>
@@ -299,7 +278,7 @@
         function formatoTipo(t) {
             if (t === 'PLANIFICACION') return 'Planificación';
             if (t === 'INFORME_FINAL') return 'Informe Final';
-            if (t === 'DOCUMENTO_GENERAL') return 'Documento';
+            if (t === 'DOCUMENTO_GENERAL') return 'Documento General';
             return t || 'Documento';
         }
     </script>

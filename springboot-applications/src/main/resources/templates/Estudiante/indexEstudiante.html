@@ -85,8 +85,8 @@
                 <a th:href="@{/estudiante/avisos}" class="btn btn-warning btn-sm fw-semibold"><i class="bi bi-arrow-right-circle me-1"></i>Ver avisos</a>
             </div>
 
-            <div class="row g-4">
-            <!-- Mis Prácticas -->
+        <div class="row g-4">
+            <!-- 1. Mi Práctica -->
             <div class="col-md-6 col-xl-4">
                 <div class="card ubb-card accent-green" style="--i:0">
                     <div class="card-body">
@@ -104,10 +104,7 @@
                 </div>
             </div>
 
-
-            <!-- Subir Documentos (Antes Mis Planificaciones) -->
-
-            <!-- Mis Calificaciones y Progreso Ponderado -->
+            <!-- 2. Mis Calificaciones y Progreso Ponderado -->
             <div class="col-md-6 col-xl-4">
                 <div class="card ubb-card accent-cyan" style="--i:1">
                     <div class="card-body">
@@ -125,11 +122,46 @@
                 </div>
             </div>
 
-            <!-- Mis Planificaciones -->
+            <!-- 3. Portafolio Personal -->
+            <div class="col-md-6 col-xl-4">
+                <div class="card ubb-card accent-amber" style="--i:2">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="icon-bubble"><i class="bi bi-person-vcard"></i></div>
+                            <h4 class="card-title mb-0">Mi Portafolio</h4>
+                        </div>
+                        <p class="card-text text-muted mb-4">Revisa tu historial académico, notas acumuladas y observaciones de tus pautas.</p>
+                        <div class="d-grid gap-2">
+                            <a th:href="@{/estudiante/portafolio}" class="btn btn-outline-warning text-dark">
+                                <i class="bi bi-journal-check me-1"></i> Ver Mi Portafolio
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
+            <!-- 4. Gestor de Documentos / Consultar Evidencias -->
+            <div class="col-md-6 col-xl-4">
+                <div class="card ubb-card accent-red" style="--i:3">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="icon-bubble"><i class="bi bi-folder2-open"></i></div>
+                            <h4 class="card-title mb-0">Gestor de Documentos</h4>
+                        </div>
+                        <p class="card-text text-muted mb-4">Consulta y revisa las planificaciones, informes y evidencias de todas tus prácticas.</p>
+                        <div class="d-grid gap-2">
+                            <a th:href="@{/estudiante/archivos}" class="btn btn-outline-danger">
+                                <i class="bi bi-folder2-open me-1"></i> Ver Mis Documentos
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. Subir Documentos (Antes Mis Planificaciones) -->
             <div class="col-md-6 col-xl-4">
                 <!-- Estudiante CON práctica inscrita -->
-                <div th:if="${practicaActual != null}" class="card ubb-card accent-green" style="--i:1">
+                <div th:if="${practicaActual != null}" class="card ubb-card accent-green" style="--i:4">
                     <div class="card-body">
                         <div class="d-flex align-items-center mb-3">
                             <div class="icon-bubble"><i class="bi bi-cloud-arrow-up-fill"></i></div>
@@ -149,7 +181,7 @@
                 </div>
 
                 <!-- Estudiante SIN práctica inscrita actualmente -->
-                <div th:unless="${practicaActual != null}" class="card ubb-card accent-gray" style="--i:1; opacity: 0.9; background-color: #f8fafc; border: 1px dashed #cbd5e1;">
+                <div th:unless="${practicaActual != null}" class="card ubb-card accent-gray" style="--i:4; opacity: 0.9; background-color: #f8fafc; border: 1px dashed #cbd5e1;">
                     <div class="card-body">
                         <div class="d-flex align-items-center mb-3">
                             <div class="icon-bubble" style="background: #e2e8f0; color: #64748b;"><i class="bi bi-lock-fill"></i></div>
@@ -168,27 +200,9 @@
                 </div>
             </div>
 
-            <!-- Gestor de Documentos / Consultar Evidencias -->
+            <!-- 6. Mis Pautas de Evaluación -->
             <div class="col-md-6 col-xl-4">
-                <div class="card ubb-card accent-red" style="--i:1">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="icon-bubble"><i class="bi bi-folder2-open"></i></div>
-                            <h4 class="card-title mb-0">Gestor de Documentos</h4>
-                        </div>
-                        <p class="card-text text-muted mb-4">Consulta y revisa las planificaciones, informes y evidencias de todas tus prácticas.</p>
-                        <div class="d-grid gap-2">
-                            <a th:href="@{/estudiante/archivos}" class="btn btn-outline-danger">
-                                <i class="bi bi-folder2-open me-1"></i> Ver Mis Documentos
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Mis Pautas de Evaluación -->
-            <div class="col-md-6 col-xl-4">
-                <div class="card ubb-card accent-blue" style="--i:2">
+                <div class="card ubb-card accent-blue" style="--i:5">
                     <div class="card-body">
                         <div class="d-flex align-items-center mb-3">
                             <div class="icon-bubble"><i class="bi bi-award-fill"></i></div>
@@ -203,24 +217,7 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Portafolio Personal -->
-            <div class="col-md-6 col-xl-4">
-                <div class="card ubb-card accent-amber" style="--i:3">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="icon-bubble"><i class="bi bi-person-vcard"></i></div>
-                            <h4 class="card-title mb-0">Mi Portafolio</h4>
-                        </div>
-                        <p class="card-text text-muted mb-4">Revisa tu historial académico, notas acumuladas y observaciones de tus pautas.</p>
-                        <div class="d-grid gap-2">
-                            <a th:href="@{/estudiante/portafolio}" class="btn btn-outline-warning text-dark">
-                                <i class="bi bi-journal-check me-1"></i> Ver Mi Portafolio
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        </div>
         </div>
     </main>
 

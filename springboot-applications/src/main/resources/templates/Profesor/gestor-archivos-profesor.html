@@ -133,10 +133,33 @@
                             <input class="form-check-input filtro-tipo" type="checkbox" value="PLANIFICACION" id="tipoPlanificacion">
                             <label class="form-check-label" for="tipoPlanificacion">Planificación</label>
                         </div>
-                        <div class="form-check mb-4">
+                        <div class="form-check mb-2">
                             <input class="form-check-input filtro-tipo" type="checkbox" value="INFORME_FINAL" id="tipoInforme">
                             <label class="form-check-label" for="tipoInforme">Informe Final</label>
                         </div>
+                        <div class="form-check mb-4">
+                            <input class="form-check-input filtro-tipo" type="checkbox" value="DOCUMENTO_GENERAL" id="tipoDocGeneral">
+                            <label class="form-check-label" for="tipoDocGeneral">Documento General</label>
+                        </div>
+
+                        <!-- Filtro: Estado de la Práctica -->
+                        <h6 class="fw-bold text-secondary mb-3">Por Estado de la Práctica</h6>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input filtro-estado-practica" type="checkbox" value="PENDIENTE" id="estadoPracPendiente">
+                            <label class="form-check-label" for="estadoPracPendiente">Activa (Pendiente)</label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input filtro-estado-practica" type="checkbox" value="APROBADA" id="estadoPracAprobada">
+                            <label class="form-check-label" for="estadoPracAprobada">Aprobada</label>
+                        </div>
+                        <div class="form-check mb-4">
+                            <input class="form-check-input filtro-estado-practica" type="checkbox" value="REPROBADA" id="estadoPracReprobada">
+                            <label class="form-check-label" for="estadoPracReprobada">Reprobada</label>
+                        </div>
+
+                        <button id="btnLimpiarFiltros" class="btn btn-sm btn-outline-secondary w-100 d-none">
+                            <i class="bi bi-x-circle me-1"></i>Limpiar Filtros
+                        </button>
 
                     </div>
                 </div>
@@ -191,14 +214,14 @@
             cargarArchivos();
 
             // Listeners para filtros
-            document.querySelectorAll('.filtro-practica, .filtro-tipo').forEach(checkbox => {
+            document.querySelectorAll('.filtro-practica, .filtro-tipo, .filtro-estado-practica').forEach(checkbox => {
                 checkbox.addEventListener('change', renderizarTabla);
             });
 
             document.getElementById('inputBuscarEstudiante').addEventListener('input', renderizarTabla);
 
             document.getElementById('btnLimpiarFiltros')?.addEventListener('click', () => {
-                document.querySelectorAll('.filtro-practica, .filtro-tipo').forEach(cb => cb.checked = false);
+                document.querySelectorAll('.filtro-practica, .filtro-tipo, .filtro-estado-practica').forEach(cb => cb.checked = false);
                 document.getElementById('inputBuscarEstudiante').value = '';
                 renderizarTabla();
             });
@@ -240,12 +263,13 @@
 
             const practicasSeleccionadas = Array.from(document.querySelectorAll('.filtro-practica:checked')).map(cb => cb.value);
             const tiposSeleccionados = Array.from(document.querySelectorAll('.filtro-tipo:checked')).map(cb => cb.value);
+            const estadosPracticaSeleccionados = Array.from(document.querySelectorAll('.filtro-estado-practica:checked')).map(cb => cb.value);
             const textoBusqueda = document.getElementById('inputBuscarEstudiante').value.toLowerCase().trim();
 
             // >>> PROTECCIÓN CONTRA NULOS AQUÍ <<<
             const btnLimpiar = document.getElementById('btnLimpiarFiltros');
             if (btnLimpiar) {
-                if (practicasSeleccionadas.length > 0 || tiposSeleccionados.length > 0 || textoBusqueda !== '') {
+                if (practicasSeleccionadas.length > 0 || tiposSeleccionados.length > 0 || estadosPracticaSeleccionados.length > 0 || textoBusqueda !== '') {
                     btnLimpiar.classList.remove('d-none');
                 } else {
                     btnLimpiar.classList.add('d-none');
@@ -253,7 +277,7 @@
             }
             // ===================================
 
-                const archivosFiltrados = archivosGlobales.filter(archivo => {
+            const archivosFiltrados = archivosGlobales.filter(archivo => {
                 const numPrac = archivo.numeroPractica || (archivo.practica ? archivo.practica.numeroPractica : null);
                 const tipoDoc = archivo.tipoDocumento;
 
@@ -267,9 +291,10 @@
 
                 const coincidePractica = practicasSeleccionadas.length === 0 || (numPrac && practicasSeleccionadas.includes(numPrac.toString()));
                 const coincideTipo = tiposSeleccionados.length === 0 || (tipoDoc && tiposSeleccionados.includes(tipoDoc));
+                const coincideEstadoPrac = estadosPracticaSeleccionados.length === 0 || (archivo.estadoPractica && estadosPracticaSeleccionados.includes(archivo.estadoPractica));
                 const coincideBusqueda = textoBusqueda === '' || infoEstudiante.toLowerCase().includes(textoBusqueda);
 
-                return coincidePractica && coincideTipo && coincideBusqueda;
+                return coincidePractica && coincideTipo && coincideEstadoPrac && coincideBusqueda;
             });
 
             if (archivosFiltrados.length === 0) {
@@ -357,7 +382,7 @@
                 case 'PLANIFICACION': return 'Planificación';
                 case 'INFORME_FINAL': return 'Informe Final';
                 case 'PAUTA': return 'Evaluación / Pauta';
-                case 'DOCUMENTO_GENERAL': return 'Documento';
+                case 'DOCUMENTO_GENERAL': return 'Documento General';
                 default: return tipo || 'Sin Especificar';
             }
         }

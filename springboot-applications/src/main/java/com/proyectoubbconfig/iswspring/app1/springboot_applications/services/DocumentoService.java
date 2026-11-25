@@ -120,10 +120,7 @@ public class DocumentoService {
         }
         // Estudiante: solo lo suyo, borradores incluidos (excluyendo pautas, que van en su propia pestaña)
         else {
-            List<Documento> docsEstudiante = usuarioRepository.findById(rut)
-                    .filter(u -> u instanceof Estudiante)
-                    .map(u -> documentoRepository.findByEstudiante((Estudiante) u))
-                    .orElse(List.of());
+            List<Documento> docsEstudiante = documentoRepository.findByEstudianteRut(rut);
 
             return docsEstudiante.stream()
                     .filter(doc -> !(doc instanceof Pauta) && (doc.getTipoDocumento() == null || !doc.getTipoDocumento().name().equals("PAUTA")))
@@ -278,8 +275,8 @@ public class DocumentoService {
         nuevoDocumento.setRutaServidor(CARPETA_SUBIDAS + nombreFisico); // lo que se sirve por /uploads/**
         nuevoDocumento.setNumeroPractica(numPracticaAsignar != null ? numPracticaAsignar : estudiante.getPracticaActual());
         nuevoDocumento.setEstudiante(estudiante);
-        // Documentos generales y pautas se guardan directamente como ENVIADO (no como borrador)
-        if (tipoDocumento == TipoDocumento.DOCUMENTO_GENERAL || tipoDocumento == TipoDocumento.PAUTA) {
+        // Documentos generales, pautas e informes finales se guardan directamente como ENVIADO (no como borrador)
+        if (tipoDocumento == TipoDocumento.DOCUMENTO_GENERAL || tipoDocumento == TipoDocumento.PAUTA || tipoDocumento == TipoDocumento.INFORME_FINAL) {
             nuevoDocumento.setEstado(EstadoDocumento.ENVIADO);
         } else {
             nuevoDocumento.setEstado(EstadoDocumento.BORRADOR);
