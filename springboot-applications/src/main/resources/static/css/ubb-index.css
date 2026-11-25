@@ -244,6 +244,33 @@ body.ubb-inner .table > tbody > tr:not(:has(> td[colspan])):hover .badge {
     box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.6);
 }
 
+/* Modales generales y dentro de tablas: evitar que hereden estilos de hover o texto blanco de la fila */
+.modal-content,
+body.ubb-inner .table .modal-content {
+    background-color: #fff !important;
+    color: #212529 !important;
+}
+.modal :is(.modal-title, h1, h2, h3, h4, h5, h6, p, label, textarea, input, select, span, div) {
+    color: #212529 !important;
+}
+.modal textarea.form-control,
+.modal input.form-control {
+    background-color: #fff !important;
+    color: #212529 !important;
+    caret-color: #212529 !important;
+}
+.modal textarea.form-control:focus,
+.modal input.form-control:focus {
+    background-color: #fff !important;
+    color: #212529 !important;
+}
+.modal :is(.text-muted, .form-text, small.text-muted) {
+    color: #6c757d !important;
+}
+.modal .btn-close {
+    filter: none !important;
+}
+
 /* Listas, tarjetas de documentos y menús desplegables */
 body.ubb-inner .list-group-item-action:hover,
 body.ubb-inner .list-group-item-action:focus,

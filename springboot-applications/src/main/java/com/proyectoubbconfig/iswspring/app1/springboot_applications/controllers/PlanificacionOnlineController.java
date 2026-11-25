@@ -35,14 +35,23 @@ public class PlanificacionOnlineController {
     @GetMapping("/estudiante/planificacion/nueva")
     public String nueva(Model model, Principal principal, RedirectAttributes redirectAttributes) {
         Estudiante e = estudianteRepository.findById(principal.getName()).orElse(null);
-        if (e == null || e.getPracticaActual() == null) {
+        if (e == null) {
+            return "redirect:/estudiante/index";
+        }
+        List<Practica> misPracticas = practicaRepository.findByEstudiante(e);
+        Practica practicaActiva = misPracticas.stream()
+                .filter(p -> p.getEstado() == EstadoPractica.PENDIENTE)
+                .findFirst()
+                .orElse(null);
+
+        if (practicaActiva == null || practicaActiva.getNumeroPractica() == null) {
             redirectAttributes.addFlashAttribute("errorMensaje",
-                    "No tienes una práctica inscrita actualmente para crear planificaciones.");
+                    "No tienes una práctica activa actualmente para crear planificaciones.");
             return "redirect:/estudiante/index";
         }
         Map<String, String> valores = new HashMap<>();
         valores.put("asignatura", "Matemática");
-        preparar(model, principal.getName(), valores, null, e.getPracticaActual(), false, "/estudiante/planificaciones");
+        preparar(model, principal.getName(), valores, null, practicaActiva.getNumeroPractica(), false, "/estudiante/planificaciones");
         return VISTA;
     }
 
@@ -151,22 +160,23 @@ public class PlanificacionOnlineController {
     @Transactional(readOnly = true)
     public String misPlanificaciones(Model model, Principal principal, RedirectAttributes redirectAttributes) {
         Estudiante e = estudianteRepository.findById(principal.getName()).orElseThrow();
-        Integer practicaActual = e.getPracticaActual();
+        List<Practica> misPracticas = practicaRepository.findByEstudiante(e);
 
-        // Si no tiene ninguna práctica inscrita actualmente, no puede acceder a esta pestaña
+        // Buscar la práctica activa: aquella en estado PENDIENTE
+        Practica practicaVigente = misPracticas.stream()
+                .filter(p -> p.getEstado() == EstadoPractica.PENDIENTE)
+                .findFirst()
+                .orElse(null);
+
+        // Si no tiene ninguna práctica activa actualmente, no puede acceder a esta pestaña
         // y se le redirige al inicio indicando que puede ver sus documentos anteriores en el gestor
-        if (practicaActual == null) {
+        if (practicaVigente == null || practicaVigente.getNumeroPractica() == null) {
             redirectAttributes.addFlashAttribute("errorMensaje",
-                    "No tienes una práctica inscrita actualmente para acceder a «Subir Documentos». Si deseas revisar tus planificaciones o informes anteriores, puedes consultarlos en el Gestor de Documentos.");
+                    "No tienes una práctica activa actualmente para acceder a «Subir Documentos». Si deseas revisar tus documentos anteriores, puedes consultarlos en el Gestor de Documentos.");
             return "redirect:/estudiante/index";
         }
 
-        List<Practica> misPracticas = practicaRepository.findByEstudiante(e);
-        Practica practicaVigente = misPracticas.stream()
-                .filter(p -> p.getNumeroPractica() != null && p.getNumeroPractica().equals(practicaActual))
-                .max(Comparator.comparing(Practica::getAno, Comparator.nullsFirst(Comparator.naturalOrder()))
-                        .thenComparing(Practica::getSemestre, Comparator.nullsFirst(Comparator.naturalOrder())))
-                .orElse(null);
+        Integer practicaActual = practicaVigente.getNumeroPractica();
 
         InfoPracticaEstudianteDTO infoPractica = construirInfoPractica(practicaActual, practicaVigente);
 

@@ -26,6 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.dto.CamposPlanificacion;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Documento;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.EstadoDocumento;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.EstadoPractica;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Estudiante;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Informe;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Notificacion;
@@ -119,10 +120,7 @@ public class DocumentoService {
         }
         // Estudiante: solo lo suyo, borradores incluidos (excluyendo pautas, que van en su propia pestaña)
         else {
-            List<Documento> docsEstudiante = usuarioRepository.findById(rut)
-                    .filter(u -> u instanceof Estudiante)
-                    .map(u -> documentoRepository.findByEstudiante((Estudiante) u))
-                    .orElse(List.of());
+            List<Documento> docsEstudiante = documentoRepository.findByEstudianteRut(rut);
 
             return docsEstudiante.stream()
                     .filter(doc -> !(doc instanceof Pauta) && (doc.getTipoDocumento() == null || !doc.getTipoDocumento().name().equals("PAUTA")))
@@ -203,7 +201,6 @@ public class DocumentoService {
         if (extension == null || !EXTENSIONES_PERMITIDAS.contains(extension.toLowerCase())) {
             throw new Exception("Tipo de archivo no permitido. Formatos aceptados: " + EXTENSIONES_PERMITIDAS);
         }
-        if (tipoDocumento == TipoDocumento.PLANIFICACION) exigirPdf(archivo, extension);
 
         String identificador = SecurityContextHolder.getContext().getAuthentication().getName();
         Usuario usuario = usuarioRepository.findById(identificador)
@@ -214,10 +211,30 @@ public class DocumentoService {
         }
         Estudiante estudiante = (Estudiante) usuario;
 
+        List<Practica> practicasEstudiante = practicaRepository.findByEstudiante(estudiante);
         Practica practicaEncontrada = null;
-        if (estudiante.getPracticas() != null) {
-            practicaEncontrada = estudiante.getPracticas().stream()
-                    .filter(p -> numeroPractica.equals(p.getNumeroPractica()))
+        if (numeroPractica != null) {
+            practicaEncontrada = practicasEstudiante.stream()
+                    .filter(p -> numeroPractica.equals(p.getNumeroPractica()) && p.getEstado() == EstadoPractica.PENDIENTE)
+                    .findFirst()
+                    .orElse(null);
+            if (practicaEncontrada == null) {
+                practicaEncontrada = practicasEstudiante.stream()
+                        .filter(p -> numeroPractica.equals(p.getNumeroPractica()))
+                        .max(Comparator.comparing(Practica::getAno, Comparator.nullsFirst(Comparator.naturalOrder()))
+                                .thenComparing(Practica::getSemestre, Comparator.nullsFirst(Comparator.naturalOrder())))
+                        .orElse(null);
+            }
+        }
+        if (practicaEncontrada == null) {
+            practicaEncontrada = practicasEstudiante.stream()
+                    .filter(p -> p.getEstado() == EstadoPractica.PENDIENTE)
+                    .findFirst()
+                    .orElse(null);
+        }
+        if (practicaEncontrada == null && estudiante.getPracticaActual() != null) {
+            practicaEncontrada = practicasEstudiante.stream()
+                    .filter(p -> estudiante.getPracticaActual().equals(p.getNumeroPractica()))
                     .findFirst()
                     .orElse(null);
         }
@@ -242,17 +259,28 @@ public class DocumentoService {
             nuevoDocumento = new Informe();
         } else if (tipoDocumento == TipoDocumento.PAUTA) {
             nuevoDocumento = new Pauta();
+        } else if (tipoDocumento == TipoDocumento.DOCUMENTO_GENERAL) {
+            nuevoDocumento = new Documento();
+            nuevoDocumento.setTipoDocumento(TipoDocumento.DOCUMENTO_GENERAL);
         } else {
             throw new Exception("Tipo de documento no soportado: " + tipoDocumento);
         }
 
+        Integer numPracticaAsignar = numeroPractica;
+        if (practicaEncontrada != null) {
+            nuevoDocumento.setPractica(practicaEncontrada);
+            numPracticaAsignar = practicaEncontrada.getNumeroPractica();
+        }
         nuevoDocumento.setNombreArchivo(nombreVisible);                 // lo que ve el usuario
         nuevoDocumento.setRutaServidor(CARPETA_SUBIDAS + nombreFisico); // lo que se sirve por /uploads/**
-        nuevoDocumento.setNumeroPractica(numeroPractica);
-        nuevoDocumento.setPractica(practicaEncontrada);
+        nuevoDocumento.setNumeroPractica(numPracticaAsignar != null ? numPracticaAsignar : estudiante.getPracticaActual());
         nuevoDocumento.setEstudiante(estudiante);
-        // Planificaciones e informes pasan por la cadena (borrador -> revisión -> gestor)
-        nuevoDocumento.setEstado(tipoDocumento == TipoDocumento.PAUTA ? EstadoDocumento.ENVIADO : EstadoDocumento.BORRADOR);
+        // Documentos generales, pautas e informes finales se guardan directamente como ENVIADO (no como borrador)
+        if (tipoDocumento == TipoDocumento.DOCUMENTO_GENERAL || tipoDocumento == TipoDocumento.PAUTA || tipoDocumento == TipoDocumento.INFORME_FINAL) {
+            nuevoDocumento.setEstado(EstadoDocumento.ENVIADO);
+        } else {
+            nuevoDocumento.setEstado(EstadoDocumento.BORRADOR);
+        }
 
         return documentoRepository.save(nuevoDocumento);
     }

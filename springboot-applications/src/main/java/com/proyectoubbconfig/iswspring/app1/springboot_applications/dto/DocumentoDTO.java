@@ -20,6 +20,7 @@ public record DocumentoDTO(
         Integer numeroPractica,
         Integer anoPractica,
         Integer semestrePractica,
+        String estadoPractica,
         String tipoEvaluador,
 
         String estado,              // BORRADOR | ENVIADO
@@ -59,6 +60,7 @@ public record DocumentoDTO(
         }
         Integer anoPractica = practica != null ? practica.getAno() : null;
         Integer semestrePractica = practica != null ? practica.getSemestre() : null;
+        String estadoPractica = practica != null && practica.getEstado() != null ? practica.getEstado().name() : null;
 
         String evaluadorStr = null;
         if (d instanceof Pauta pauta) {
@@ -89,6 +91,7 @@ public record DocumentoDTO(
                 numero,
                 anoPractica,
                 semestrePractica,
+                estadoPractica,
                 evaluadorStr,
                 d.getEstado().name(),
                 d.isRevisadoIa(),
