@@ -97,7 +97,7 @@
         <div class="container-fluid px-4">
             <div class="d-flex align-items-center">
                 <img th:src="@{/images/escudo-monocromatico-oscuro.png}" alt="Escudo Universidad del Bío-Bío" class="nav-logo">
-                <a class="navbar-brand fw-bold" th:href="@{/estudiante/index}"><i class="bi bi-arrow-left-circle me-2"></i>Volver al Panel</a>
+                <a class="navbar-brand fw-bold" th:href="@{/estudiante/index}"><i class="bi bi-arrow-left-circle me-2"></i>Volver al Dashboard</a>
             </div>
             <div class="d-flex text-white align-items-center">
                 <i class="bi bi-cloud-arrow-up-fill fs-5 me-2"></i> Subir Documentos
@@ -113,14 +113,13 @@
                 <h2 class="fw-bold text-dark mb-1">
                     <i class="bi bi-cloud-arrow-up-fill text-success me-2"></i>Subir Documentos
                 </h2>
-                <p class="text-muted mb-0">Sube tus planificaciones de clases y tu informe final correspondientes a tu práctica actual.</p>
             </div>
             <div class="col-lg-7 text-lg-end mt-3 mt-lg-0 d-flex flex-wrap gap-2 justify-content-lg-end">
                 <a th:href="@{/estudiante/planificacion/nueva}" class="btn btn-success shadow-sm">
                     <i class="bi bi-pencil-square me-1"></i> Planificación en línea
                 </a>
                 <button type="button" class="btn btn-outline-success shadow-sm" data-bs-toggle="modal" data-bs-target="#modalSubir">
-                    <i class="bi bi-file-earmark-arrow-up me-1"></i> Subir Planificación
+                    <i class="bi bi-file-earmark-arrow-up me-1"></i> Subir Documento
                 </button>
                 <button type="button" class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#modalSubirInforme">
                     <i class="bi bi-file-earmark-check-fill me-1"></i> Subir Informe Final
@@ -133,7 +132,7 @@
              th:classappend="'tema-' + ${infoPractica.temaColor}">
             <div class="card-body p-4">
                 <div class="row align-items-center gy-3">
-                    <div class="col-lg-8">
+                    <div class="col-12">
                         <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
                             <span class="badge" th:classappend="${infoPractica.cicloBadgeClass}" th:text="${infoPractica.ciclo}">Ciclo</span>
                             <span class="badge bg-secondary-subtle text-secondary border" th:text="${infoPractica.duracion}">Duración</span>
@@ -159,43 +158,14 @@
                             <span th:if="${infoPractica.tutorNombre != null}">
                                 <i class="bi bi-person-badge me-1 text-info"></i><strong>Tutor UBB:</strong> <span th:text="${infoPractica.tutorNombre}">Tutor</span>
                             </span>
+                            <span th:if="${duplaCompanero != null}">
+                                <i class="bi bi-people-fill me-1 text-primary"></i><strong>Dupla:</strong> <span th:text="${duplaCompanero.nombre + ' ' + duplaCompanero.apellido}">Compañero</span>
+                            </span>
+                            <span th:if="${(practicaActual == 3 or practicaActual == 4) and duplaCompanero == null}" class="text-warning-emphasis">
+                                <i class="bi bi-people me-1"></i><strong>Dupla:</strong> Pendiente de conformación
+                            </span>
                         </div>
                     </div>
-                    <div class="col-lg-4">
-                        <div class="p-3 bg-white bg-opacity-80 rounded-3 border">
-                            <div class="fw-bold small text-dark mb-1">
-                                <i class="bi bi-check2-circle text-primary me-1"></i>Requisitos de entrega
-                            </div>
-                            <p class="text-secondary mb-0 small" th:text="${infoPractica.requisitoEspecial}">
-                                Requisitos y pautas específicas de esta etapa.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Flujo de Trabajo / Cadena -->
-        <div class="cadena mb-4">
-            <div class="paso">
-                <span class="num">1</span>
-                <div>
-                    <strong>Sube tu documento</strong>
-                    <small>Planificación o Informe Final (queda como borrador)</small>
-                </div>
-            </div>
-            <div class="paso">
-                <span class="num">2</span>
-                <div>
-                    <strong>Revisión con el asistente</strong>
-                    <small th:text="${revisionIaObligatoria} ? 'Obligatoria antes de enviar' : 'Opcional, recomendada'">Opcional</small>
-                </div>
-            </div>
-            <div class="paso">
-                <span class="num">3</span>
-                <div>
-                    <strong>Envía a revisión</strong>
-                    <small>Planificación → tu profesor · Informe → gestor</small>
                 </div>
             </div>
         </div>
@@ -208,6 +178,7 @@
                 </h5>
                 <div class="btn-group btn-group-sm flex-wrap" role="group" id="grupoFiltros">
                     <button type="button" class="btn btn-outline-secondary filter-btn active" data-filtro="TODOS">Todos</button>
+                    <button type="button" class="btn btn-outline-secondary filter-btn" data-filtro="DOCUMENTO_GENERAL">Documentos</button>
                     <button type="button" class="btn btn-outline-secondary filter-btn" data-filtro="PLANIFICACION">Planificaciones</button>
                     <button type="button" class="btn btn-outline-secondary filter-btn" data-filtro="INFORME_FINAL">Informes Finales</button>
                     <button type="button" class="btn btn-outline-secondary filter-btn" data-filtro="BORRADOR">Borradores</button>
@@ -244,35 +215,24 @@
         </div>
     </div>
 
-    <!-- Modal 1: Subir Planificación (Archivo) -->
+    <!-- Modal 1: Subir Documento (Archivo) -->
     <div class="modal fade" id="modalSubir" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content border-0 shadow">
                 <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title"><i class="bi bi-cloud-arrow-up-fill me-2"></i>Subir planificación</h5>
+                    <h5 class="modal-title"><i class="bi bi-cloud-arrow-up-fill me-2"></i>Subir Documento</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4">
-                    <div class="alert alert-info small py-2">
-                        <i class="bi bi-info-circle me-1"></i>El archivo se guardará como <strong>borrador</strong>. Podrás revisarlo con el asistente y enviarlo a tu <strong>profesor</strong> para su revisión. Debe ser <strong>PDF</strong>.
-                    </div>
                     <form id="formSubida">
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold text-secondary" for="practicaSel">¿A qué práctica corresponde?</label>
-                            <select class="form-select" id="practicaSel" required>
-                                <option value="" disabled>Seleccione su práctica...</option>
-                                <option th:each="p : ${misPracticas}" th:value="${p.numeroPractica}"
-                                        th:selected="${p.numeroPractica == practicaActual}"
-                                        th:text="'Práctica N° ' + ${p.numeroPractica} + ' (' + ${p.ano} + '-' + ${p.semestre} + ')'"></option>
-                            </select>
-                        </div>
+                        <input type="hidden" id="practicaSel" th:value="${practicaActual}">
                         <div class="mb-4">
-                            <label class="form-label fw-semibold text-secondary" for="archivoInput">Archivo (PDF)</label>
-                            <input type="file" class="form-control" id="archivoInput" accept=".pdf,application/pdf" required>
+                            <label class="form-label fw-semibold text-secondary" for="archivoInput">Archivo</label>
+                            <input type="file" class="form-control" id="archivoInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png" required>
                         </div>
                         <div id="alerta" class="alert d-none"></div>
                         <div class="d-grid">
-                            <button class="btn btn-success btn-lg" type="submit">Guardar planificación como borrador</button>
+                            <button class="btn btn-success btn-lg" type="submit">Subir Documento</button>
                         </div>
                     </form>
                 </div>
@@ -289,26 +249,17 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4">
-                    <div class="alert alert-primary small py-2">
-                        <i class="bi bi-info-circle me-1"></i>Tu <strong>Informe Final</strong> se guardará inicialmente como borrador para que puedas revisarlo o actualizarlo antes de la entrega definitiva al gestor.
-                    </div>
                     <form id="formSubidaInforme">
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold text-secondary" for="practicaSelInforme">Práctica correspondiente</label>
-                            <select class="form-select" id="practicaSelInforme" required>
-                                <option value="" disabled>Seleccione su práctica...</option>
-                                <option th:each="p : ${misPracticas}" th:value="${p.numeroPractica}"
-                                        th:selected="${p.numeroPractica == practicaActual}"
-                                        th:text="'Práctica N° ' + ${p.numeroPractica} + ' (' + ${p.ano} + '-' + ${p.semestre} + ')'"></option>
-                            </select>
-                        </div>
+                        <input type="hidden" id="practicaSelInforme" th:value="${practicaActual}">
                         <div class="mb-4">
                             <label class="form-label fw-semibold text-secondary" for="archivoInputInforme">Archivo del Informe (PDF o Word)</label>
-                            <input type="file" class="form-control" id="archivoInputInforme" required>
+                            <input type="file" class="form-control" id="archivoInputInforme" accept=".pdf,.doc,.docx" required>
                         </div>
                         <div id="alertaInforme" class="alert d-none"></div>
                         <div class="d-grid">
-                            <button class="btn btn-primary btn-lg" type="submit">Guardar Informe como borrador</button>
+                            <button class="btn btn-primary btn-lg" type="submit">
+                                <i class="bi bi-file-earmark-check-fill me-2"></i>Subir Informe Final
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -359,8 +310,13 @@
             try {
                 const r = await fetch('/api/documentos/mis-documentos', { headers: { 'Accept': 'application/json' } });
                 docs = (r.status === 204 || r.status === 404) ? [] : await r.json();
-                // Permitir planificaciones e informes finales
-                docs = docs.filter(d => d.tipoDocumento === 'PLANIFICACION' || d.tipoDocumento === 'INFORME_FINAL');
+                const numActual = document.getElementById('practicaSel')?.value;
+                // Permitir planificaciones, informes finales y documentos generales solo de la práctica actual
+                docs = docs.filter(d => {
+                    const tipoValido = d.tipoDocumento === 'PLANIFICACION' || d.tipoDocumento === 'INFORME_FINAL' || d.tipoDocumento === 'DOCUMENTO_GENERAL';
+                    const coincidePractica = !numActual || String(d.numeroPractica) === String(numActual);
+                    return tipoValido && coincidePractica;
+                });
                 pintar();
             } catch (e) {
                 t.innerHTML = '<tr><td colspan="7" class="text-center text-danger py-4">Error al cargar los documentos.</td></tr>';
@@ -371,7 +327,7 @@
             const t = document.getElementById('tabla');
             let filtrados = docs.slice();
 
-            if (filtroActual === 'PLANIFICACION' || filtroActual === 'INFORME_FINAL') {
+            if (filtroActual === 'PLANIFICACION' || filtroActual === 'INFORME_FINAL' || filtroActual === 'DOCUMENTO_GENERAL') {
                 filtrados = filtrados.filter(d => d.tipoDocumento === filtroActual);
             } else if (filtroActual !== 'TODOS') {
                 filtrados = filtrados.filter(d => d.estado === filtroActual);   // BORRADOR, EN_REVISION, CON_OBSERVACIONES, AUTORIZADO, ENVIADO
@@ -388,9 +344,14 @@
                 const fecha = d.fechaSubida ? new Date(d.fechaSubida).toLocaleDateString('es-CL',
                     {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'}) : '—';
 
-                const tipoBadge = d.tipoDocumento === 'INFORME_FINAL'
-                    ? '<span class="badge bg-primary text-white"><i class="bi bi-file-earmark-check-fill me-1"></i>Informe Final</span>'
-                    : '<span class="badge bg-success bg-opacity-75 text-white"><i class="bi bi-clipboard2-check me-1"></i>Planificación</span>';
+                let tipoBadge = '<span class="badge bg-secondary text-white"><i class="bi bi-file-earmark-text me-1"></i>Documento</span>';
+                if (d.tipoDocumento === 'INFORME_FINAL') {
+                    tipoBadge = '<span class="badge bg-primary text-white"><i class="bi bi-file-earmark-check-fill me-1"></i>Informe Final</span>';
+                } else if (d.tipoDocumento === 'PLANIFICACION') {
+                    tipoBadge = '<span class="badge bg-success bg-opacity-75 text-white"><i class="bi bi-clipboard2-check me-1"></i>Planificación</span>';
+                } else if (d.tipoDocumento === 'DOCUMENTO_GENERAL') {
+                    tipoBadge = '<span class="badge bg-secondary text-white"><i class="bi bi-file-earmark-text me-1"></i>Documento</span>';
+                }
 
                 const formato = online
                     ? '<span class="badge bg-info text-dark"><i class="bi bi-ui-radios me-1"></i>En línea</span>'
@@ -488,12 +449,12 @@
             }
         });
 
-        // Formulario 1: Subir Planificación
+        // Formulario 1: Subir Documento
         document.getElementById('formSubida').addEventListener('submit', async e => {
             e.preventDefault();
             const fd = new FormData();
             fd.append('archivo', document.getElementById('archivoInput').files[0]);
-            fd.append('tipoDocumento', 'PLANIFICACION');
+            fd.append('tipoDocumento', 'DOCUMENTO_GENERAL');
             fd.append('numeroPractica', document.getElementById('practicaSel').value);
             const al = document.getElementById('alerta');
             try {
@@ -503,8 +464,7 @@
                     e.target.reset();
                     bootstrap.Modal.getInstance(document.getElementById('modalSubir'))?.hide();
                     await cargar();
-                    avisar('Tu archivo quedó como borrador. Ahora puedes revisarlo con el asistente antes de enviarlo.',
-                           '¡Borrador guardado!', () => window.ubbChatbot?.abrirRevision(doc.id));
+                    avisar('Tu documento ha sido subido y asignado a tu práctica.', '¡Documento subido!');
                 } else {
                     al.className = 'alert alert-danger mt-3'; al.textContent = 'Error: ' + await r.text();
                 }
@@ -528,8 +488,7 @@
                     e.target.reset();
                     bootstrap.Modal.getInstance(document.getElementById('modalSubirInforme'))?.hide();
                     await cargar();
-                    avisar('Tu Informe Final quedó guardado como borrador. Puedes revisarlo con el asistente antes de enviarlo al gestor.',
-                           '¡Informe guardado!', () => window.ubbChatbot?.abrirRevision(doc.id));
+                    avisar('Tu Informe Final ha sido enviado y asignado a tu práctica.', '¡Informe Final enviado!');
                 } else {
                     al.className = 'alert alert-danger mt-3'; al.textContent = 'Error: ' + await r.text();
                 }

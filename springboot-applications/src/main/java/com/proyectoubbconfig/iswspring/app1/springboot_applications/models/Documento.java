@@ -22,7 +22,7 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "Documento")
 @Inheritance(strategy = InheritanceType.JOINED)
-public abstract class Documento {
+public class Documento {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

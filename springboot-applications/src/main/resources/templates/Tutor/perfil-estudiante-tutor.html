@@ -19,7 +19,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark ubb-bg mb-4 shadow-sm">
         <div class="container">
             <div class="d-flex align-items-center"><img th:src="@{/images/escudo-monocromatico-oscuro.png}" alt="Escudo Universidad del Bío-Bío" class="nav-logo"><a class="navbar-brand fw-bold" th:href="@{/tutor/index}">
-                <i class="bi bi-mortarboard-fill me-2"></i>Plataforma de Prácticas
+                <i class="bi bi-arrow-left-circle me-2"></i>Volver al Dashboard
             </a></div>
             
             <div class="d-flex text-white align-items-center ms-auto">
@@ -79,13 +79,6 @@
                         <span class="badge bg-info text-dark">Límite: 4 Pautas</span>
                     </div>
                     <div class="card-body">
-                        <div class="alert alert-info mb-4 border-0 shadow-sm d-flex align-items-center" role="alert">
-                            <i class="bi bi-info-circle-fill fs-5 me-2 text-primary"></i>
-                            <div>
-                                <strong>Pauta digital obligatoria:</strong> Como Tutor Supervisor, debes completar las pautas de observación exclusivamente en línea a través del formulario digital interactivo. La carga en formato PDF/Word se ha retirado para automatizar la integración y el cálculo de la nota del estudiante.
-                            </div>
-                        </div>
-
                         <!-- Pautas requeridas organizadas por bloques según la práctica -->
                         <div th:if="${bloquesPautas != null and !bloquesPautas.isEmpty()}">
                             <div th:each="bloque : ${bloquesPautas}" class="mb-4">

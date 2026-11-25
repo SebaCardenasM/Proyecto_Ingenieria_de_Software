@@ -215,7 +215,8 @@ public class ChatbotService {
         }
 
         Integer nivel = doc.getNumeroPractica() != null ? doc.getNumeroPractica() : detectarNivelPractica(rutUsuario);
-        String tipo = doc.getTipoDocumento() == TipoDocumento.INFORME_FINAL ? "Informe final" : "Planificación de clase";
+        String tipo = doc.getTipoDocumento() == TipoDocumento.INFORME_FINAL ? "Informe final"
+                : (doc.getTipoDocumento() == TipoDocumento.DOCUMENTO_GENERAL ? "Documento general" : "Planificación de clase");
 
         String consultaRag = tipo + ". " + texto.substring(0, Math.min(500, texto.length()));
         String criterios = buscarFragmentos(consultaRag);

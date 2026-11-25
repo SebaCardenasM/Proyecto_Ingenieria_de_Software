@@ -26,8 +26,14 @@
         <div class="container">
             <div class="d-flex align-items-center">
                 <img th:src="@{/images/escudo-monocromatico-oscuro.png}" alt="Escudo Universidad del Bío-Bío" class="nav-logo">
-                <a class="navbar-brand fw-bold" th:href="@{/}">
-                    <i class="bi bi-arrow-left-circle me-2"></i>Volver al Panel
+                <a class="navbar-brand fw-bold" th:href="@{/profesor/index}" sec:authorize="hasRole('ROLE_PROFESOR_ASIGNATURA')">
+                    <i class="bi bi-arrow-left-circle me-2"></i>Volver al Dashboard
+                </a>
+                <a class="navbar-brand fw-bold" th:href="@{/index}" sec:authorize="hasRole('ROLE_COORDINADOR')">
+                    <i class="bi bi-arrow-left-circle me-2"></i>Volver al Dashboard
+                </a>
+                <a class="navbar-brand fw-bold" th:href="@{/tutor/index}" sec:authorize="hasRole('ROLE_TUTOR') and !hasRole('ROLE_COORDINADOR') and !hasRole('ROLE_PROFESOR_ASIGNATURA')">
+                    <i class="bi bi-arrow-left-circle me-2"></i>Volver al Dashboard
                 </a>
             </div>
             <div class="d-flex text-white align-items-center">

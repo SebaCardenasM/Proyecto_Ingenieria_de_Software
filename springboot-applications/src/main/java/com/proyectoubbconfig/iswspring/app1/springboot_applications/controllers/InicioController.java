@@ -1,9 +1,12 @@
 package com.proyectoubbconfig.iswspring.app1.springboot_applications.controllers;
 
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.EstadoPractica;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Estudiante;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Practica;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Usuario;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.NotificacionRepository;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.PlanificacionRepository;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.PracticaRepository;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -30,6 +33,9 @@ public class InicioController {
 
     @Autowired
     private PlanificacionRepository planificacionRepository;
+
+    @Autowired
+    private PracticaRepository practicaRepository;
 
     private boolean estaAutenticado(Authentication authentication) {
         return authentication != null
@@ -120,7 +126,11 @@ public class InicioController {
         model.addAttribute("avisosNuevos", notificacionRepository.contarNoLeidas(authentication.getName()));
         usuarioRepository.findByRut(authentication.getName()).ifPresent(u -> {
             if (u instanceof Estudiante est) {
-                model.addAttribute("practicaActual", est.getPracticaActual());
+                Practica activa = practicaRepository.findByEstudiante(est).stream()
+                        .filter(p -> p.getEstado() == EstadoPractica.PENDIENTE)
+                        .findFirst()
+                        .orElse(null);
+                model.addAttribute("practicaActual", activa != null ? activa.getNumeroPractica() : null);
             }
         });
         return "Estudiante/indexEstudiante";
