@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Configuración del Asistente IA - Prácticas UBB</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style> .ubb-bg { background-color: #004b85; } </style>
+    <link th:href="@{/css/ubb-index.css}" rel="stylesheet">
+</head>
+<body class="ubb-page ubb-inner">
+
+    <!-- Barra de navegación -->
+    <nav class="navbar navbar-dark ubb-bg mb-4 shadow-sm">
+        <div class="container-fluid px-4">
+            <div class="d-flex align-items-center">
+                <img th:src="@{/images/escudo-monocromatico-oscuro.png}" alt="Escudo Universidad del Bío-Bío" class="nav-logo">
+                <a class="navbar-brand fw-bold" th:href="@{${volver}}">
+                    <i class="bi bi-arrow-left-circle me-2"></i>Volver a Monitoreo
+                </a>
+            </div>
+            <div class="d-flex text-white align-items-center">
+                <i class="bi bi-sliders fs-5 me-2"></i>
+                <span>Coordinación de Prácticas</span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container px-4 px-md-5 mb-5">
+        <div class="row mb-4 align-items-center">
+            <div class="col-lg-8">
+                <h2 class="fw-bold text-dark mb-0">
+                    <i class="bi bi-robot text-primary me-2"></i>Instrucciones del Asistente IA (RetroPlani Mate)
+                </h2>
+                <p class="text-muted mt-1 mb-0">
+                    Adapta las directrices pedagógicas, el comportamiento formativo y las preguntas diagnósticas que guían a la IA sin tocar código fuente.
+                </p>
+            </div>
+            <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                <form th:action="@{/coordinador/configuracion-ia/restablecer}" method="post" class="d-inline"
+                      onsubmit="return confirm('¿Seguro que deseas restablecer las instrucciones a los valores oficiales de la carrera? Se perderán las modificaciones personalizadas.');">
+                    <button type="submit" class="btn btn-outline-secondary shadow-sm">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i> Restablecer por defecto
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Alerta de éxito -->
+        <div th:if="${mensajeExito}" class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i><span th:text="${mensajeExito}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <!-- Formulario de Configuración -->
+        <form th:action="@{/coordinador/configuracion-ia/guardar}" method="post">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3 border-bottom d-flex align-items-center">
+                    <i class="bi bi-chat-left-quote-fill text-primary fs-5 me-2"></i>
+                    <h5 class="mb-0 fw-bold">1. Instrucciones de Rol y Comportamiento (System Prompt)</h5>
+                </div>
+                <div class="card-body p-4">
+                    <p class="small text-muted mb-2">
+                        Define la personalidad, las reglas pedagógicas innegociables (no hacer clases desde cero, revisar momentos didácticos, verificar DUA y habilidades matemáticas) y cómo debe responder a las consultas.
+                    </p>
+                    <textarea class="form-control font-monospace" name="promptSistema" rows="12"
+                              th:text="${promptSistema}" required style="font-size: 0.9rem; line-height: 1.5;"></textarea>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3 border-bottom d-flex align-items-center">
+                    <i class="bi bi-patch-question-fill text-warning fs-5 me-2"></i>
+                    <h5 class="mb-0 fw-bold">2. Preguntas Diagnósticas e Introductorias Oficiales</h5>
+                </div>
+                <div class="card-body p-4">
+                    <p class="small text-muted mb-2">
+                        Preguntas que el asistente formula al estudiante antes de entregar la retroalimentación final o al consultar sobre su clase (extraídas del protocolo oficial de RetroPlani Mate V3).
+                    </p>
+                    <textarea class="form-control font-monospace" name="preguntasDiagnosticas" rows="8"
+                              th:text="${preguntasDiagnosticas}" required style="font-size: 0.9rem; line-height: 1.5;"></textarea>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3 border-bottom d-flex align-items-center">
+                    <i class="bi bi-megaphone-fill text-info fs-5 me-2"></i>
+                    <h5 class="mb-0 fw-bold">3. Saludo Inicial y Bienvenida al Estudiante</h5>
+                </div>
+                <div class="card-body p-4">
+                    <p class="small text-muted mb-2">
+                        Texto que se muestra automáticamente en el panel de conversación cuando el estudiante abre el asistente.
+                    </p>
+                    <textarea class="form-control" name="saludoInicial" rows="3"
+                              th:text="${saludoInicial}" required style="font-size: 0.9rem;"></textarea>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center">
+                <a th:href="@{${volver}}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle me-1"></i> Cancelar
+                </a>
+                <button type="submit" class="btn btn-primary px-4 shadow-sm">
+                    <i class="bi bi-check2-circle me-1"></i> Guardar Cambios
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

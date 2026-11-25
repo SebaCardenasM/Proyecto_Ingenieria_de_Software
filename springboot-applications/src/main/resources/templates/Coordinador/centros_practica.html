@@ -91,6 +91,14 @@
                         </tbody>
                     </table>
                 </div>
+        <!-- Botón para descargar como PDF con filtros activos -->
+        <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+            <small class="text-muted"><i class="bi bi-info-circle me-1"></i>Descargar vista actual con los filtros aplicados para respaldo físico.</small>
+            <button type="button" class="btn btn-sm btn-outline-danger shadow-sm" onclick="exportarTablaAPdf('tablaCentros', 'Nómina de Centros de Práctica')">
+                <i class="bi bi-file-earmark-pdf me-1"></i> Descargar como PDF
+            </button>
+        </div>
+
             </div>
         </div>
     </div>
@@ -138,5 +146,7 @@
         </div>
     </footer>
     <script>document.querySelectorAll('.anio').forEach(e => e.textContent = new Date().getFullYear());</script>
+
+    <script th:src="@{/js/exportar-pdf.js}"></script>
 </body>
 </html>

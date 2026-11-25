@@ -56,7 +56,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/chat/preguntar").authenticated()
                 // Paso 2 de la cadena: revisión de borradores (solo estudiantes)
                 .requestMatchers(HttpMethod.POST, "/api/chat/revisar/**").hasRole("ESTUDIANTE")
-                .requestMatchers(HttpMethod.GET, "/api/chat/historial").authenticated()
+                .requestMatchers(HttpMethod.GET, "/api/chat/historial", "/api/chat/configuracion-inicial").authenticated()
                 .requestMatchers(HttpMethod.POST, "/api/chat/resumen/**").hasAnyRole("COORDINADOR", "PROFESOR_ASIGNATURA")
 
                 // Cualquier otro endpoint de la API queda bloqueado (debe ir DESPUÉS de definir las rutas de /api/ permitidas)
@@ -73,7 +73,7 @@ public class SecurityConfig {
                 .requestMatchers("/tutor/**").hasRole("TUTOR")
 
                 // Coordinación (un solo bloque)
-                .requestMatchers("/estudiantes/**", "/profesores/**", "/colaboradores/**",
+                .requestMatchers("/coordinador/**", "/estudiantes/**", "/profesores/**", "/colaboradores/**",
                                 "/practicas/**", "/centros-practica/**",
                                 "/gestor-archivos/**", "/portafolios/**", "/usuarios/**",
                                 "/monitoreo-chat/**", "/index").hasRole("COORDINADOR")

@@ -124,7 +124,6 @@
                                         <th class="ps-3 py-2">Componente</th>
                                         <th class="text-end py-2" style="width: 135px;">Peso (%)</th>
                                         <th class="text-center py-2" style="width: 135px;">Nota (1-7)</th>
-                                        <th class="text-center py-2" style="width: 90px;">Aporte</th>
                                         <th id="thAccionEval" class="text-center py-2 d-none" style="width: 50px;"></th>
                                     </tr>
                                 </thead>
@@ -162,8 +161,6 @@
                                                        th:title="${comp.bloqueada ? 'Nota fijada automáticamente por la pauta en línea' : 'Ingresa la nota de 1,0 a 7,0'}">
                                             </div>
                                         </td>
-                                        <td class="text-center fw-semibold text-muted celda-aporte"
-                                            th:text="${comp.aportePonderado != null ? #numbers.formatDecimal(comp.aportePonderado, 1, 'POINT', 2, 'COMMA') : '—'}">—</td>
                                         <td class="text-center col-accion-eval d-none">
                                             <button type="button" class="btn btn-link text-danger p-0 btn-eliminar-eval"
                                                     th:classappend="${comp.bloqueada} ? 'disabled opacity-25' : ''"

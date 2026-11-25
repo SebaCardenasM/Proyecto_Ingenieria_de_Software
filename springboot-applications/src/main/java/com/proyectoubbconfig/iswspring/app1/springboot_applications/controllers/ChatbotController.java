@@ -23,8 +23,8 @@ import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Inter
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.InteraccionIARepository;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.PracticaRepository;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.services.ChatbotService;
-
-
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.services.ConfiguracionChatbotService;
+import java.util.Map;
 
 @Controller
 public class ChatbotController {
@@ -38,8 +38,20 @@ public class ChatbotController {
     @Autowired
     private InteraccionIARepository interaccionIARepository;
 
+    @Autowired
+    private ConfiguracionChatbotService configuracionChatbotService;
+
     public record ChatRequest(String mensaje) {}
     public record ChatResponse(String respuesta) {}
+
+    @GetMapping("/api/chat/configuracion-inicial")
+    @ResponseBody
+    public ResponseEntity<Map<String, String>> configuracionInicial() {
+        return ResponseEntity.ok(Map.of(
+                "saludo", configuracionChatbotService.obtenerSaludoInicial(),
+                "preguntas", configuracionChatbotService.obtenerPreguntasDiagnosticas()
+        ));
+    }
 
     // Endpoint para HU 1, 3, 4 y 5
     @PostMapping("/api/chat/preguntar")
