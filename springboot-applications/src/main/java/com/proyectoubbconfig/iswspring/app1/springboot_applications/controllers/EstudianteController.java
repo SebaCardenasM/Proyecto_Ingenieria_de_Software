@@ -368,6 +368,7 @@ public class EstudianteController {
                     model.addAttribute("tipoPauta", pauta.getTipoPauta() != null ? pauta.getTipoPauta().name() : "ESPECIALIDAD");
                     model.addAttribute("pautaJson", pauta.getObservaciones());
                     model.addAttribute("modoLectura", true);
+                    model.addAttribute("todasCompletadas", false);
                     model.addAttribute("vistaEstudiante", true);
                     model.addAttribute("esquemaPautaJson", plantillaPautaService.obtenerEsquemaActivoJson(pauta.getTipoPauta()));
                     return "Colaborador/evaluacion-colaborador";

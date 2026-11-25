@@ -109,7 +109,7 @@
                         </button>
                     </th:block>
                 </div>
-                <p th:if="${revisionIaObligatoria and !modoLectura}" class="small text-muted text-end mb-0">
+                <p th:if="${revisionIaObligatoria == true and modoLectura != true}" class="small text-muted text-end mb-0">
                     La revisión con el asistente es obligatoria: guarda el borrador, revísalo y envíalo desde «Mis Evidencias».
                 </p>
             </form>

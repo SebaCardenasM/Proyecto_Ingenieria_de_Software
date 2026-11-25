@@ -145,12 +145,25 @@
                         <form th:action="@{/profesor/duplas/crear}" method="post" id="formCrearDupla">
                             <input type="hidden" name="numeroPractica" th:value="${practicaSeleccionada}">
 
+                            <!-- Alerta informativa cuando no hay suficientes estudiantes para hacer una dupla -->
+                            <div th:if="${#lists.size(estudiantesDisponibles) < 2}" class="alert alert-warning py-2 px-3 small d-flex align-items-start mb-3 rounded-3 border-0 bg-warning bg-opacity-10 text-warning-emphasis">
+                                <i class="bi bi-info-circle-fill me-2 fs-6 mt-1 text-warning flex-shrink-0"></i>
+                                <div>
+                                    <strong class="d-block">Se requieren 2 estudiantes</strong>
+                                    <span th:if="${#lists.size(estudiantesDisponibles) == 1}">
+                                        Actualmente solo hay 1 estudiante disponible sin dupla. Registra o asigna al menos otro estudiante a esta práctica para conformar una pareja.
+                                    </span>
+                                    <span th:if="${#lists.isEmpty(estudiantesDisponibles)}">
+                                        No hay estudiantes disponibles sin dupla en esta práctica.
+                                    </span>
+                                </div>
+                            </div>
+
                             <!-- Estudiante 1 -->
                             <div class="mb-3">
                                 <label for="practica1Id" class="form-label fw-semibold small text-secondary">Primer Integrante *</label>
-                                <select class="form-select select-estudiante" id="practica1Id" name="practica1Id" required
-                                        th:disabled="${#lists.size(estudiantesDisponibles) < 2}">
-                                    <option value="" selected disabled>Selecciona el primer estudiante...</option>
+                                <select class="form-select select-estudiante" id="practica1Id" name="practica1Id" required>
+                                    <option value="" selected disabled th:text="${#lists.isEmpty(estudiantesDisponibles) ? 'No hay estudiantes disponibles...' : 'Selecciona el primer estudiante...'}">Selecciona el primer estudiante...</option>
                                     <option th:each="p : ${estudiantesDisponibles}"
                                             th:value="${p.id}"
                                             th:text="${p.estudiante.nombre + ' ' + p.estudiante.apellido + ' (' + p.estudiante.rut + ')'}">
@@ -161,9 +174,8 @@
                             <!-- Estudiante 2 -->
                             <div class="mb-4">
                                 <label for="practica2Id" class="form-label fw-semibold small text-secondary">Segundo Integrante *</label>
-                                <select class="form-select select-estudiante" id="practica2Id" name="practica2Id" required
-                                        th:disabled="${#lists.size(estudiantesDisponibles) < 2}">
-                                    <option value="" selected disabled>Selecciona el segundo estudiante...</option>
+                                <select class="form-select select-estudiante" id="practica2Id" name="practica2Id" required>
+                                    <option value="" selected disabled th:text="${#lists.isEmpty(estudiantesDisponibles) ? 'No hay estudiantes disponibles...' : 'Selecciona el segundo estudiante...'}">Selecciona el segundo estudiante...</option>
                                     <option th:each="p : ${estudiantesDisponibles}"
                                             th:value="${p.id}"
                                             th:text="${p.estudiante.nombre + ' ' + p.estudiante.apellido + ' (' + p.estudiante.rut + ')'}">

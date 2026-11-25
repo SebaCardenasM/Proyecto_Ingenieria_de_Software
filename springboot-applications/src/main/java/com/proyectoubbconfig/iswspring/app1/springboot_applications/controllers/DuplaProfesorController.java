@@ -25,14 +25,22 @@ public class DuplaProfesorController {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
+    private boolean esCoordinador(Authentication auth) {
+        if (auth == null) return false;
+        return auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_COORDINADOR"));
+    }
+
     @GetMapping({"", "/"})
     public String verDuplas(@RequestParam(value = "practica", required = false) Integer numPractica,
-                            Model model, Principal principal) {
-        if (principal == null) {
+                            Model model, Authentication authentication) {
+        if (authentication == null) {
             return "redirect:/login";
         }
-        String rutProfesor = principal.getName();
-        List<Integer> practicasConDuplas = duplaService.obtenerNumerosPracticaConDuplasDeProfesor(rutProfesor);
+        String rutProfesor = authentication.getName();
+        boolean coord = esCoordinador(authentication);
+
+        List<Integer> practicasConDuplas = coord ? List.of(3, 4) : duplaService.obtenerNumerosPracticaConDuplasDeProfesor(rutProfesor);
 
         // Si se especificó una práctica y es válida
         Integer seleccionada = null;
@@ -45,9 +53,9 @@ public class DuplaProfesorController {
             seleccionada = 3;
         }
 
-        List<Dupla> duplas = duplaService.listarDuplasPorProfesorYPractica(rutProfesor, seleccionada);
-        List<Practica> estudiantesDisponibles = duplaService.listarEstudiantesDisponibles(rutProfesor, seleccionada);
-        List<Practica> todosEstudiantes = duplaService.listarTodosEstudiantesDeProfesor(rutProfesor, seleccionada);
+        List<Dupla> duplas = duplaService.listarDuplas(rutProfesor, seleccionada, coord);
+        List<Practica> estudiantesDisponibles = duplaService.listarEstudiantesDisponibles(rutProfesor, seleccionada, coord);
+        List<Practica> todosEstudiantes = duplaService.listarTodosEstudiantes(rutProfesor, seleccionada, coord);
 
         model.addAttribute("practicasConDuplas", practicasConDuplas);
         model.addAttribute("practicaSeleccionada", seleccionada);
@@ -70,10 +78,12 @@ public class DuplaProfesorController {
     public String crearDupla(@RequestParam Long practica1Id,
                              @RequestParam Long practica2Id,
                              @RequestParam Integer numeroPractica,
-                             Principal principal,
+                             Authentication authentication,
                              RedirectAttributes redirectAttributes) {
+        if (authentication == null) return "redirect:/login";
+        boolean coord = esCoordinador(authentication);
         try {
-            Dupla d = duplaService.crearDupla(principal.getName(), practica1Id, practica2Id, numeroPractica);
+            Dupla d = duplaService.crearDupla(authentication.getName(), practica1Id, practica2Id, numeroPractica, coord);
             redirectAttributes.addFlashAttribute("tituloExito", "¡Dupla conformada!");
             redirectAttributes.addFlashAttribute("mensajeExito",
                     "Se ha conformado exitosamente la dupla entre " +
@@ -89,10 +99,12 @@ public class DuplaProfesorController {
     @PostMapping("/eliminar/{id}")
     public String eliminarDupla(@PathVariable Long id,
                                 @RequestParam Integer numeroPractica,
-                                Principal principal,
+                                Authentication authentication,
                                 RedirectAttributes redirectAttributes) {
+        if (authentication == null) return "redirect:/login";
+        boolean coord = esCoordinador(authentication);
         try {
-            duplaService.eliminarDupla(principal.getName(), id);
+            duplaService.eliminarDupla(authentication.getName(), id, coord);
             redirectAttributes.addFlashAttribute("tituloExito", "¡Dupla deshecha!");
             redirectAttributes.addFlashAttribute("mensajeExito",
                     "La dupla fue deshecha correctamente. Los estudiantes quedaron disponibles para asignarse a una nueva pareja.");

@@ -68,4 +68,24 @@ class DuplaServiceTest {
             duplaService.crearDupla("123", 1L, 2L, 5);
         }, "Práctica 5 no permite duplas");
     }
+
+    @Test
+    void testListarEstudiantesDisponiblesCoordinador() {
+        List<Practica> disp = duplaService.listarEstudiantesDisponibles("CUALQUIERA", 3, true);
+        assertNotNull(disp);
+    }
+
+    @Test
+    void testEstudiantesConPracticaAprobadaNoAparecenComoDisponibles() {
+        // Matías Pérez (20.222.333-8) aprobó la Práctica 3 y está cursando la Práctica 4 (PENDIENTE)
+        List<Practica> todosP3 = duplaService.listarTodosEstudiantes("22.222.222-2", 3, true);
+        boolean p3ContieneMatias = todosP3.stream()
+                .anyMatch(p -> p.getEstudiante() != null && "20.222.333-8".equals(p.getEstudiante().getRut()));
+        assertFalse(p3ContieneMatias, "Matías Pérez no debe aparecer en Práctica 3 porque ya la tiene aprobada");
+
+        List<Practica> todosP4 = duplaService.listarTodosEstudiantes("22.222.222-2", 4, true);
+        boolean p4ContieneMatias = todosP4.stream()
+                .anyMatch(p -> p.getEstudiante() != null && "20.222.333-8".equals(p.getEstudiante().getRut()));
+        assertTrue(p4ContieneMatias, "Matías Pérez sí debe aparecer en Práctica 4 porque está en curso (PENDIENTE)");
+    }
 }
