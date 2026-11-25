@@ -47,6 +47,9 @@ public class EvaluacionPracticaService {
     @Autowired(required = false)
     private DocumentoRepository documentoRepository;
 
+    @Autowired(required = false)
+    private PlantillaPautaService plantillaPautaService;
+
     public String nombreAsignatura(int numeroPractica) {
         if (numeroPractica >= 1 && numeroPractica <= NOMBRES_PRACTICA.length) {
             return numeroPractica + ". " + NOMBRES_PRACTICA[numeroPractica - 1];
@@ -470,8 +473,29 @@ public class EvaluacionPracticaService {
         if (puntaje <= 7.0 && puntaje >= 1.0) {
             return Math.round(puntaje * 10.0) / 10.0;
         }
-        int totalCriterios = pauta.getTipoPauta() != null ? pauta.getTipoPauta().getTotalCriterios() : 20;
-        if (totalCriterios <= 0) totalCriterios = 20;
+
+        int totalCriterios = 0;
+        if (pauta.getObservaciones() != null && pauta.getObservaciones().contains("\"respuestas\":[")) {
+            try {
+                int start = pauta.getObservaciones().indexOf("\"respuestas\":[");
+                if (start >= 0) {
+                    int end = pauta.getObservaciones().indexOf("]", start);
+                    if (end > start) {
+                        String arrStr = pauta.getObservaciones().substring(start + 14, end).trim();
+                        if (!arrStr.isEmpty()) {
+                            totalCriterios = arrStr.split(",").length;
+                        }
+                    }
+                }
+            } catch (Exception ignored) {}
+        }
+        if (totalCriterios <= 0 && plantillaPautaService != null && pauta.getTipoPauta() != null) {
+            totalCriterios = plantillaPautaService.obtenerTotalCriterios(pauta.getTipoPauta());
+        }
+        if (totalCriterios <= 0) {
+            totalCriterios = pauta.getTipoPauta() != null ? pauta.getTipoPauta().getTotalCriterios() : 20;
+        }
+
         double nota = puntaje / (double) totalCriterios;
         if (nota < 1.0) nota = 1.0;
         if (nota > 7.0) nota = 7.0;

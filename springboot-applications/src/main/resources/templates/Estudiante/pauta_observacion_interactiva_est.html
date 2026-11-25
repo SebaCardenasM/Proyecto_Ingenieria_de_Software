@@ -456,8 +456,20 @@
             ]}
         ];
 
-        const sections = (tipoPautaActual === 'ORIENTACION') ? sectionsOrientacion : sectionsEspecialidad;
-        const totalCriterios = sections.reduce((acc, s) => acc + s.items.length, 0);
+        const esquemaConfigurado = /*[[${esquemaPautaJson}]]*/ null;
+        let sections;
+        if (esquemaConfigurado) {
+            try {
+                sections = typeof esquemaConfigurado === 'string' ? JSON.parse(esquemaConfigurado) : esquemaConfigurado;
+            } catch(e) {
+                console.error("Error al parsear esquema configurado de pauta:", e);
+                sections = (tipoPautaActual === 'ORIENTACION') ? sectionsOrientacion : sectionsEspecialidad;
+            }
+        } else {
+            sections = (tipoPautaActual === 'ORIENTACION') ? sectionsOrientacion : sectionsEspecialidad;
+        }
+
+        const totalCriterios = sections.reduce((acc, s) => acc + (Array.isArray(s.items) ? s.items.length : 0), 0);
         const maxPossible = totalCriterios * 7;
 
         const elTotalCriteria = document.getElementById("totalCriteriaLabel");

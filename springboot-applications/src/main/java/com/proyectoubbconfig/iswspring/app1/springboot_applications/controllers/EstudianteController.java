@@ -67,6 +67,9 @@ public class EstudianteController {
     @Autowired
     private com.proyectoubbconfig.iswspring.app1.springboot_applications.services.DuplaService duplaService;
 
+    @Autowired
+    private com.proyectoubbconfig.iswspring.app1.springboot_applications.services.PlantillaPautaService plantillaPautaService;
+
     @GetMapping({"/estudiantes", "/portafolios"})
     public String listarEstudiantes(Model model) {
         model.addAttribute("estudiantes", estudianteRepository.findAll());
@@ -366,6 +369,7 @@ public class EstudianteController {
                     model.addAttribute("pautaJson", pauta.getObservaciones());
                     model.addAttribute("modoLectura", true);
                     model.addAttribute("vistaEstudiante", true);
+                    model.addAttribute("esquemaPautaJson", plantillaPautaService.obtenerEsquemaActivoJson(pauta.getTipoPauta()));
                     return "Colaborador/evaluacion-colaborador";
                 }
 
@@ -379,6 +383,7 @@ public class EstudianteController {
                 model.addAttribute("modoLectura", true);
                 model.addAttribute("vistaEstudiante", true);
                 model.addAttribute("tipoPauta", pauta.getTipoPauta());
+                model.addAttribute("esquemaPautaJson", plantillaPautaService.obtenerEsquemaActivoJson(pauta.getTipoPauta()));
                 return "Tutor/pauta_observacion_interactiva";
             }
         }

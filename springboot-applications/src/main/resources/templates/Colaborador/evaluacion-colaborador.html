@@ -380,12 +380,33 @@
             ]}
         ];
 
+        const esquemaEspConfig = /*[[${esquemaEspecialidadJson}]]*/ null;
+        const esquemaOriConfig = /*[[${esquemaOrientacionJson}]]*/ null;
+        const esquemaGenericoConfig = /*[[${esquemaPautaJson}]]*/ null;
+
+        let dynEspecialidad = sectionsEspecialidad;
+        let dynOrientacion = sectionsOrientacion;
+
+        if (esquemaEspConfig) {
+            try { dynEspecialidad = typeof esquemaEspConfig === 'string' ? JSON.parse(esquemaEspConfig) : esquemaEspConfig; } catch(e){}
+        }
+        if (esquemaOriConfig) {
+            try { dynOrientacion = typeof esquemaOriConfig === 'string' ? JSON.parse(esquemaOriConfig) : esquemaOriConfig; } catch(e){}
+        }
+        if (esquemaGenericoConfig) {
+            try {
+                const parsed = typeof esquemaGenericoConfig === 'string' ? JSON.parse(esquemaGenericoConfig) : esquemaGenericoConfig;
+                dynEspecialidad = parsed;
+                dynOrientacion = parsed;
+            } catch(e){}
+        }
+
         let currentTotalCriterios = 20;
         let currentMaxPossible = 140;
 
         function renderRubric(tipo) {
-            const sections = (tipo === 'ORIENTACION') ? sectionsOrientacion : sectionsEspecialidad;
-            currentTotalCriterios = sections.reduce((acc, s) => acc + s.items.length, 0);
+            const sections = (tipo === 'ORIENTACION') ? dynOrientacion : dynEspecialidad;
+            currentTotalCriterios = sections.reduce((acc, s) => acc + (Array.isArray(s.items) ? s.items.length : 0), 0);
             currentMaxPossible = currentTotalCriterios * 7;
 
             const elTotalCriteria = document.getElementById("totalCriteriaLabel");

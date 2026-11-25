@@ -11,6 +11,7 @@ import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.PracticaRepository;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.repositories.UsuarioRepository;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.services.EvaluacionPracticaService;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.services.PlantillaPautaService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -45,6 +46,9 @@ public class TutorController {
 
     @Autowired
     private EvaluacionPracticaService evaluacionPracticaService;
+
+    @Autowired
+    private PlantillaPautaService plantillaPautaService;
 
     /* 1. Mostrar la lista de alumnos asignados al tutor */
     @GetMapping("/alumnos")
@@ -152,6 +156,7 @@ public class TutorController {
                 model.addAttribute("tipoPauta", tipoEnum.name());
                 model.addAttribute("numeroObservacion", obs);
                 model.addAttribute("tituloPauta", resolverTituloPauta(practica, tipoEnum, obs));
+                model.addAttribute("esquemaPautaJson", plantillaPautaService.obtenerEsquemaActivoJson(tipoEnum));
                 return "Tutor/pauta_observacion_interactiva";
             }
         }
@@ -204,7 +209,7 @@ public class TutorController {
 
                 TipoPauta tipoEnum = "ORIENTACION".equalsIgnoreCase(tipoPauta) ? TipoPauta.ORIENTACION : TipoPauta.ESPECIALIDAD;
                 int obs = (numObs != null && numObs == 2) ? 2 : 1;
-                int totalCriterios = tipoEnum.getTotalCriterios();
+                int totalCriterios = plantillaPautaService.obtenerTotalCriterios(tipoEnum);
 
                 List<Integer> respuestas = new ArrayList<>();
                 double sumaPuntaje = 0;
@@ -309,6 +314,7 @@ public class TutorController {
             model.addAttribute("tipoPauta", tipoEnum.name());
             model.addAttribute("numeroObservacion", obs);
             model.addAttribute("tituloPauta", resolverTituloPauta(practica, tipoEnum, obs));
+            model.addAttribute("esquemaPautaJson", plantillaPautaService.obtenerEsquemaActivoJson(tipoEnum));
             return "Tutor/pauta_observacion_interactiva";
         }
 

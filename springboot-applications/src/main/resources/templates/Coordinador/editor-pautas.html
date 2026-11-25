@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Editor de Formularios de Pautas - Pedagogía en Educación Matemática</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link th:href="@{/css/ubb-index.css}" rel="stylesheet">
+    <style>
+        :root {
+            --ubb-blue: #004b85;
+            --ubb-blue-light: #e9f0f8;
+            --line-color: #dee2e6;
+        }
+        .ubb-bg { background-color: var(--ubb-blue) !important; }
+
+        .editor-container {
+            max-width: 1150px;
+            margin: 0 auto;
+        }
+
+        .apartado-card {
+            border: 1px solid var(--line-color);
+            border-radius: 8px;
+            background: #ffffff;
+            transition: box-shadow 0.2s ease, border-color 0.2s ease;
+            position: relative;
+        }
+        .apartado-card:hover {
+            box-shadow: 0 4px 14px rgba(0, 75, 133, 0.08);
+            border-color: #b8daff;
+        }
+
+        .apartado-header {
+            background-color: var(--ubb-blue-light);
+            border-bottom: 1px solid #cfe2ff;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            padding: 12px 16px;
+        }
+
+        .criterio-item {
+            background-color: #fdfdfd;
+            border: 1px solid #edf0f2;
+            border-radius: 6px;
+            padding: 10px 14px;
+            margin-bottom: 10px;
+            transition: all 0.15s ease-in-out;
+        }
+        .criterio-item:hover {
+            background-color: #f8fbff;
+            border-color: #cfe2ff;
+        }
+
+        .badge-numero {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+            background-color: var(--ubb-blue);
+            color: #ffffff;
+            flex-shrink: 0;
+        }
+
+        .sticky-summary {
+            position: sticky;
+            top: 15px;
+            z-index: 1020;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(4px);
+            border: 1px solid #b8daff;
+            border-left: 5px solid var(--ubb-blue);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-move {
+            padding: 2px 7px;
+            font-size: 0.8rem;
+            line-height: 1.2;
+        }
+
+        .tipo-pill.active {
+            background-color: var(--ubb-blue) !important;
+            color: #ffffff !important;
+            font-weight: 600;
+        }
+
+        .tipo-pill {
+            color: var(--ubb-blue);
+            font-weight: 500;
+            border: 1px solid #cfe2ff;
+        }
+
+        .empty-state {
+            border: 2px dashed #ced4da;
+            border-radius: 8px;
+            padding: 3rem 1.5rem;
+            text-align: center;
+            background-color: #fafbfc;
+        }
+    </style>
+</head>
+<body class="ubb-page ubb-inner">
+
+    <!-- BARRA INSTITUCIONAL SUPERIOR -->
+    <nav class="navbar navbar-expand-lg navbar-dark ubb-bg mb-4 shadow-sm">
+        <div class="container">
+            <div class="d-flex align-items-center">
+                <img th:src="@{/images/escudo-monocromatico-oscuro.png}" alt="Escudo Universidad del Bío-Bío" class="nav-logo">
+                <a class="navbar-brand fw-bold" th:href="@{/index}">
+                    <i class="bi bi-arrow-left-circle me-2"></i>Volver al Dashboard
+                </a>
+            </div>
+
+            <div class="d-flex text-white align-items-center ms-auto">
+                <i class="bi bi-person-circle fs-3 me-2"></i>
+                <div class="d-flex flex-column text-end me-3">
+                    <span class="fw-bold lh-1" th:text="${usuarioActivo != null ? usuarioActivo.nombre + ' ' + usuarioActivo.apellido : 'Coordinador'}">Coordinador</span>
+                    <small class="text-white-50 mt-1" style="font-size: 0.75rem;" th:text="${#strings.arrayJoin(rolesUsuario, ', ')}">COORDINADOR</small>
+                </div>
+
+                <div th:if="${rolesUsuario != null and rolesUsuario.size() > 1}" class="me-2">
+                    <a th:href="@{/seleccionar-rol}" class="btn btn-outline-light btn-sm" title="Cambiar de perfil">
+                        <i class="bi bi-person-gear"></i> Cambiar Perfil
+                    </a>
+                </div>
+
+                <form th:action="@{/logout}" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-outline-light btn-sm" title="Cerrar sesión">
+                        <i class="bi bi-box-arrow-right"></i> Salir
+                    </button>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container pb-5 editor-container">
+
+        <!-- MENSAJES FLASH -->
+        <div th:if="${mensajeExito}" class="alert alert-success alert-dismissible fade show shadow-sm mb-4" role="alert">
+            <i class="bi bi-check-circle-fill me-2 fs-5 align-middle"></i>
+            <span th:text="${mensajeExito}">Operación completada</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div th:if="${mensajeError}" class="alert alert-danger alert-dismissible fade show shadow-sm mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2 fs-5 align-middle"></i>
+            <span th:text="${mensajeError}">Ocurrió un error</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <!-- ENCABEZADO DE PÁGINA -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+            <div>
+                <h2 class="fw-bold text-dark mb-1">
+                    <i class="bi bi-ui-checks-grid text-primary me-2"></i>Editor de Formularios de Pautas
+                </h2>
+                <p class="text-muted mb-0 small">
+                    Edite la estructura, apartados y criterios de evaluación de los dos tipos de pautas web oficiales de la carrera.
+                </p>
+            </div>
+
+            <div class="d-flex gap-2 align-items-center mt-2 mt-md-0">
+                <a th:href="@{/index}" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-x-circle me-1"></i> Cancelar y Volver
+                </a>
+            </div>
+        </div>
+
+        <!-- SELECTOR DE TIPO DE PAUTA (LOS DOS TIPOS) -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-3">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="fw-bold text-secondary me-2"><i class="bi bi-filter-circle me-1"></i>Tipo de Pauta a editar:</span>
+                        <div class="nav nav-pills gap-2" role="tablist">
+                            <a th:href="@{/coordinador/formularios-pautas(tipo='ESPECIALIDAD')}"
+                               class="nav-link tipo-pill px-3 py-2"
+                               th:classappend="${tipoStr == 'ESPECIALIDAD'} ? 'active' : ''">
+                                <i class="bi bi-calculator me-1"></i> Especialidad / Matemática
+                            </a>
+                            <a th:href="@{/coordinador/formularios-pautas(tipo='ORIENTACION')}"
+                               class="nav-link tipo-pill px-3 py-2"
+                               th:classappend="${tipoStr == 'ORIENTACION'} ? 'active' : ''">
+                                <i class="bi bi-compass me-1"></i> Orientación Pedagógica
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-light text-dark border px-2 py-1">
+                            <i class="bi bi-calendar-event me-1"></i>Última actualización:
+                            <span class="fw-semibold" th:text="${plantilla != null and plantilla.fechaActualizacion != null ? #temporals.format(plantilla.fechaActualizacion, 'dd/MM/yyyy HH:mm') : 'Por defecto'}">Hoy</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ALERTA DE BORRADOR EXISTENTE (SI CORRESPONDE) -->
+        <div th:if="${tieneBorrador and !editandoBorrador}" class="alert alert-warning alert-dismissible fade show shadow-sm mb-4" role="alert">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div>
+                    <i class="bi bi-info-circle-fill me-2 fs-5 align-middle"></i>
+                    <strong>Tienes un borrador guardado sin publicar</strong> para la pauta de <span th:text="${tipo.etiqueta}"></span>.
+                    Actualmente estás viendo la <em>versión oficial activa</em>.
+                </div>
+                <div class="d-flex gap-2">
+                    <a th:href="@{/coordinador/formularios-pautas(tipo=${tipoStr}, usarBorrador='true')}" class="btn btn-warning btn-sm fw-semibold">
+                        <i class="bi bi-pencil-square me-1"></i> Continuar editando borrador
+                    </a>
+                    <form th:action="@{/coordinador/formularios-pautas/descartar-borrador}" method="post" class="d-inline"
+                          onsubmit="return confirm('¿Seguro que deseas descartar el borrador guardado? Se mantendrá la versión oficial activa.');">
+                        <input type="hidden" name="tipo" th:value="${tipoStr}">
+                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                            <i class="bi bi-trash me-1"></i> Descartar borrador
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${editandoBorrador}" class="alert alert-info shadow-sm mb-4" role="alert">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div>
+                    <i class="bi bi-pencil-fill me-2 fs-5 align-middle"></i>
+                    <strong>Modo Borrador:</strong> Estás editando una versión de trabajo no publicada. Los tutores y colaboradores siguen evaluando con la versión oficial activa hasta que pulses <strong>"Guardar y Publicar"</strong>.
+                </div>
+                <div class="d-flex gap-2">
+                    <a th:href="@{/coordinador/formularios-pautas(tipo=${tipoStr})}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-eye me-1"></i> Ver versión activa
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- RESUMEN DINÁMICO STICKY QUE SE AJUSTA A LA EVALUACIÓN -->
+        <div class="sticky-summary rounded p-3 mb-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div class="d-flex align-items-center gap-4 flex-wrap">
+                <div>
+                    <span class="text-muted small d-block">Pauta Seleccionada</span>
+                    <span class="fw-bold text-dark fs-6" th:text="${plantilla.titulo}">Pauta</span>
+                </div>
+                <div>
+                    <span class="text-muted small d-block">Apartados (Secciones)</span>
+                    <span class="fw-bold fs-5 text-primary" id="resumenApartados">0</span>
+                </div>
+                <div>
+                    <span class="text-muted small d-block">Criterios Evaluables</span>
+                    <span class="fw-bold fs-5 text-success" id="resumenCriterios">0</span>
+                </div>
+                <div>
+                    <span class="text-muted small d-block">Puntaje Máximo (1-7)</span>
+                    <span class="fw-bold fs-5 text-secondary"><span id="resumenPuntaje">0</span> pts</span>
+                </div>
+                <div>
+                    <span class="text-muted small d-block">Escala por Criterio</span>
+                    <span class="badge bg-light text-dark border fw-semibold">1 a 7 puntos</span>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 align-items-center">
+                <button type="button" class="btn btn-outline-primary btn-sm fw-semibold" onclick="agregarApartado()">
+                    <i class="bi bi-plus-circle me-1"></i> Añadir Apartado
+                </button>
+            </div>
+        </div>
+
+        <!-- FORMULARIO PRINCIPAL DE EDICIÓN -->
+        <form id="formEditorPauta" th:action="@{/coordinador/formularios-pautas/guardar}" method="post">
+            <input type="hidden" name="tipo" th:value="${tipoStr}">
+            <input type="hidden" id="esquemaJsonInput" name="esquemaJson" value="">
+            <input type="hidden" id="accionInput" name="accion" value="ENVIAR">
+
+            <!-- CONTENEDOR DE APARTADOS (TARJETAS DINÁMICAS) -->
+            <div id="contenedorApartados" class="d-flex flex-column gap-3 mb-4">
+                <!-- Se inyecta dinámicamente con JavaScript -->
+            </div>
+
+            <!-- BOTÓN AÑADIR APARTADO AL FINAL -->
+            <div class="d-flex justify-content-center mb-4">
+                <button type="button" class="btn btn-outline-primary px-4 py-2 shadow-sm" onclick="agregarApartado()">
+                    <i class="bi bi-plus-lg me-1"></i> Añadir Nuevo Apartado a la Pauta
+                </button>
+            </div>
+
+            <!-- BARRA DE ACCIONES INFERIOR -->
+            <div class="card border-0 shadow-sm sticky-bottom mt-4 p-3 bg-white border-top">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                    <div class="d-flex flex-wrap gap-2">
+                        <!-- Botón Restablecer por defecto -->
+                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="confirmarRestablecer()">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i> Restablecer por defecto
+                        </button>
+                        <!-- Botón Cancelar -->
+                        <a th:href="@{/index}" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-x-lg me-1"></i> Cancelar
+                        </a>
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-2 ms-auto">
+                        <!-- Botón Guardar Borrador -->
+                        <button type="button" class="btn btn-warning text-dark fw-semibold" onclick="enviarFormulario('BORRADOR')">
+                            <i class="bi bi-floppy me-1"></i> Guardar Borrador
+                        </button>
+                        <!-- Botón Guardar y Publicar (Enviar) -->
+                        <button type="button" class="btn btn-success px-4 fw-semibold" onclick="enviarFormulario('ENVIAR')">
+                            <i class="bi bi-send-check-fill me-1"></i> Guardar y Publicar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <!-- FORMULARIO OCULTO PARA RESTABLECER POR DEFECTO -->
+        <form id="formRestablecer" th:action="@{/coordinador/formularios-pautas/restablecer}" method="post" style="display: none;">
+            <input type="hidden" name="tipo" th:value="${tipoStr}">
+        </form>
+
+    </main>
+
+    <!-- FOOTER INSTITUCIONAL -->
+    <footer class="ubb-footer compact">
+        <div class="container py-3 d-flex flex-column flex-md-row align-items-center justify-content-between gap-3 text-center text-md-start">
+            <div class="d-flex align-items-center gap-3">
+                <img th:src="@{/images/escudo-monocromatico-oscuro.png}" alt="Escudo Universidad del Bío-Bío" class="footer-logo">
+                <div>
+                    <div class="fw-bold">Universidad del Bío-Bío</div>
+                    <small>Escuela de Pedagogía en Educación Matemática</small>
+                </div>
+            </div>
+            <small>Plataforma de Prácticas · &copy; <span class="anio"></span></small>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>document.querySelectorAll('.anio').forEach(e => e.textContent = new Date().getFullYear());</script>
+
+    <!-- LÓGICA INTERACTIVA DEL EDITOR DE PAUTAS -->
+    <script th:inline="javascript">
+        // Esquema inicial cargado desde el controlador
+        const rawJsonInicial = /*[[${esquemaInicialJson}]]*/ '[]';
+        const tipoActual = /*[[${tipoStr}]]*/ 'ESPECIALIDAD';
+
+        let esquemaSecciones = [];
+        try {
+            esquemaSecciones = JSON.parse(rawJsonInicial);
+            if (!Array.isArray(esquemaSecciones)) {
+                esquemaSecciones = [];
+            }
+        } catch (e) {
+            console.error('Error al parsear el esquema inicial:', e);
+            esquemaSecciones = [];
+        }
+
+        // ---------- RENDERIZADO VISUAL DEL EDITOR ----------
+        function renderizarEditor() {
+            const contenedor = document.getElementById('contenedorApartados');
+            contenedor.innerHTML = '';
+
+            if (esquemaSecciones.length === 0) {
+                contenedor.innerHTML = `
+                    <div class="empty-state">
+                        <i class="bi bi-card-checklist fs-1 text-muted mb-2 d-block"></i>
+                        <h5 class="fw-bold text-dark">No hay apartados en esta pauta</h5>
+                        <p class="text-muted small mb-3">Haga clic en el botón inferior para comenzar a estructurar la pauta de evaluación.</p>
+                        <button type="button" class="btn btn-primary btn-sm" onclick="agregarApartado()">
+                            <i class="bi bi-plus-lg me-1"></i> Añadir Primer Apartado
+                        </button>
+                    </div>`;
+                actualizarMetricas();
+                return;
+            }
+
+            let globalItemCount = 0;
+
+            esquemaSecciones.forEach((sec, sIdx) => {
+                const totalItemsSec = Array.isArray(sec.items) ? sec.items.length : 0;
+                const canMoveUp = sIdx > 0;
+                const canMoveDown = sIdx < esquemaSecciones.length - 1;
+
+                const card = document.createElement('div');
+                card.className = 'card apartado-card shadow-sm';
+                card.dataset.sectionIndex = sIdx;
+
+                card.innerHTML = `
+                    <div class="apartado-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+                        <div class="d-flex align-items-center gap-2 flex-grow-1">
+                            <span class="badge bg-primary px-2 py-1">Apartado ${sIdx + 1}</span>
+                            <div class="btn-group btn-group-sm me-2" role="group">
+                                <button type="button" class="btn btn-outline-secondary btn-move" title="Mover apartado hacia arriba"
+                                        onclick="moverApartado(${sIdx}, -1)" ${canMoveUp ? '' : 'disabled'}>
+                                    <i class="bi bi-chevron-up"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-move" title="Mover apartado hacia abajo"
+                                        onclick="moverApartado(${sIdx}, 1)" ${canMoveDown ? '' : 'disabled'}>
+                                    <i class="bi bi-chevron-down"></i>
+                                </button>
+                            </div>
+                            <input type="text" class="form-control form-control-sm fw-bold border-primary-subtle"
+                                   placeholder="Título del apartado (Ej: ASPECTOS DE LA CLASE o DIMENSIÓN A: DISEÑO...)"
+                                   value="${escapeHtml(sec.titulo || '')}"
+                                   oninput="actualizarTituloApartado(${sIdx}, this.value)">
+                        </div>
+
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-secondary-subtle text-secondary border px-2 py-1">
+                                <i class="bi bi-list-check me-1"></i>${totalItemsSec} criterios
+                            </span>
+                            <button type="button" class="btn btn-outline-danger btn-sm" title="Eliminar este apartado"
+                                    onclick="eliminarApartado(${sIdx})">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card-body p-3">
+                        <div class="criterios-lista" id="criterios-lista-${sIdx}">
+                            <!-- Lista de criterios -->
+                        </div>
+
+                        <div class="d-flex justify-content-start mt-2">
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="agregarCriterio(${sIdx})">
+                                <i class="bi bi-plus-circle me-1"></i> Añadir Criterio a este Apartado
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                contenedor.appendChild(card);
+
+                // Renderizar los criterios de este apartado
+                const listaItems = card.querySelector(`#criterios-lista-${sIdx}`);
+                if (Array.isArray(sec.items) && sec.items.length > 0) {
+                    sec.items.forEach((itemText, iIdx) => {
+                        globalItemCount++;
+                        const canItemUp = iIdx > 0;
+                        const canItemDown = iIdx < sec.items.length - 1;
+
+                        const itemDiv = document.createElement('div');
+                        itemDiv.className = 'criterio-item d-flex align-items-start gap-2';
+                        itemDiv.innerHTML = `
+                            <div class="badge-numero mt-1" title="Criterio N° ${globalItemCount}">${globalItemCount}</div>
+                            
+                            <div class="btn-group-vertical btn-group-sm mt-1" role="group">
+                                <button type="button" class="btn btn-outline-secondary btn-move" title="Subir criterio"
+                                        onclick="moverCriterio(${sIdx}, ${iIdx}, -1)" ${canItemUp ? '' : 'disabled'}>
+                                    <i class="bi bi-caret-up-fill" style="font-size: 0.7rem;"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-move" title="Bajar criterio"
+                                        onclick="moverCriterio(${sIdx}, ${iIdx}, 1)" ${canItemDown ? '' : 'disabled'}>
+                                    <i class="bi bi-caret-down-fill" style="font-size: 0.7rem;"></i>
+                                </button>
+                            </div>
+
+                            <div class="flex-grow-1">
+                                <textarea class="form-control form-control-sm" rows="2"
+                                          placeholder="Describa el indicador o criterio evaluable que observará el docente..."
+                                          oninput="actualizarTextoCriterio(${sIdx}, ${iIdx}, this.value)">${escapeHtml(itemText || '')}</textarea>
+                            </div>
+
+                            <button type="button" class="btn btn-outline-danger btn-sm mt-1" title="Eliminar este criterio"
+                                    onclick="eliminarCriterio(${sIdx}, ${iIdx})">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        `;
+                        listaItems.appendChild(itemDiv);
+                    });
+                } else {
+                    listaItems.innerHTML = `
+                        <div class="alert alert-light border text-center text-muted py-2 mb-2 small">
+                            <i class="bi bi-info-circle me-1"></i>No hay criterios en este apartado todavía.
+                        </div>`;
+                }
+            });
+
+            actualizarMetricas();
+        }
+
+        // ---------- ACTUALIZACIÓN DE MÉTRICAS ----------
+        function actualizarMetricas() {
+            let totalCriterios = 0;
+            esquemaSecciones.forEach(sec => {
+                if (Array.isArray(sec.items)) {
+                    totalCriterios += sec.items.length;
+                }
+            });
+
+            const totalApartados = esquemaSecciones.length;
+            const puntajeMax = totalCriterios * 7;
+
+            document.getElementById('resumenApartados').textContent = totalApartados;
+            document.getElementById('resumenCriterios').textContent = totalCriterios;
+            document.getElementById('resumenPuntaje').textContent = puntajeMax;
+        }
+
+        // ---------- ACCIONES SOBRE APARTADOS ----------
+        function agregarApartado() {
+            const num = esquemaSecciones.length + 1;
+            esquemaSecciones.push({
+                titulo: `NUEVO APARTADO ${num}`,
+                items: [
+                    'Descripción del primer criterio a evaluar en este apartado.'
+                ]
+            });
+            renderizarEditor();
+            // Scroll hacia el nuevo apartado
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        }
+
+        function actualizarTituloApartado(sIdx, nuevoTitulo) {
+            if (esquemaSecciones[sIdx]) {
+                esquemaSecciones[sIdx].titulo = nuevoTitulo;
+            }
+        }
+
+        function moverApartado(sIdx, direccion) {
+            const targetIdx = sIdx + direccion;
+            if (targetIdx < 0 || targetIdx >= esquemaSecciones.length) return;
+            const temp = esquemaSecciones[sIdx];
+            esquemaSecciones[sIdx] = esquemaSecciones[targetIdx];
+            esquemaSecciones[targetIdx] = temp;
+            renderizarEditor();
+        }
+
+        function eliminarApartado(sIdx) {
+            const sec = esquemaSecciones[sIdx];
+            const titulo = (sec && sec.titulo) ? sec.titulo : `Apartado ${sIdx + 1}`;
+            if (confirm(`¿Está seguro de eliminar el apartado "${titulo}" y todos sus criterios asociados?`)) {
+                esquemaSecciones.splice(sIdx, 1);
+                renderizarEditor();
+            }
+        }
+
+        // ---------- ACCIONES SOBRE CRITERIOS ----------
+        function agregarCriterio(sIdx) {
+            if (!esquemaSecciones[sIdx]) return;
+            if (!Array.isArray(esquemaSecciones[sIdx].items)) {
+                esquemaSecciones[sIdx].items = [];
+            }
+            esquemaSecciones[sIdx].items.push('');
+            renderizarEditor();
+        }
+
+        function actualizarTextoCriterio(sIdx, iIdx, nuevoTexto) {
+            if (esquemaSecciones[sIdx] && Array.isArray(esquemaSecciones[sIdx].items)) {
+                esquemaSecciones[sIdx].items[iIdx] = nuevoTexto;
+            }
+        }
+
+        function moverCriterio(sIdx, iIdx, direccion) {
+            const sec = esquemaSecciones[sIdx];
+            if (!sec || !Array.isArray(sec.items)) return;
+            const targetIdx = iIdx + direccion;
+            if (targetIdx < 0 || targetIdx >= sec.items.length) return;
+            const temp = sec.items[iIdx];
+            sec.items[iIdx] = sec.items[targetIdx];
+            sec.items[targetIdx] = temp;
+            renderizarEditor();
+        }
+
+        function eliminarCriterio(sIdx, iIdx) {
+            const sec = esquemaSecciones[sIdx];
+            if (!sec || !Array.isArray(sec.items)) return;
+            sec.items.splice(iIdx, 1);
+            renderizarEditor();
+        }
+
+        // ---------- ENVÍO DE FORMULARIO (BORRADOR O PUBLICAR) ----------
+        function enviarFormulario(accion) {
+            // Validaciones previas
+            if (esquemaSecciones.length === 0) {
+                alert('Debe existir al menos un apartado en la pauta.');
+                return;
+            }
+
+            let totalItems = 0;
+            for (let sIdx = 0; sIdx < esquemaSecciones.length; sIdx++) {
+                const sec = esquemaSecciones[sIdx];
+                if (!sec.titulo || sec.titulo.trim() === '') {
+                    alert(`El apartado N° ${sIdx + 1} no tiene un título asignado. Por favor agregue un título.`);
+                    return;
+                }
+                if (!Array.isArray(sec.items) || sec.items.length === 0) {
+                    alert(`El apartado "${sec.titulo}" debe tener al menos un criterio evaluable.`);
+                    return;
+                }
+                for (let iIdx = 0; iIdx < sec.items.length; iIdx++) {
+                    const txt = sec.items[iIdx];
+                    if (!txt || txt.trim() === '') {
+                        alert(`En el apartado "${sec.titulo}", el criterio N° ${iIdx + 1} está vacío. Ingrese el texto del criterio o elimínelo.`);
+                        return;
+                    }
+                    totalItems++;
+                }
+            }
+
+            if (totalItems === 0) {
+                alert('La pauta debe contener al menos un criterio de evaluación.');
+                return;
+            }
+
+            if (accion === 'ENVIAR') {
+                const conf = confirm(
+                    `¿Confirmar y publicar la nueva estructura para la Pauta de ${tipoActual}?\n\n` +
+                    `• Apartados: ${esquemaSecciones.length}\n` +
+                    `• Total de criterios: ${totalItems}\n` +
+                    `• Puntaje máximo: ${totalItems * 7} pts\n\n` +
+                    `Esta acción sobreescribirá la pauta web activa para los tutores y profesores colaboradores en todas las nuevas evaluaciones.`
+                );
+                if (!conf) return;
+            }
+
+            document.getElementById('accionInput').value = accion;
+            document.getElementById('esquemaJsonInput').value = JSON.stringify(esquemaSecciones);
+            document.getElementById('formEditorPauta').submit();
+        }
+
+        // ---------- RESTABLECER POR DEFECTO ----------
+        function confirmarRestablecer() {
+            const conf = confirm(
+                `¿Está seguro de restablecer el formulario de la Pauta de ${tipoActual} a su versión predeterminada oficial?\n\n` +
+                `Se descartará cualquier cambio y se restaurará el formato de rúbrica original de la Escuela de Pedagogía en Educación Matemática.`
+            );
+            if (conf) {
+                document.getElementById('formRestablecer').submit();
+            }
+        }
+
+        function escapeHtml(texto) {
+            return String(texto ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        // Iniciar al cargar el DOM
+        document.addEventListener('DOMContentLoaded', () => {
+            renderizarEditor();
+        });
+    </script>
+</body>
+</html>
