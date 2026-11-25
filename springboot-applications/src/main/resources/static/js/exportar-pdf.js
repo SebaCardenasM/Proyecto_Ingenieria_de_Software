@@ -38,6 +38,18 @@
                     }
                 }
             }
+            if (filtroAplicado === 'Sin filtros (Todos los registros)') {
+                const params = new URLSearchParams(window.location.search);
+                const filtrosUrl = [];
+                for (const [clave, valor] of params.entries()) {
+                    if (valor && valor.trim() !== '' && clave !== 'page' && clave !== 'size') {
+                        filtrosUrl.push(`${clave}: ${valor.trim()}`);
+                    }
+                }
+                if (filtrosUrl.length > 0) {
+                    filtroAplicado = 'Filtros aplicados (' + filtrosUrl.join(', ') + ')';
+                }
+            }
         }
 
         // Clonar la tabla original para procesarla
@@ -45,11 +57,22 @@
 
         // Identificar índice de columnas a excluir (ej. "Acciones", "Acción", "Aporte", o vacías)
         const thead = tablaClon.querySelector('thead');
-        const theadOrig = tabla.querySelector('thead');
         const indicesExcluidos = new Set();
         const headersTexto = [];
 
         if (thead) {
+            // Eliminar cualquier fila de encabezado que contenga selectores, inputs o filtros de búsqueda
+            const filasThead = Array.from(thead.querySelectorAll('tr'));
+            filasThead.forEach(tr => {
+                if (tr.querySelector('select, input, button') ||
+                    tr.classList.contains('fila-filtros') ||
+                    tr.classList.contains('d-print-none') ||
+                    tr.getAttribute('data-pdf-ignore') === 'true' ||
+                    tr.getAttribute('data-pdf-excluir') === 'true') {
+                    tr.remove();
+                }
+            });
+
             const ths = thead.querySelectorAll('th');
             ths.forEach((th, idx) => {
                 const txt = th.textContent.trim().toLowerCase();
@@ -154,6 +177,23 @@
 
             totalFilasVisibles++;
         }
+
+        // Remover columnas excluidas del tfoot si existe
+        const tfoot = tablaClon.querySelector('tfoot');
+        if (tfoot) {
+            const filasTfoot = Array.from(tfoot.querySelectorAll('tr'));
+            filasTfoot.forEach(tr => {
+                const celdasTfoot = Array.from(tr.querySelectorAll('td, th'));
+                for (let j = celdasTfoot.length - 1; j >= 0; j--) {
+                    if (indicesExcluidos.has(j)) {
+                        celdasTfoot[j].remove();
+                    }
+                }
+            });
+        }
+
+        // Eliminar cualquier control interactivo, selector, input o botón remanente en la tabla clonada
+        tablaClon.querySelectorAll('select, input, button, .btn, .filtro-par').forEach(el => el.remove());
 
         // Remover en toda la tabla clonada cualquier recuadro, borde redondeado o fondo de badges/chips
         tablaClon.querySelectorAll('.badge, .chip, [class*="badge-"], [class*="chip-"], .coment-box').forEach(el => {
