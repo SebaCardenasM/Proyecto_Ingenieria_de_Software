@@ -25,9 +25,12 @@ public class DuplaProfesorController {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
-    @GetMapping
+    @GetMapping({"", "/"})
     public String verDuplas(@RequestParam(value = "practica", required = false) Integer numPractica,
                             Model model, Principal principal) {
+        if (principal == null) {
+            return "redirect:/login";
+        }
         String rutProfesor = principal.getName();
         List<Integer> practicasConDuplas = duplaService.obtenerNumerosPracticaConDuplasDeProfesor(rutProfesor);
 

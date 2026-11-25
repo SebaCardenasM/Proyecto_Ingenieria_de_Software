@@ -69,6 +69,7 @@ public class SecurityConfig {
                 .requestMatchers("/estudiante/**").hasRole("ESTUDIANTE")
                 .requestMatchers("/profesor/archivos").hasAnyRole("PROFESOR_ASIGNATURA", "TUTOR")
                 .requestMatchers("/profesor/analiticas-ia").hasAnyRole("PROFESOR_ASIGNATURA", "TUTOR", "COORDINADOR")
+                .requestMatchers("/profesor/duplas", "/profesor/duplas/**").hasAnyRole("PROFESOR_ASIGNATURA", "COORDINADOR")
                 .requestMatchers("/profesor/**").hasRole("PROFESOR_ASIGNATURA")
                 .requestMatchers("/tutor/**").hasRole("TUTOR")
 

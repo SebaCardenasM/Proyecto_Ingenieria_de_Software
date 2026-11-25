@@ -203,12 +203,18 @@
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    <tr th:if="${#lists.isEmpty(duplas)}">
+                                        <td colspan="4" class="text-center text-muted py-5">
+                                            <i class="bi bi-people fs-3 d-block mb-2 text-secondary"></i>
+                                            No hay duplas conformadas aún para esta práctica.
+                                        </td>
+                                    </tr>
                                     <tr th:each="d, stat : ${duplas}">
                                         <td class="ps-4 py-3">
                                             <div class="d-flex flex-column gap-2">
                                                 <!-- Integrante 1 -->
                                                 <div class="d-flex align-items-center gap-2">
-                                                    <span class="avatar-est" th:text="${#strings.substring(d.estudiante1.nombre, 0, 1)}">A</span>
+                                                    <span class="avatar-est" th:text="${(d.estudiante1 != null and d.estudiante1.nombre != null and #strings.length(d.estudiante1.nombre) > 0) ? #strings.substring(d.estudiante1.nombre, 0, 1) : 'A'}">A</span>
                                                     <div>
                                                         <div class="fw-bold text-dark" th:text="${d.estudiante1.nombre + ' ' + d.estudiante1.apellido}">Estudiante 1</div>
                                                         <small class="text-muted" th:text="${d.estudiante1.correo != null ? d.estudiante1.correo : d.estudiante1.rut}">correo</small>
@@ -217,7 +223,7 @@
                                                 <!-- Integrante 2 -->
                                                 <div class="d-flex align-items-center gap-2">
                                                     <span class="avatar-est" style="background:#e8f5e9; color:#2e7d32;"
-                                                          th:text="${#strings.substring(d.estudiante2.nombre, 0, 1)}">B</span>
+                                                          th:text="${(d.estudiante2 != null and d.estudiante2.nombre != null and #strings.length(d.estudiante2.nombre) > 0) ? #strings.substring(d.estudiante2.nombre, 0, 1) : 'B'}">B</span>
                                                     <div>
                                                         <div class="fw-bold text-dark" th:text="${d.estudiante2.nombre + ' ' + d.estudiante2.apellido}">Estudiante 2</div>
                                                         <small class="text-muted" th:text="${d.estudiante2.correo != null ? d.estudiante2.correo : d.estudiante2.rut}">correo</small>
@@ -283,6 +289,12 @@
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    <tr th:if="${#lists.isEmpty(estudiantesDisponibles)}">
+                                        <td colspan="4" class="text-center text-muted py-4">
+                                            <i class="bi bi-check-circle fs-4 d-block mb-1 text-success"></i>
+                                            Todos los alumnos inscritos ya cuentan con dupla asignada.
+                                        </td>
+                                    </tr>
                                     <tr th:each="p : ${estudiantesDisponibles}">
                                         <td class="ps-4 py-2">
                                             <span class="fw-semibold text-dark" th:text="${p.estudiante.nombre + ' ' + p.estudiante.apellido}">Nombre</span>
