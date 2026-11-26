@@ -76,6 +76,9 @@ public class EvaluacionColaboradorService {
     @Autowired
     private EvaluacionPracticaService evaluacionPracticaService;
 
+    @Autowired
+    private PlantillaPautaService plantillaPautaService;
+
     // ------------------------------------------------------------------ validar enlace
 
     @Transactional(readOnly = true)
@@ -158,7 +161,7 @@ public class EvaluacionColaboradorService {
                 ? TipoPauta.ORIENTACION
                 : TipoPauta.ESPECIALIDAD;
         int numObs = identificadorPauta.contains("2") ? 2 : 1;
-        int totalCriterios = tipoPauta.getTotalCriterios();
+        int totalCriterios = plantillaPautaService != null ? plantillaPautaService.obtenerTotalCriterios(tipoPauta) : tipoPauta.getTotalCriterios();
 
         // Validar que esta pauta no haya sido enviada ya para este estudiante
         final TipoPauta tpFinal = tipoPauta;

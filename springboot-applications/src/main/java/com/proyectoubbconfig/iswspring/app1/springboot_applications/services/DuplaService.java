@@ -1,6 +1,7 @@
 package com.proyectoubbconfig.iswspring.app1.springboot_applications.services;
 
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Dupla;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.EstadoPractica;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Estudiante;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Practica;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Profesor;
@@ -38,6 +39,7 @@ public class DuplaService {
         if (profesor == null) return Collections.emptyList();
 
         return practicaRepository.findByProfesor(profesor).stream()
+                .filter(p -> p.getEstado() == EstadoPractica.PENDIENTE)
                 .map(Practica::getNumeroPractica)
                 .filter(Objects::nonNull)
                 .filter(PRACTICAS_EN_DUPLAS::contains)
@@ -48,33 +50,58 @@ public class DuplaService {
 
     @Transactional(readOnly = true)
     public List<Dupla> listarDuplasPorProfesorYPractica(String rutProfesor, Integer numeroPractica) {
+        return listarDuplas(rutProfesor, numeroPractica, false);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Dupla> listarDuplas(String rutProfesor, Integer numeroPractica, boolean esCoordinador) {
         if (!permiteDuplas(numeroPractica)) {
             return Collections.emptyList();
+        }
+        if (esCoordinador) {
+            return duplaRepository.findByNumeroPractica(numeroPractica);
         }
         return duplaRepository.findByProfesorRutAndNumeroPractica(rutProfesor, numeroPractica);
     }
 
     @Transactional(readOnly = true)
     public List<Practica> listarEstudiantesDisponibles(String rutProfesor, Integer numeroPractica) {
+        return listarEstudiantesDisponibles(rutProfesor, numeroPractica, false);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Practica> listarEstudiantesDisponibles(String rutProfesor, Integer numeroPractica, boolean esCoordinador) {
         if (!permiteDuplas(numeroPractica)) {
             return Collections.emptyList();
         }
-        Profesor profesor = profesorRepository.findById(rutProfesor).orElse(null);
-        if (profesor == null) return Collections.emptyList();
 
-        List<Practica> practicasProfesor = practicaRepository.findByProfesor(profesor).stream()
-                .filter(p -> numeroPractica.equals(p.getNumeroPractica()))
-                .filter(p -> p.getEstudiante() != null)
-                .toList();
+        List<Practica> practicas;
+        if (esCoordinador) {
+            practicas = practicaRepository.findByNumeroPractica(numeroPractica).stream()
+                    .filter(p -> p.getEstudiante() != null)
+                    .filter(p -> p.getEstado() == EstadoPractica.PENDIENTE)
+                    .toList();
+        } else {
+            Profesor profesor = profesorRepository.findById(rutProfesor).orElse(null);
+            if (profesor == null) return Collections.emptyList();
+            practicas = practicaRepository.findByProfesor(profesor).stream()
+                    .filter(p -> numeroPractica.equals(p.getNumeroPractica()))
+                    .filter(p -> p.getEstudiante() != null)
+                    .filter(p -> p.getEstado() == EstadoPractica.PENDIENTE)
+                    .toList();
+        }
 
-        List<Dupla> duplasExistentes = duplaRepository.findByProfesorRutAndNumeroPractica(rutProfesor, numeroPractica);
+        List<Dupla> duplasExistentes = esCoordinador
+                ? duplaRepository.findByNumeroPractica(numeroPractica)
+                : duplaRepository.findByProfesorRutAndNumeroPractica(rutProfesor, numeroPractica);
+
         Set<String> rutsConDupla = new HashSet<>();
         for (Dupla d : duplasExistentes) {
             if (d.getEstudiante1() != null) rutsConDupla.add(d.getEstudiante1().getRut());
             if (d.getEstudiante2() != null) rutsConDupla.add(d.getEstudiante2().getRut());
         }
 
-        return practicasProfesor.stream()
+        return practicas.stream()
                 .filter(p -> !rutsConDupla.contains(p.getEstudiante().getRut()))
                 .sorted(Comparator.comparing((Practica p) -> p.getEstudiante().getApellido(), String.CASE_INSENSITIVE_ORDER)
                         .thenComparing(p -> p.getEstudiante().getNombre(), String.CASE_INSENSITIVE_ORDER))
@@ -83,8 +110,21 @@ public class DuplaService {
 
     @Transactional(readOnly = true)
     public List<Practica> listarTodosEstudiantesDeProfesor(String rutProfesor, Integer numeroPractica) {
+        return listarTodosEstudiantes(rutProfesor, numeroPractica, false);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Practica> listarTodosEstudiantes(String rutProfesor, Integer numeroPractica, boolean esCoordinador) {
         if (!permiteDuplas(numeroPractica)) {
             return Collections.emptyList();
+        }
+        if (esCoordinador) {
+            return practicaRepository.findByNumeroPractica(numeroPractica).stream()
+                    .filter(p -> p.getEstudiante() != null)
+                    .filter(p -> p.getEstado() == EstadoPractica.PENDIENTE)
+                    .sorted(Comparator.comparing((Practica p) -> p.getEstudiante().getApellido(), String.CASE_INSENSITIVE_ORDER)
+                            .thenComparing(p -> p.getEstudiante().getNombre(), String.CASE_INSENSITIVE_ORDER))
+                    .toList();
         }
         Profesor profesor = profesorRepository.findById(rutProfesor).orElse(null);
         if (profesor == null) return Collections.emptyList();
@@ -92,6 +132,7 @@ public class DuplaService {
         return practicaRepository.findByProfesor(profesor).stream()
                 .filter(p -> numeroPractica.equals(p.getNumeroPractica()))
                 .filter(p -> p.getEstudiante() != null)
+                .filter(p -> p.getEstado() == EstadoPractica.PENDIENTE)
                 .sorted(Comparator.comparing((Practica p) -> p.getEstudiante().getApellido(), String.CASE_INSENSITIVE_ORDER)
                         .thenComparing(p -> p.getEstudiante().getNombre(), String.CASE_INSENSITIVE_ORDER))
                 .toList();
@@ -99,6 +140,11 @@ public class DuplaService {
 
     @Transactional
     public Dupla crearDupla(String rutProfesor, Long practica1Id, Long practica2Id, Integer numeroPractica) {
+        return crearDupla(rutProfesor, practica1Id, practica2Id, numeroPractica, false);
+    }
+
+    @Transactional
+    public Dupla crearDupla(String rutProfesor, Long practica1Id, Long practica2Id, Integer numeroPractica, boolean esCoordinador) {
         if (!permiteDuplas(numeroPractica)) {
             throw new IllegalArgumentException("La Práctica N° " + numeroPractica + " no permite modalidad en duplas (solo Prácticas 3 y 4).");
         }
@@ -114,14 +160,20 @@ public class DuplaService {
         Practica p2 = practicaRepository.findById(practica2Id)
                 .orElseThrow(() -> new IllegalArgumentException("La práctica del segundo estudiante no existe."));
 
-        if (p1.getProfesor() == null || !rutProfesor.equalsIgnoreCase(p1.getProfesor().getRut()) ||
-            p2.getProfesor() == null || !rutProfesor.equalsIgnoreCase(p2.getProfesor().getRut())) {
-            throw new IllegalArgumentException("Solo puedes formar duplas con estudiantes asignados a tus prácticas.");
+        if (!esCoordinador) {
+            if (p1.getProfesor() == null || !rutProfesor.equalsIgnoreCase(p1.getProfesor().getRut()) ||
+                p2.getProfesor() == null || !rutProfesor.equalsIgnoreCase(p2.getProfesor().getRut())) {
+                throw new IllegalArgumentException("Solo puedes formar duplas con estudiantes asignados a tus prácticas.");
+            }
         }
 
         if (!numeroPractica.equals(p1.getNumeroPractica()) || !numeroPractica.equals(p2.getNumeroPractica())) {
             throw new IllegalArgumentException("Ambos estudiantes deben pertenecer a la Práctica " + numeroPractica +
                     ". No se pueden mezclar estudiantes de prácticas diferentes.");
+        }
+
+        if (p1.getEstado() != EstadoPractica.PENDIENTE || p2.getEstado() != EstadoPractica.PENDIENTE) {
+            throw new IllegalArgumentException("Solo se pueden conformar duplas con estudiantes en prácticas activas (en curso).");
         }
 
         Estudiante e1 = p1.getEstudiante();
@@ -142,7 +194,7 @@ public class DuplaService {
                     " ya forma parte de otra dupla en la Práctica " + numeroPractica + ".");
         }
 
-        Profesor profesor = p1.getProfesor();
+        Profesor profesor = p1.getProfesor() != null ? p1.getProfesor() : (p2.getProfesor() != null ? p2.getProfesor() : profesorRepository.findById(rutProfesor).orElse(null));
         Integer ano = p1.getAno() != null ? p1.getAno() : p2.getAno();
         Integer semestre = p1.getSemestre() != null ? p1.getSemestre() : p2.getSemestre();
 
@@ -152,11 +204,18 @@ public class DuplaService {
 
     @Transactional
     public void eliminarDupla(String rutProfesor, Long duplaId) {
+        eliminarDupla(rutProfesor, duplaId, false);
+    }
+
+    @Transactional
+    public void eliminarDupla(String rutProfesor, Long duplaId, boolean esCoordinador) {
         Dupla dupla = duplaRepository.findById(duplaId)
                 .orElseThrow(() -> new IllegalArgumentException("No se encontró la dupla especificada."));
 
-        if (dupla.getProfesor() == null || !rutProfesor.equalsIgnoreCase(dupla.getProfesor().getRut())) {
-            throw new IllegalArgumentException("No tienes permisos para deshacer esta dupla.");
+        if (!esCoordinador) {
+            if (dupla.getProfesor() == null || !rutProfesor.equalsIgnoreCase(dupla.getProfesor().getRut())) {
+                throw new IllegalArgumentException("No tienes permisos para deshacer esta dupla.");
+            }
         }
 
         duplaRepository.delete(dupla);

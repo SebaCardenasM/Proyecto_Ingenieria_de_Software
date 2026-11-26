@@ -160,7 +160,7 @@
                 </div>
 
                 <!-- Botón volver (tutor) -->
-                <a th:if="${practica != null and (vistaEstudiante == null or !vistaEstudiante)}"
+                <a th:if="${practica != null and vistaEstudiante != true}"
                    th:href="@{/tutor/estudiante/{id}(id=${practica.id})}" class="btn btn-outline-light btn-sm">
                     <i class="bi bi-arrow-left me-1"></i> Volver al Perfil
                 </a>
@@ -205,7 +205,7 @@
                 </div>
 
                 <!-- Las indicaciones son solo para el tutor: el estudiante no las ve -->
-                <section th:if="${vistaEstudiante == null or !vistaEstudiante}" class="p-3 mb-4 bg-light border rounded small">
+                <section th:if="${vistaEstudiante != true}" class="p-3 mb-4 bg-light border rounded small">
                     <strong class="d-block mb-1">Indicaciones:</strong>
                     <strong class="d-block mb-2">
                         Estimado/a Académico(a) 
@@ -317,7 +317,7 @@
                 <div class="d-flex flex-wrap justify-content-between align-items-end mt-4 mb-2 border-bottom border-2 border-primary pb-2">
                     <h2 class="h6 fw-bold text-primary mb-0">OBSERVACIONES GENERALES:</h2>
                     
-                    <div class="d-flex align-items-center gap-2 no-print" th:if="${!modoLectura}">
+                    <div class="d-flex align-items-center gap-2 no-print" th:if="${modoLectura != true}">
                         <span id="voiceStatus" class="badge bg-danger d-none">
                             <i class="bi bi-record-circle me-1"></i>Grabando voz...
                         </span>
@@ -353,7 +353,7 @@
 
                 <!-- BARRA DE ACCIONES CON GUARDAR BORRADOR Y ENVIAR PAUTA -->
                 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-4 pt-3 border-top no-print">
-                    <div class="d-flex flex-wrap gap-2" th:if="${!modoLectura}">
+                    <div class="d-flex flex-wrap gap-2" th:if="${modoLectura != true}">
                         <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearScores()">
                             <i class="bi bi-eraser me-1"></i> Limpiar calificaciones
                         </button>
@@ -368,12 +368,12 @@
                         </button>
 
                         <!-- Botón 1: Guardar como Borrador (No exige tener todo lleno) -->
-                        <button th:if="${!modoLectura}" type="submit" name="accion" value="BORRADOR" formnovalidate class="btn btn-warning text-dark fw-semibold">
+                        <button th:if="${modoLectura != true}" type="submit" name="accion" value="BORRADOR" formnovalidate class="btn btn-warning text-dark fw-semibold">
                             <i class="bi bi-floppy-fill me-1"></i> Guardar como Borrador
                         </button>
 
                         <!-- Botón 2: Enviar Pauta Definitiva -->
-                        <button th:if="${!modoLectura}" type="submit" name="accion" value="ENVIAR" class="btn btn-success px-4 fw-semibold" onclick="return confirmarEnvioDefinitivo(event)">
+                        <button th:if="${modoLectura != true}" type="submit" name="accion" value="ENVIAR" class="btn btn-success px-4 fw-semibold" onclick="return confirmarEnvioDefinitivo(event)">
                             <i class="bi bi-send-check-fill me-1"></i> Enviar Pauta
                         </button>
                     </div>
@@ -456,8 +456,20 @@
             ]}
         ];
 
-        const sections = (tipoPautaActual === 'ORIENTACION') ? sectionsOrientacion : sectionsEspecialidad;
-        const totalCriterios = sections.reduce((acc, s) => acc + s.items.length, 0);
+        const esquemaConfigurado = /*[[${esquemaPautaJson}]]*/ null;
+        let sections;
+        if (esquemaConfigurado) {
+            try {
+                sections = typeof esquemaConfigurado === 'string' ? JSON.parse(esquemaConfigurado) : esquemaConfigurado;
+            } catch(e) {
+                console.error("Error al parsear esquema configurado de pauta:", e);
+                sections = (tipoPautaActual === 'ORIENTACION') ? sectionsOrientacion : sectionsEspecialidad;
+            }
+        } else {
+            sections = (tipoPautaActual === 'ORIENTACION') ? sectionsOrientacion : sectionsEspecialidad;
+        }
+
+        const totalCriterios = sections.reduce((acc, s) => acc + (Array.isArray(s.items) ? s.items.length : 0), 0);
         const maxPossible = totalCriterios * 7;
 
         const elTotalCriteria = document.getElementById("totalCriteriaLabel");

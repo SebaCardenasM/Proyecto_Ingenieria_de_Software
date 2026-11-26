@@ -233,7 +233,6 @@
                                             <th class="ps-3">Componente</th>
                                             <th class="text-end" style="width: 100px;">Peso</th>
                                             <th class="text-center" style="width: 100px;">Nota</th>
-                                            <th class="text-end pe-3" style="width: 100px;">Aporte</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -246,8 +245,6 @@
                                                       th:text="${#numbers.formatDecimal(c.nota, 1, 'POINT', 1, 'COMMA')}">6,0</span>
                                                 <span th:if="${c.nota == null}" class="text-muted fw-normal">Pendiente</span>
                                             </td>
-                                            <td class="text-end pe-3 text-muted"
-                                                th:text="${c.aportePonderado != null ? #numbers.formatDecimal(c.aportePonderado, 1, 'POINT', 2, 'COMMA') : '—'}">—</td>
                                         </tr>
                                     </tbody>
                                 </table>

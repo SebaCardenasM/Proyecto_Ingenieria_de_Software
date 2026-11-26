@@ -15,6 +15,9 @@ public interface DuplaRepository extends JpaRepository<Dupla, Long> {
     @Query("SELECT d FROM Dupla d WHERE d.profesor.rut = :rutProfesor AND d.numeroPractica = :num ORDER BY d.fechaCreacion DESC")
     List<Dupla> findByProfesorRutAndNumeroPractica(@Param("rutProfesor") String rutProfesor, @Param("num") Integer numeroPractica);
 
+    @Query("SELECT d FROM Dupla d WHERE d.numeroPractica = :num ORDER BY d.fechaCreacion DESC")
+    List<Dupla> findByNumeroPractica(@Param("num") Integer numeroPractica);
+
     @Query("SELECT d FROM Dupla d WHERE d.profesor.rut = :rutProfesor ORDER BY d.numeroPractica ASC, d.fechaCreacion DESC")
     List<Dupla> findByProfesorRut(@Param("rutProfesor") String rutProfesor);
 

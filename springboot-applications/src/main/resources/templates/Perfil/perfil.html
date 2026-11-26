@@ -80,12 +80,6 @@
                 <div class="flex-grow-1">
                     <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-md-start gap-2 mb-2">
                         <h2 class="fw-bold mb-0" th:text="${usuario.nombre + ' ' + usuario.apellido}">Nombre Completo</h2>
-                        <span th:if="${usuario.twoFactorEnabled}" class="badge bg-success-subtle text-success border border-success px-3 py-2 rounded-pill small">
-                            <i class="bi bi-shield-check me-1"></i>2FA Activo
-                        </span>
-                        <span th:unless="${usuario.twoFactorEnabled}" class="badge bg-warning-subtle text-warning border border-warning px-3 py-2 rounded-pill small">
-                            <i class="bi bi-shield-exclamation me-1"></i>2FA Inactivo
-                        </span>
                     </div>
 
                     <p class="text-white-50 mb-2">
@@ -118,7 +112,7 @@
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="seguridad-tab" data-bs-toggle="pill" data-bs-target="#tab-seguridad" type="button" role="tab">
-                    <i class="bi bi-shield-lock-fill me-1"></i> Seguridad y 2FA
+                    <i class="bi bi-shield-lock-fill me-1"></i> Seguridad
                 </button>
             </li>
         </ul>
@@ -384,15 +378,13 @@
 
             </div>
 
-            <!-- TAB 3: SEGURIDAD Y VERIFICACIÓN POR CORREO -->
+            <!-- TAB 3: SEGURIDAD (CAMBIO DE CONTRASEÑA) -->
             <div class="tab-pane fade" id="tab-seguridad" role="tabpanel">
-                <div class="row g-4">
-
-                    <!-- TARJETA 1: CAMBIAR CONTRASEÑA -->
-                    <div class="col-lg-6">
-                        <div class="card card-custom p-4 h-100">
+                <div class="row justify-content-center">
+                    <div class="col-lg-7 col-xl-6">
+                        <div class="card card-custom p-4 shadow-sm border-0">
                             <h4 class="fw-bold text-dark mb-1"><i class="bi bi-key-fill text-primary me-2"></i>Cambiar Contraseña</h4>
-                            <p class="text-muted small mb-4">Actualiza tu contraseña periódicamente para proteger tu cuenta institucional.</p>
+                            <p class="text-muted small mb-4">Actualiza tu contraseña periódicamente. Por seguridad, te enviaremos un código de confirmación a tu correo institucional.</p>
 
                             <form th:action="@{/perfil/cambiar-password}" method="post">
                                 <div class="mb-3">
@@ -425,83 +417,14 @@
                                     </div>
                                 </div>
 
-                                <div class="text-end">
-                                    <button type="submit" class="btn btn-primary px-4 py-2 fw-bold shadow-sm">
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-primary py-2 fw-bold shadow-sm">
                                         <i class="bi bi-shield-check me-1"></i> Actualizar Contraseña
                                     </button>
                                 </div>
                             </form>
                         </div>
                     </div>
-
-                    <!-- TARJETA 2: AUTENTICACIÓN EN DOS PASOS (2FA) -->
-                    <div class="col-lg-6">
-                        <div class="card card-custom p-4 h-100">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <h4 class="fw-bold text-dark mb-0"><i class="bi bi-envelope-shield text-primary me-2"></i>Autenticación en 2 Pasos (2FA)</h4>
-                            </div>
-                            <p class="text-muted small mb-4">Añade una capa de seguridad adicional mediante códigos de verificación enviados a tu correo.</p>
-
-                            <!-- ESTADO: YA ACTIVO -->
-                            <div th:if="${usuario.twoFactorEnabled}" class="text-center p-4 bg-success-subtle rounded-3 border border-success">
-                                <div class="d-inline-flex p-3 bg-success text-white rounded-circle mb-3 shadow-sm">
-                                    <i class="bi bi-shield-fill-check fs-1"></i>
-                                </div>
-                                <h5 class="fw-bold text-success mb-2">¡Tu cuenta está protegida con 2FA!</h5>
-                                <p class="text-muted small mb-4">
-                                    Tu cuenta cuenta con verificación de seguridad mediante códigos enviados a tu correo institucional <strong class="text-dark" th:text="${correoOculto}"></strong>.
-                                </p>
-
-                                <form th:action="@{/perfil/2fa/desactivar}" method="post" class="d-inline-block text-start w-100 max-w-sm">
-                                    <div class="mb-3">
-                                        <label for="passwordDesactivar" class="form-label fw-semibold small">Ingresa tu contraseña para desactivar:</label>
-                                        <input type="password" class="form-control form-control-sm" id="passwordDesactivar" name="password" required placeholder="Tu contraseña actual">
-                                    </div>
-                                    <button type="submit" class="btn btn-outline-danger w-100 btn-sm fw-semibold"
-                                            data-ubb-confirm="¿Seguro que deseas desactivar la autenticación en dos pasos?"
-                                            data-ubb-titulo="Desactivar 2FA"
-                                            data-ubb-boton="Sí, desactivar">
-                                        <i class="bi bi-shield-x me-1"></i> Desactivar 2FA
-                                    </button>
-                                </form>
-                            </div>
-
-                            <!-- ESTADO: INACTIVO (FORMULARIO PARA ACTIVAR) -->
-                            <div th:unless="${usuario.twoFactorEnabled}">
-                                <div class="alert alert-primary py-2 px-3 small mb-3 border-0 bg-primary bg-opacity-10 text-primary-emphasis d-flex align-items-center">
-                                    <i class="bi bi-envelope-check-fill fs-4 me-2 text-primary"></i>
-                                    <div>
-                                        Los códigos de verificación serán enviados directamente a tu correo institucional:
-                                        <strong class="d-block text-primary" th:text="${correoOculto}">tu correo institucional</strong>
-                                    </div>
-                                </div>
-
-                                <div class="card bg-light border p-3 text-center mb-3">
-                                    <span class="fw-bold text-dark mb-1 small d-block">Paso 1: Solicita el código a tu correo</span>
-                                    <p class="text-muted small mb-2">Presiona el botón para recibir tu código de 6 dígitos.</p>
-                                    <div>
-                                        <button type="button" id="btnEnviarCodigo2FA" class="btn btn-outline-primary btn-sm fw-semibold px-3">
-                                            <i class="bi bi-send-fill me-1"></i> Enviar código al correo
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <form th:action="@{/perfil/2fa/activar}" method="post">
-                                    <div class="mb-3">
-                                        <label for="codigo2fa" class="form-label fw-semibold small">Paso 2: Ingresa el código de 6 dígitos recibido</label>
-                                        <input type="text" class="form-control text-center fw-bold fs-5 letter-spacing-1" id="codigo2fa" name="codigo"
-                                               maxlength="6" pattern="[0-9]{6}" inputmode="numeric" placeholder="123456" required>
-                                    </div>
-
-                                    <button type="submit" class="btn btn-success w-100 py-2 fw-bold shadow-sm">
-                                        <i class="bi bi-shield-plus me-1"></i> Confirmar y Activar 2FA
-                                    </button>
-                                </form>
-                            </div>
-
-                        </div>
-                    </div>
-
                 </div>
             </div>
 
@@ -594,7 +517,6 @@
         }
 
         configurarEnvioCodigo('btnEnviarCodigoPassword', '/perfil/enviar-codigo-password');
-        configurarEnvioCodigo('btnEnviarCodigo2FA', '/perfil/enviar-codigo-2fa');
     </script>
 </body>
 </html>

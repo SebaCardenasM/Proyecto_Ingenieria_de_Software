@@ -196,6 +196,9 @@
                             <a th:href="@{/monitoreo-chat}" class="btn btn-outline-info text-dark">
                                 <i class="bi bi-chat-square-text me-1"></i> Ver Mensajes de Estudiantes
                             </a>
+                            <a th:href="@{/coordinador/configuracion-ia}" class="btn btn-outline-primary">
+                                <i class="bi bi-sliders me-1"></i> Configurar Instrucciones del Asistente (Prompt IA)
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -216,6 +219,24 @@
                             </a>
                             <a th:href="@{/colaboradores}" class="btn btn-outline-primary">
                                 <i class="bi bi-people me-1"></i> Ver Colaboradores
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7. Formularios de Pautas Web -->
+            <div class="col-md-6">
+                <div class="card ubb-card accent-green" style="--i:6">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="icon-bubble"><i class="bi bi-ui-checks-grid"></i></div>
+                            <h4 class="card-title mb-0">Formularios de Pautas</h4>
+                        </div>
+                        <p class="card-text text-muted mb-4">Edición interactiva de las pautas de observación (Especialidad y Orientación): modificar textos, reordenar apartados, añadir o quitar criterios.</p>
+                        <div class="d-grid gap-2">
+                            <a th:href="@{/coordinador/formularios-pautas}" class="btn btn-outline-success">
+                                <i class="bi bi-pencil-square me-1"></i> Editar Formularios de Pautas
                             </a>
                         </div>
                     </div>

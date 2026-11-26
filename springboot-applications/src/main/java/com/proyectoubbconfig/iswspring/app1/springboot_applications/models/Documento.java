@@ -44,7 +44,7 @@ public class Documento {
 
     // null = documentos anteriores a la cadena de revisión (se consideran ENVIADO)
     @Enumerated(EnumType.STRING)
-    @Column(name = "estado_envio")
+    @Column(name = "estado_envio", length = 50)
     private EstadoDocumento estado;
 
     // Revisión previa con el asistente de IA (opcional u obligatoria según configuración)

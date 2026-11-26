@@ -294,14 +294,17 @@
                                                 data-ubb-titulo="Autorizar clase"
                                                 data-ubb-boton="Autorizar"><i class="bi bi-check-lg"></i></button>
                                         </form>
+                                        <span class="indicador-print text-muted d-none">Por autorizar</span>
                                     </div>
 
                                     <div th:if="${f.revisada}" class="tick-fila">
                                         <span class="tick-ok" title="Planificación autorizada"><i class="bi bi-lock-fill"></i></span>
+                                        <span class="indicador-print text-success fw-bold d-none">Autorizada</span>
                                     </div>
 
                                     <div th:if="${f.estadoEnvio == 'CON_OBSERVACIONES' and !f.revisada}" class="tick-fila espera">
                                         <span><i class="bi bi-clock-history me-1"></i>Esperando<br>corrección</span>
+                                        <span class="indicador-print text-danger d-none">Con observaciones</span>
                                     </div>
                                 </td>
 
@@ -312,6 +315,7 @@
                                         <span th:if="${!f.revisada}" class="tick-disabled" title="Primero debes autorizar la planificación">
                                             <i class="bi bi-check-lg"></i>
                                         </span>
+                                        <span th:if="${!f.revisada}" class="indicador-print text-muted d-none">—</span>
 
                                         <!-- Habilitado: autorizada pero no marcada para pautas -->
                                         <form th:if="${f.revisada and !f.evaluaConPautas}"
@@ -324,9 +328,11 @@
                                                 data-ubb-titulo="Evaluar con pautas"
                                                 data-ubb-boton="Confirmar"><i class="bi bi-check-lg"></i></button>
                                         </form>
+                                        <span th:if="${f.revisada and !f.evaluaConPautas}" class="indicador-print text-muted d-none">Sin pautas</span>
 
                                         <!-- Marcada -->
                                         <span th:if="${f.evaluaConPautas}" class="tick-ok" title="La clase se evaluará con pautas"><i class="bi bi-check-lg"></i></span>
+                                        <span th:if="${f.evaluaConPautas}" class="indicador-print text-success fw-bold d-none">Pauta enviada</span>
                                     </div>
                                 </td>
                             </tr>
@@ -342,6 +348,14 @@
                         </tbody>
                     </table>
                 </div>
+        <!-- Botón para descargar como PDF con filtros activos -->
+        <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+            <small class="text-muted"><i class="bi bi-info-circle me-1"></i>Descargar vista actual con los filtros aplicados para respaldo físico.</small>
+            <button type="button" class="btn btn-sm btn-outline-danger shadow-sm" onclick="exportarTablaAPdf('tablaPlanificaciones', 'Planificaciones de Estudiantes en Revisión')">
+                <i class="bi bi-file-earmark-pdf me-1"></i> Descargar como PDF
+            </button>
+        </div>
+
             </div>
         </div>
     </div>
@@ -485,5 +499,7 @@
         </div>
     </footer>
     <script>document.querySelectorAll('.anio').forEach(e => e.textContent = new Date().getFullYear());</script>
+
+    <script th:src="@{/js/exportar-pdf.js}"></script>
 </body>
 </html>

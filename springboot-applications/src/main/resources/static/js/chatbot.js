@@ -71,7 +71,7 @@
         panel.hidden = false;
         $('ubbChatFab').hidden = true;
         if (!$('ubbChatMsgs').childElementCount) {
-            saludar();
+            await saludar();
             await cargarHistorial();
         }
     }
@@ -103,9 +103,30 @@
         return div;
     }
 
-    function saludar() {
-        agregarMensaje('bot', '<p>¡Hola! Soy el asistente de prácticas. Pregúntame sobre el reglamento, las pautas o tus documentos.</p>'
-            + (conArchivos ? '<p>Antes de enviar una planificación o un informe al gestor, puedes pedirme una <strong>revisión previa</strong> en la pestaña «Revisar documento».</p>' : ''));
+    async function saludar() {
+        let saludo = '<p>¡Hola! Soy <strong>RetroPlani Mate</strong>, tu asistente pedagógico en Educación Matemática (UBB).</p>';
+        let preguntas = '';
+        try {
+            const resp = await api('/api/chat/configuracion-inicial');
+            if (resp.ok) {
+                const data = await resp.json();
+                if (data.saludo) saludo = formatear(data.saludo);
+                if (data.preguntas) preguntas = data.preguntas;
+            }
+        } catch (e) { /* fallback si falla la red */ }
+
+        let html = saludo;
+        if (preguntas) {
+            html += '<div class="ubb-chat-preguntas-box mt-2 p-2 rounded bg-light border text-dark" style="font-size:0.85rem;">'
+                + '<strong><i class="bi bi-patch-question-fill text-warning me-1"></i>Preguntas Diagnósticas Previas:</strong>'
+                + '<p class="text-muted small mb-1">Al revisar tu planificación o diseñar tu clase, reflexiona sobre estas preguntas clave:</p>'
+                + formatear(preguntas)
+                + '</div>';
+        }
+        if (conArchivos) {
+            html += '<p class="mt-2 mb-0">Antes de enviar una planificación o informe al gestor, puedes pedirme una <strong>revisión previa</strong> en la pestaña «Revisar documento».</p>';
+        }
+        agregarMensaje('bot', html);
     }
 
     async function preguntar(texto) {

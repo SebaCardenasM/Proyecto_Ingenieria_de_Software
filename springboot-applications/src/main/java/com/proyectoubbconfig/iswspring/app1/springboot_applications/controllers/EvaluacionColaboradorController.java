@@ -17,11 +17,13 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.dto.PautaSlotDTO;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.Practica;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.models.TipoPauta;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.services.EvaluacionColaboradorService;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.services.EvaluacionColaboradorService.EnlaceNoDisponibleException;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.services.EvaluacionColaboradorService.Estado;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.services.EvaluacionColaboradorService.Validacion;
 import com.proyectoubbconfig.iswspring.app1.springboot_applications.services.EvaluacionPracticaService;
+import com.proyectoubbconfig.iswspring.app1.springboot_applications.services.PlantillaPautaService;
 
 /**
  * Formulario público del profesor colaborador (sin login). La ruta /evaluacion-colaborador/**
@@ -36,6 +38,9 @@ public class EvaluacionColaboradorController {
 
     @Autowired
     private EvaluacionPracticaService evaluacionPracticaService;
+
+    @Autowired
+    private PlantillaPautaService plantillaPautaService;
 
     @GetMapping("/{token}")
     @Transactional(readOnly = true)
@@ -88,6 +93,8 @@ public class EvaluacionColaboradorController {
         model.addAttribute("pautaJson", valores != null ? servicio.armarJson(valores) : "");
         model.addAttribute("valores", valores);
         model.addAttribute("error", error);
+        model.addAttribute("esquemaEspecialidadJson", plantillaPautaService.obtenerEsquemaActivoJson(TipoPauta.ESPECIALIDAD));
+        model.addAttribute("esquemaOrientacionJson", plantillaPautaService.obtenerEsquemaActivoJson(TipoPauta.ORIENTACION));
     }
 
     private String paginaEstado(Model model, String estado) {

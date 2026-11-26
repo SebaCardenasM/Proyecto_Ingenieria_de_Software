@@ -52,10 +52,10 @@
         <form method="get" th:action="@{/practicas/notas}">
             <div class="card border-0 shadow-sm">
                 <div class="table-responsive">
-                    <table class="table table-bordered table-sm align-middle text-center mb-0">
+                    <table id="tablaNotasEstudiantiles" class="table table-bordered table-sm align-middle text-center mb-0">
                         <thead class="table-light">
                         <!-- Fila de filtros -->
-                        <tr>
+                        <tr class="fila-filtros d-print-none" data-pdf-ignore="true">
                             <th><input type="text" name="rut" class="form-control form-control-sm" placeholder="Buscar" th:value="${filtro.rut}"></th>
                             <th><input type="text" name="nombre" class="form-control form-control-sm" placeholder="Buscar" th:value="${filtro.nombre}"></th>
                             <th>
@@ -119,6 +119,14 @@
                         </tfoot>
                     </table>
                 </div>
+        <!-- Botón para descargar como PDF con filtros activos -->
+        <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+            <small class="text-muted"><i class="bi bi-info-circle me-1"></i>Descargar vista actual con los filtros aplicados para respaldo físico.</small>
+            <button type="button" class="btn btn-sm btn-outline-danger shadow-sm" onclick="exportarTablaAPdf('tablaNotasEstudiantiles', 'Registro de Calificaciones Estudiantiles')">
+                <i class="bi bi-file-earmark-pdf me-1"></i> Descargar como PDF
+            </button>
+        </div>
+
             </div>
 
             <div class="d-flex justify-content-end gap-2 mt-3 mb-4">
@@ -148,5 +156,7 @@
         </div>
     </footer>
     <script>document.querySelectorAll('.anio').forEach(e => e.textContent = new Date().getFullYear());</script>
+
+    <script th:src="@{/js/exportar-pdf.js}"></script>
 </body>
 </html>
