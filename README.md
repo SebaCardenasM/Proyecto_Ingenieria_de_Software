@@ -49,8 +49,8 @@ Servicios externos opcionales para la configuracion del archivo (.env):
 ### 1. Clonar el repositorio
 
 ```bash
-git clone https://github.com/<usuario>/<repositorio>.git
-cd <repositorio>/springboot-applications
+git clone https://github.com/SebaCardenasM/Proyecto_Ingenieria_de_Software.git
+cd Proyecto_Ingenieria_de_Software/springboot-applications
 ```
 
 ### 2. Base de datos (XAMPP)
